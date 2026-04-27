@@ -102,7 +102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0a6a0cc723899134e937dc2def2a2751, type: 3}
       propertyPath: m_Name
-      value: hand_r
+      value: hand_r_prefab
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 0a6a0cc723899134e937dc2def2a2751, type: 3}
       propertyPath: m_Controller
@@ -144,6 +144,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3217672913527517013}
   m_SourcePrefab: {fileID: 100100000, guid: 0a6a0cc723899134e937dc2def2a2751, type: 3}
+--- !u!95 &3692417799793324489 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 0a6a0cc723899134e937dc2def2a2751, type: 3}
+  m_PrefabInstance: {fileID: 7085446190246005848}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7968528093181587721 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a6a0cc723899134e937dc2def2a2751, type: 3}
@@ -161,7 +166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65876c7a24e98404cba3ae3e762ae353, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRHandController
-  handAnimator: {fileID: 0}
+  handAnimator: {fileID: 3692417799793324489}
   gripAction:
     m_UseReference: 0
     m_Action:
