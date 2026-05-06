@@ -15,8 +15,18 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
     public Transform rightHandTransform;
 
-    void Start()
+    private void OnEnable()
     {
+        StartCoroutine(Register());
+    }
+
+    private IEnumerator Register()
+    {
+        while (NetworkManager.Instance == null || NetworkManager.Instance.Runner == null)
+        {
+            yield return null;
+        }
+
         NetworkManager.Instance.Runner.AddCallbacks(this);
     }
 
