@@ -31,7 +31,8 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (player == runner.LocalPlayer && playerPrefab != null)
+        // Host¸¸ ½ºÆù
+        if (runner.IsServer)
         {
             Vector3 spawnPosition = new Vector3(UnityEngine.Random.Range(1, 5), 0.5f, UnityEngine.Random.Range(1, 5));
 

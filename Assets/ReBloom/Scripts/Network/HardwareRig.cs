@@ -34,6 +34,7 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input)
     {
+        Debug.Log("OnInput called");
         RigState xrRigState = new RigState();
 
         xrRigState.HeadsetPosition = headTransform.position;

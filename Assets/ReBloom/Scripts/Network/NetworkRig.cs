@@ -5,7 +5,7 @@ using Fusion;
 
 public class NetworkRig : NetworkBehaviour
 {
-    public bool IsLocalNetworkRig => Object.HasStateAuthority;
+    public bool IsLocalNetworkRig => Object.HasInputAuthority;
 
     [Header("RigComponents")]
     [SerializeField]
@@ -29,8 +29,13 @@ public class NetworkRig : NetworkBehaviour
         if (IsLocalNetworkRig)
         {
             hardwareRig = FindObjectOfType<HardwareRig>();
+
             if (hardwareRig == null)
                 Debug.LogError("Missing HardwareRig in the scene");
+
+            var renderer = GetComponentInChildren<MeshRenderer>();
+            if (renderer != null)
+                renderer.enabled = false;
         }
         // else it means that this is a client
     }
@@ -39,16 +44,19 @@ public class NetworkRig : NetworkBehaviour
     {
         base.FixedUpdateNetwork();
 
-        if (GetInput<RigState>(out var input))
+        // 서버(권한 가진 쪽)가 모든 플레이어 위치 적용
+        if (Object.HasStateAuthority)
         {
-            playerTransform.transform.SetPositionAndRotation(input.PlayerPosition, input.PlayerRotation);
+            if (GetInput<RigState>(out var input))
+            {
+                playerTransform.transform.SetPositionAndRotation(input.PlayerPosition, input.PlayerRotation);
 
-            headTransform.transform.SetPositionAndRotation(input.HeadsetPosition, input.HeadsetRotation);
+                headTransform.transform.SetPositionAndRotation(input.HeadsetPosition, input.HeadsetRotation);
 
-            leftHandTransform.transform.SetPositionAndRotation(input.LeftHandPosition, input.LeftHandRotation);
+                leftHandTransform.transform.SetPositionAndRotation(input.LeftHandPosition, input.LeftHandRotation);
 
-            rightHandTransform.transform.SetPositionAndRotation(input.RightHandPosition, input.RightHandRotation);
-
+                rightHandTransform.transform.SetPositionAndRotation(input.RightHandPosition, input.RightHandRotation);
+            }
         }
     }
 

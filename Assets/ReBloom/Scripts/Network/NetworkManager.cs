@@ -70,6 +70,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         Runner = Instantiate(_runnerPrefab, transform).GetComponent<NetworkRunner>();
         Runner.AddCallbacks(this);
+        Runner.ProvideInput = true;
     }
 
     public async Task LoadScene()
