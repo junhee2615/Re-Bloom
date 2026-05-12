@@ -33,9 +33,11 @@ public class NetworkRig : NetworkBehaviour
             if (hardwareRig == null)
                 Debug.LogError("Missing HardwareRig in the scene");
 
-            var renderer = GetComponentInChildren<MeshRenderer>();
-            if (renderer != null)
+            // 로컬 플레이어의 모든 렌더러 끄기
+            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            {
                 renderer.enabled = false;
+            }
         }
         // else it means that this is a client
     }
