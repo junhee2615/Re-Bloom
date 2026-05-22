@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class NewMonoBehaviourScript : MonoBehaviour
+public class ControlSky : MonoBehaviour
 {
     // 회전하는 하늘
     void Update()
