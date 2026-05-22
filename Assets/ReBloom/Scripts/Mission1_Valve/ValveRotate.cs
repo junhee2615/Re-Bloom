@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -12,6 +13,10 @@ public class ValveRotate : MonoBehaviour
 
     void Update()
     {
+        // Client면 밸브 조작 불가
+        if (NetworkRunner.Instances[0].IsSharedModeMasterClient)
+            return;
+
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
 
         // 트리거 버튼 입력
