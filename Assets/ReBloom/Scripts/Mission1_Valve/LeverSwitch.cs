@@ -34,9 +34,7 @@ public class LeverSwitch : MonoBehaviour
             float delta = currentY - previousY;
 
             // 레버 회전
-            transform.Rotate(Vector3.forward,
-                             -delta * rotateSpeed,
-                             Space.Self);
+            transform.Rotate(Vector3.forward, delta * rotateSpeed, Space.Self);
 
             previousY = currentY;
 
