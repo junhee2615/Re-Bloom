@@ -14,6 +14,7 @@ public class LeverSwitch : MonoBehaviour
     public float rotateSpeed = 200f;
 
     public float activationAngle = -170;
+    private float currentAngle = 0f;
 
     void Start()
     {
@@ -27,28 +28,24 @@ public class LeverSwitch : MonoBehaviour
     {
         if (interactor != null)
         {
-            // 컨트롤러 현재 위치
             float currentY = interactor.position.y;
-
-            // 이동량 계산
             float delta = currentY - previousY;
 
-            // 레버 회전
-            transform.Rotate(Vector3.forward, delta * rotateSpeed, Space.Self);
+            currentAngle += delta * rotateSpeed;
+
+            // 회전 범위 제한
+            currentAngle = Mathf.Clamp(currentAngle, -170f, 0f);
+
+            // 직접 회전 적용
+            transform.localRotation = Quaternion.Euler(currentAngle, 0f, 0f);
 
             previousY = currentY;
 
-            // 현재 회전값 확인
-            float angle = transform.localEulerAngles.z;
+            Debug.Log(currentAngle);
 
-            if (angle > 180)
-                angle -= 360;
-
-            // 레버 활성화 판정
-            if (angle <= activationAngle && !isActivated)
+            if (currentAngle <= activationAngle && !isActivated)
             {
                 isActivated = true;
-
                 Debug.Log(gameObject.name + " Activated");
             }
         }
