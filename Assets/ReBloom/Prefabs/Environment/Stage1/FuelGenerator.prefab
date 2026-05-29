@@ -9,6 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3910690570475401150}
+  - component: {fileID: 4989029634725650589}
+  - component: {fileID: 4828578731143382931}
+  - component: {fileID: 5049546591386598216}
   m_Layer: 6
   m_Name: FuelGenerator
   m_TagString: Untagged
@@ -32,6 +35,68 @@ Transform:
   - {fileID: 8883106434693386007}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &4989029634725650589
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7964722282385894393}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -6856860307197519456, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
+--- !u!114 &4828578731143382931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7964722282385894393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26055835ee59ab948ac72bc3b7a8a44d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HapticTrigger
+  targetNode: 5
+--- !u!54 &5049546591386598216
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7964722282385894393}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
 --- !u!1001 &8993014737279101180
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41,8 +106,16 @@ PrefabInstance:
     m_TransformParent: {fileID: 3910690570475401150}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5373511
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalPosition.x
@@ -58,19 +131,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b3af9ae0c4a4ad942b3bb5dd9a66d125, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
