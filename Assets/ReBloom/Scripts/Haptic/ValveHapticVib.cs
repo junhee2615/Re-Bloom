@@ -9,8 +9,8 @@ public class ValveHapticVib : MonoBehaviour
     public void TriggerHaptic(float amplitude, float duration)
     {
         // Host면 진동 안 함
-        if (!NetworkRunner.Instances[0].IsSharedModeMasterClient)
-            return;
+        // if (!NetworkRunner.Instances[0].IsSharedModeMasterClient)
+           // return;
 
         InputDevice device = InputDevices.GetDeviceAtXRNode(targetNode);
 
