@@ -2831,6 +2831,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9140594028986485547}
+  - component: {fileID: 1306487259344567644}
+  - component: {fileID: 187908016528071193}
+  - component: {fileID: 7433455473696556608}
   m_Layer: 0
   m_Name: Player_Root
   m_TagString: Untagged
@@ -2858,6 +2861,70 @@ Transform:
   - {fileID: 8853732940755103184}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1306487259344567644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 1772298624
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 187908016528071193}
+  - {fileID: 7433455473696556608}
+  - {fileID: 7874007534624037014}
+  - {fileID: 951656718769161610}
+  - {fileID: 4079890754106162900}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &187908016528071193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a9591752ca03db4a8401e223e89add2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayer
+  bodyRoot: {fileID: 4895060287329297665}
+  mainCamera: {fileID: 7244827639410393658}
+  locomotion: {fileID: 2660962152284057276}
+  xrComponents:
+  - {fileID: 5413830351646397926}
+  - {fileID: 329736891954222500}
+  - {fileID: 576826762646830808}
+  - {fileID: 6896373754103705568}
+  - {fileID: 5493794258962639495}
+  - {fileID: 4151719473667556852}
+  - {fileID: 524649969815432918}
+  - {fileID: 1250491751734511302}
+--- !u!114 &7433455473696556608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &1089767386314623171
 GameObject:
   m_ObjectHideFlags: 0
@@ -2997,6 +3064,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6048476306809051451}
   - component: {fileID: 5012995520056916335}
+  - component: {fileID: 951656718769161610}
   m_Layer: 0
   m_Name: LeftHand_IK_Target
   m_TagString: Untagged
@@ -3089,6 +3157,23 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+--- !u!114 &951656718769161610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188605260414856453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &1196314507984691504
 GameObject:
   m_ObjectHideFlags: 0
@@ -3131,7 +3216,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7509884557824122434}
   - component: {fileID: 5908388899392333983}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Hair_base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5191,8 +5276,6 @@ GameObject:
   - component: {fileID: 5981088311461953448}
   - component: {fileID: 61350249998951165}
   - component: {fileID: 7568990280576533880}
-  - component: {fileID: 1845717337309970855}
-  - component: {fileID: 2031334443601065170}
   m_Layer: 9
   m_Name: hand_l
   m_TagString: Untagged
@@ -5265,55 +5348,6 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: 6558622148059887818, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   parameterName: Grip
---- !u!54 &1845717337309970855
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2227613262023042545}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!64 &2031334443601065170
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2227613262023042545}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 4888830922091850411, guid: 425a10b68828c1742a0b26a2595f5beb, type: 3}
 --- !u!1 &2246692905236309509
 GameObject:
   m_ObjectHideFlags: 0
@@ -10832,6 +10866,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5168115213708118743}
   - component: {fileID: 594986372480907928}
+  - component: {fileID: 7874007534624037014}
   m_Layer: 0
   m_Name: HeadTarget
   m_TagString: Untagged
@@ -10867,6 +10902,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeadTargetFollow
   hmdCamera: {fileID: 4512540401284137997}
+--- !u!114 &7874007534624037014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4691859092582270779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &4695398430641220014
 GameObject:
   m_ObjectHideFlags: 0
@@ -13089,6 +13141,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8878765315723441653}
   - component: {fileID: 1643419134723224421}
+  - component: {fileID: 4079890754106162900}
   m_Layer: 0
   m_Name: RightHand_IK_Target
   m_TagString: Untagged
@@ -13181,6 +13234,23 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+--- !u!114 &4079890754106162900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5332959605234462412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &5433734101270542970
 GameObject:
   m_ObjectHideFlags: 0
@@ -14272,8 +14342,6 @@ GameObject:
   - component: {fileID: 2472592723716370617}
   - component: {fileID: 6043246980648502546}
   - component: {fileID: 7115444593567876734}
-  - component: {fileID: 2747175147893507577}
-  - component: {fileID: 8269908046189789213}
   m_Layer: 9
   m_Name: hand_r
   m_TagString: Untagged
@@ -14346,55 +14414,6 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: -1758520528963094988, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   parameterName: Grip
---- !u!54 &2747175147893507577
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5961454568431347403}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!64 &8269908046189789213
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5961454568431347403}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 6701942193873503675, guid: 8cf11ad4ffcec414a90cf727389ecc86, type: 3}
 --- !u!1 &5971492063752904906
 GameObject:
   m_ObjectHideFlags: 0
