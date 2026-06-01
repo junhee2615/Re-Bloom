@@ -1,39 +1,37 @@
 using Fusion;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class ValveRotate : MonoBehaviour
 {
-    public Transform rightController;
+    private XRGrabInteractable grabInteractable;
 
-    private bool isTouching = false;
+    private Transform interactor;
     private bool isHolding = false;
 
     private float previousX;
 
+    void Start()
+    {
+        grabInteractable = GetComponent<XRGrabInteractable>();
+
+        grabInteractable.selectEntered.AddListener(OnGrab);
+        grabInteractable.selectExited.AddListener(OnRelease);
+    }
+
     void Update()
     {
         // Client면 밸브 조작 불가
-        if (NetworkRunner.Instances[0].IsSharedModeMasterClient)
-            return;
+        // if (NetworkRunner.Instances[0].IsSharedModeMasterClient)
+        //  return;
 
-        InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-
-        // 트리거 버튼 입력
-        bool triggerPressed;
-        device.TryGetFeatureValue(CommonUsages.triggerButton, out triggerPressed);
-
-        // 닿아 있고 트리거 눌렀을 때
-        if (isTouching && triggerPressed)
+        if (isHolding && interactor != null)
         {
-            if (!isHolding)
-            {
-                isHolding = true;
-                previousX = rightController.position.x;
-            }
+            float currentX = interactor.position.x;
 
-            float currentX = rightController.position.x;
-            // 컨트롤러 위치 이동 계산 
             float delta = currentX - previousX;
 
             // 밸브 회전
@@ -41,25 +39,21 @@ public class ValveRotate : MonoBehaviour
 
             previousX = currentX;
         }
-        else
-        {
-            isHolding = false;
-        }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnGrab(SelectEnterEventArgs args)
     {
-        if (other.CompareTag("Right Controller"))
-        {
-            isTouching = true;
-        }
+        isHolding = true;
+
+        interactor = args.interactorObject.transform;
+
+        previousX = interactor.position.x;
     }
 
-    private void OnTriggerExit(Collider other)
+    private void OnRelease(SelectExitEventArgs args)
     {
-        if (other.CompareTag("Right Controller"))
-        {
-            isTouching = false;
-        }
+        isHolding = false;
+
+        interactor = null;
     }
 }
