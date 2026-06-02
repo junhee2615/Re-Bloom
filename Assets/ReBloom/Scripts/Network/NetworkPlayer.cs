@@ -3,70 +3,87 @@ using UnityEngine;
 
 public class NetworkPlayer : NetworkBehaviour
 {
-    public GameObject bodyRoot;
-    public GameObject mainCamera;
-    public GameObject locomotion;
-    public UnityEngine.Behaviour[] xrComponents;
+    // 내 플레이어인지 확인
+    public bool IsLocalNetworkRig => Object.HasInputAuthority;
 
-    public Transform headTarget;
-    public Transform leftHandIKTarget;
-    public Transform rightHandIKTarget;
+    [Header("Network Transforms")]
+    [SerializeField] private NetworkTransform playerTransform;
+    [SerializeField] private NetworkTransform headTransform;
+    [SerializeField] private NetworkTransform leftHandTransform;
+    [SerializeField] private NetworkTransform rightHandTransform;
 
-    public Transform mainCameraTransform;
-    public Transform leftControllerTransform;
-    public Transform rightControllerTransform;
+    [Header("Avatar")]
+    [SerializeField] private GameObject baseAvatar;
 
+    private HardwareRig hardwareRig;
 
     public override void Spawned()
     {
-        if (Object.HasInputAuthority)
+        base.Spawned();
+
+        if (IsLocalNetworkRig)
         {
-            // 내 플레이어
-            SetLayerRecursively(bodyRoot, LayerMask.NameToLayer("MyThirdPerson"));
+            hardwareRig = FindFirstObjectByType<HardwareRig>();
 
-            mainCamera.SetActive(true);
-            locomotion.SetActive(true);
-        }
-        else
-        {
-            // 상대 플레이어
-            SetLayerRecursively(bodyRoot, LayerMask.NameToLayer("ThirdPerson"));
-
-            mainCamera.SetActive(false);
-            locomotion.SetActive(false);
-
-            foreach (var comp in xrComponents)
+            if (hardwareRig == null)
             {
-                comp.enabled = false;
+                Debug.LogError("HardwareRig를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 내 몸 숨기기
+            if (baseAvatar != null)
+            {
+                baseAvatar.SetActive(false);
             }
         }
     }
 
-    private void LateUpdate()
+    public override void FixedUpdateNetwork()
     {
-        if (!Object.HasInputAuthority)
-            return;
+        base.FixedUpdateNetwork();
 
-        // 머리
-        headTarget.position = mainCameraTransform.position;
-        headTarget.rotation = mainCameraTransform.rotation;
+        if (GetInput<RigState>(out var input))
+        {
+            playerTransform.transform.SetPositionAndRotation(
+                input.PlayerPosition,
+                input.PlayerRotation);
 
-        // 왼손
-        leftHandIKTarget.position = leftControllerTransform.position;
-        leftHandIKTarget.rotation = leftControllerTransform.rotation;
+            headTransform.transform.SetPositionAndRotation(
+                input.HeadsetPosition,
+                input.HeadsetRotation);
 
-        // 오른손
-        rightHandIKTarget.position = rightControllerTransform.position;
-        rightHandIKTarget.rotation = rightControllerTransform.rotation;
+            leftHandTransform.transform.SetPositionAndRotation(
+                input.LeftHandPosition,
+                input.LeftHandRotation);
+
+            rightHandTransform.transform.SetPositionAndRotation(
+                input.RightHandPosition,
+                input.RightHandRotation);
+        }
     }
 
-    void SetLayerRecursively(GameObject obj, int layer)
+    public override void Render()
     {
-        obj.layer = layer;
+        base.Render();
 
-        foreach (Transform child in obj.transform)
-        {
-            SetLayerRecursively(child.gameObject, layer);
-        }
+        if (!IsLocalNetworkRig || hardwareRig == null)
+            return;
+
+        playerTransform.transform.SetPositionAndRotation(
+            hardwareRig.playerTransform.position,
+            hardwareRig.playerTransform.rotation);
+
+        headTransform.transform.SetPositionAndRotation(
+            hardwareRig.headTransform.position,
+            hardwareRig.headTransform.rotation);
+
+        leftHandTransform.transform.SetPositionAndRotation(
+            hardwareRig.leftHandTransform.position,
+            hardwareRig.leftHandTransform.rotation);
+
+        rightHandTransform.transform.SetPositionAndRotation(
+            hardwareRig.rightHandTransform.position,
+            hardwareRig.rightHandTransform.rotation);
     }
 }
