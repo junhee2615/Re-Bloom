@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 150b98324681e56488e2e4daa83a3312, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeverMissionManager
-  leverA: {fileID: 0}
-  leverB: {fileID: 0}
+  leverA: {fileID: 1185344537096728843}
+  leverB: {fileID: 8901187961360759130}
   clearText: {fileID: 7959805434639826962}
 --- !u!1 &3697445414063129446
 GameObject:
@@ -442,6 +442,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+--- !u!114 &1185344537096728843 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2499762923903540641, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 3657980288508619946}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c60f020b2c8fb24585b48578c527325, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeverSwitch
 --- !u!4 &4588642822688316470 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 967680067315724444, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
@@ -509,6 +520,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 967680067315724444, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
   m_PrefabInstance: {fileID: 6428798758520251643}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8901187961360759130 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2499762923903540641, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 6428798758520251643}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c60f020b2c8fb24585b48578c527325, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeverSwitch
 --- !u!1001 &7398208079063567063
 PrefabInstance:
   m_ObjectHideFlags: 0
