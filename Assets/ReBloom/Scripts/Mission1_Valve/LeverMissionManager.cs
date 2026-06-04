@@ -14,7 +14,7 @@ public class LeverMissionManager : MonoBehaviour
             return;
 
         // 두 레버 모두 활성화 확인
-        if (leverA.isActivated && leverB.isActivated)
+        if (leverA.isActivated || leverB.isActivated)
         {
             isMissionClear = true;
 
