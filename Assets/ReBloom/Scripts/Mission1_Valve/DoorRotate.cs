@@ -14,6 +14,8 @@ public class DoorRotate : NetworkBehaviour
 
     private float previousZ;
 
+    private bool wasStateAuthority = false; // 이전 Authority 상태 추적
+
     public float rotateDirection = 1f;
     public float rotateSpeed = 200f;
 
@@ -34,39 +36,43 @@ public class DoorRotate : NetworkBehaviour
 
         if (HasStateAuthority)
             CurrentAngle = startAngle;
+
+        wasStateAuthority = HasStateAuthority;
     }
 
     public override void FixedUpdateNetwork()
     {
-        Debug.Log($"Fixed / State:{HasStateAuthority}, Interactor:{interactor != null}, Angle:{CurrentAngle}");
+        // Authority 획득한 순간 감지
+        if (HasStateAuthority && !wasStateAuthority)
+        {
+            if (interactor != null)
+                previousZ = interactor.position.z; // 튀는 값 방지용 초기화
+        }
+        wasStateAuthority = HasStateAuthority;
+
         if (HasStateAuthority && interactor != null)
         {
             float currentZ = interactor.position.z;
             float delta = currentZ - previousZ;
 
-            // 한 프레임에 너무 크게 변하는 값 제한
-            delta = Mathf.Clamp(delta, -0.03f, 0.03f);
-
-            CurrentAngle += -delta * rotateSpeed * rotateDirection;
-            CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
-
-            previousZ = currentZ;
+            // Authority 막 받은 직후 튀는 값 방어
+            if (Mathf.Abs(delta) < 0.03f)
+            {
+                CurrentAngle += -delta * rotateSpeed * rotateDirection;
+                CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
+            }
+            previousZ = currentZ; // 항상 갱신해서 튀는 값 방지
         }
         transform.localRotation = Quaternion.Euler(0f, CurrentAngle, 0f);
     }
 
     private void OnGrab(SelectEnterEventArgs args)
-    {
-        Debug.Log("Grabbed Door");
-        
+    {   
         interactor = args.interactorObject.transform;
         previousZ = interactor.position.z;
 
         if (Object != null && !HasStateAuthority)
-        {
             Object.RequestStateAuthority();
-            Debug.Log("StateAuthority 요청함");
-        }
     }
 
     private void OnRelease(SelectExitEventArgs args)
