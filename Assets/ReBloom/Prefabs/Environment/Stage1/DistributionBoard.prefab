@@ -409,7 +409,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0539f8513c56241bd29d7deb253250, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DoorRotate
+  _CurrentAngle: 0
   rotateDirection: -1
+  rotateSpeed: 200
+  minAngle: -90
+  maxAngle: 90
 --- !u!114 &8836621368944631960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -441,7 +445,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 0
   ObjectInterest: 1
-  Flags: 262144
+  Flags: 786432
   NestedObjects: []
   NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
@@ -852,7 +856,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0539f8513c56241bd29d7deb253250, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DoorRotate
+  _CurrentAngle: 0
   rotateDirection: 1
+  rotateSpeed: 200
+  minAngle: -90
+  maxAngle: 90
 --- !u!114 &1123560384470344745
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -884,7 +892,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 0
   ObjectInterest: 1
-  Flags: 262144
+  Flags: 786432
   NestedObjects: []
   NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
@@ -1606,7 +1614,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 0
   ObjectInterest: 1
-  Flags: 262144
+  Flags: 786432
   NestedObjects: []
   NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
