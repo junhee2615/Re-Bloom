@@ -14,69 +14,113 @@ public class DoorRotate : NetworkBehaviour
 
     private float previousZ;
 
-    private bool wasStateAuthority = false; // 이전 Authority 상태 추적
-
     public float rotateDirection = 1f;
     public float rotateSpeed = 200f;
 
     public float minAngle = -90f;
     public float maxAngle = 90f;
 
+    private float grabTime;
+
 
     public override void Spawned()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
 
+        Debug.Log($"[Door Spawned] " +
+             $"Runner:{Runner.GameMode}, " +
+             $"Local:{Runner.LocalPlayer}, " +
+             $"StateAuthority:{Object.StateAuthority}, " +
+             $"HasStateAuthority:{HasStateAuthority}, " +
+             $"HasInputAuthority:{HasInputAuthority}");
+
         grabInteractable.selectEntered.AddListener(OnGrab);
         grabInteractable.selectExited.AddListener(OnRelease);
 
-        float startAngle = transform.localEulerAngles.y;
-        if (startAngle > 180f)
-            startAngle -= 360f;
-
         if (HasStateAuthority)
+        {
+            float startAngle = transform.localEulerAngles.y;
+            if (startAngle > 180f) startAngle -= 360f;
             CurrentAngle = startAngle;
 
-        wasStateAuthority = HasStateAuthority;
+            Debug.Log($"[Door Init] CurrentAngle:{CurrentAngle}");
+        }
     }
 
-    public override void FixedUpdateNetwork()
+    private void Update()
     {
-        // Authority 획득한 순간 감지
-        if (HasStateAuthority && !wasStateAuthority)
-        {
-            if (interactor != null)
-                previousZ = interactor.position.z; // 튀는 값 방지용 초기화
-        }
-        wasStateAuthority = HasStateAuthority;
+        if (interactor == null)
+            return;
 
-        if (HasStateAuthority && interactor != null)
-        {
-            float currentZ = interactor.position.z;
-            float delta = currentZ - previousZ;
+        float currentZ = interactor.position.z;
+        float delta = currentZ - previousZ;
 
-            // Authority 막 받은 직후 튀는 값 방어
-            if (Mathf.Abs(delta) < 0.03f)
-            {
-                CurrentAngle += -delta * rotateSpeed * rotateDirection;
-                CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
-            }
-            previousZ = currentZ; // 항상 갱신해서 튀는 값 방지
+        Debug.Log($"[Update] Local:{Runner.LocalPlayer}, Delta:{delta}, HasStateAuthority:{HasStateAuthority}");
+
+        if (Mathf.Abs(delta) < 0.2f)
+        {
+            float angleDelta = -delta * rotateSpeed * rotateDirection;
+
+            if (HasStateAuthority)
+                ApplyAngle(angleDelta);
+            else
+                RPC_RequestRotate(angleDelta);
         }
+        else
+        {
+            Debug.Log($"[Delta Blocked] Delta:{delta}");
+        }
+        previousZ = currentZ;
+    }
+
+    public override void Render()
+    {
         transform.localRotation = Quaternion.Euler(0f, CurrentAngle, 0f);
     }
 
+    private void ApplyAngle(float angleDelta)
+    {
+        float before = CurrentAngle;
+
+        CurrentAngle += angleDelta;
+        CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
+
+        Debug.Log($"[ApplyAngle] " +
+              $"Local:{Runner.LocalPlayer}, " +
+              $"Before:{before}, " +
+              $"Delta:{angleDelta}, " +
+              $"After:{CurrentAngle}");
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestRotate(float angleDelta, RpcInfo info = default)
+    {
+        Debug.Log($"[Host Received RPC] " +
+              $"From:{info.Source}, " +
+              $"Local:{Runner.LocalPlayer}, " +
+              $"HasStateAuthority:{HasStateAuthority}, " +
+              $"angleDelta:{angleDelta}");
+
+        ApplyAngle(angleDelta);
+    }
+
     private void OnGrab(SelectEnterEventArgs args)
-    {   
+    {
+        grabTime = Time.time;
+
         interactor = args.interactorObject.transform;
         previousZ = interactor.position.z;
 
-        if (Object != null && !HasStateAuthority)
-            Object.RequestStateAuthority();
+        Debug.Log($"[Grab] Time:{Time.time}, Local:{Runner.LocalPlayer}, " +
+              $"Interactor:{interactor.name}, IsSelected:{grabInteractable.isSelected}");
     }
 
     private void OnRelease(SelectExitEventArgs args)
     {
+        Debug.Log($"[Release] Time:{Time.time}, HeldTime:{Time.time - grabTime}, " +
+              $"Local:{Runner.LocalPlayer}, " +
+              $"Interactor:{args.interactorObject.transform.name}, " +
+              $"IsSelected:{grabInteractable.isSelected}");
         interactor = null;
     }
 }
