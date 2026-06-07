@@ -28,7 +28,5 @@ public class ValveMissionManager : MonoBehaviour
             isMissionClear = true;
             gameClearText.SetActive(true);
         }
-
-        Debug.Log("Stability : " + stability);
     }
 }
