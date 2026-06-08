@@ -1,28 +1,32 @@
 using UnityEngine;
+using Fusion;
 
-public class LeverMissionManager : MonoBehaviour
+public class LeverMissionManager : NetworkBehaviour
 {
     public LeverSwitch leverA;
     public LeverSwitch leverB;
     public GameObject clearText;
-    private bool isMissionClear = false;
+    [Networked]
+    public NetworkBool IsMissionClear { get; set; } // 미션 클리어 상태 공유
 
     void Update()
     {
-        // 이미 클리어했으면 종료
-        if (isMissionClear)
+        if (Object == null || !Object.IsValid)
             return;
 
-        // 두 레버 모두 활성화 확인
-        if (leverA.isActivated || leverB.isActivated)
-        {
-            isMissionClear = true;
+        if (clearText != null)
+            clearText.SetActive(IsMissionClear);
 
-            // 클리어 UI 표시
-            if (clearText != null)
-            {
-                clearText.SetActive(true);
-            }
+        if (!HasStateAuthority)
+            return;
+
+        if (IsMissionClear)
+            return;
+
+        // 두 레버 활성화 확인
+        if (leverA.isActivated && leverB.isActivated)
+        {
+            IsMissionClear = true;
         }
     }
 }

@@ -1,60 +1,91 @@
-using Unity.VisualScripting;
 using UnityEngine;
+using Fusion;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class LeverSwitch : MonoBehaviour
+public class LeverSwitch : NetworkBehaviour
 {
+    [Networked]
+    public float CurrentAngle { get; set; }
+
     private XRGrabInteractable grabInteractable;
     private Transform interactor;
-    private float previousY;
-    public bool isActivated = false;
 
-    [Header("Lever Settings")]
+    private float previousZ;
+
+    public float rotateDirection = 1f;
     public float rotateSpeed = 200f;
 
-    public float activationAngle = -170;
-    private float currentAngle = 0f;
+    public float minAngle = -170f;
+    public float maxAngle = 0f;
 
-    void Start()
+    public bool isActivated => CurrentAngle <= -160f;
+
+
+    public override void Spawned()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
 
         grabInteractable.selectEntered.AddListener(OnGrab);
         grabInteractable.selectExited.AddListener(OnRelease);
+
+        if (HasStateAuthority)
+        {
+            float startAngle = transform.localEulerAngles.x;
+            if (startAngle > 180f) startAngle -= 360f;
+            CurrentAngle = startAngle;
+        }
     }
 
-    void Update()
+    private void Update()
     {
-        if (interactor != null)
+        if (interactor == null)
+            return;
+
+        float currentZ = interactor.position.z;
+        float delta = currentZ - previousZ;
+
+        Debug.Log($"[Update] Local:{Runner.LocalPlayer}, Delta:{delta}, HasStateAuthority:{HasStateAuthority}");
+
+        if (Mathf.Abs(delta) < 0.2f)
         {
-            float currentY = interactor.position.y;
-            float delta = currentY - previousY;
+            float angleDelta = delta * rotateSpeed * rotateDirection;
 
-            currentAngle += delta * rotateSpeed;
-
-            // 회전 범위 제한
-            currentAngle = Mathf.Clamp(currentAngle, -170f, 0f);
-
-            // 직접 회전 적용
-            transform.localRotation = Quaternion.Euler(currentAngle, 0f, 0f);
-
-            previousY = currentY;
-
-            Debug.Log(currentAngle);
-
-            if (currentAngle <= activationAngle && !isActivated)
-            {
-                isActivated = true;
-                Debug.Log(gameObject.name + " Activated");
-            }
+            if (HasStateAuthority)
+                ApplyAngle(angleDelta);
+            else
+                RPC_RequestRotate(angleDelta);
         }
+        else
+        {
+            Debug.Log($"[Delta Blocked] Delta:{delta}");
+        }
+        previousZ = currentZ;
+    }
+
+    public override void Render()
+    {
+        transform.localRotation = Quaternion.Euler(CurrentAngle, 0f, 0f);
+    }
+
+    private void ApplyAngle(float angleDelta)
+    {
+        float before = CurrentAngle;
+
+        CurrentAngle += angleDelta;
+        CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestRotate(float angleDelta, RpcInfo info = default)
+    {
+        ApplyAngle(angleDelta);
     }
 
     private void OnGrab(SelectEnterEventArgs args)
     {
         interactor = args.interactorObject.transform;
-        previousY = interactor.position.y;
+        previousZ = interactor.position.z;
     }
 
     private void OnRelease(SelectExitEventArgs args)
