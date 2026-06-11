@@ -13,13 +13,15 @@ public class GeneratorDoorRotate : NetworkBehaviour
 
     private float previousZ;
 
-    public float rotateDirection = 1f;
     public float rotateSpeed = 200f;
 
     public float minAngle = -90f;
     public float maxAngle = 90f;
 
     private float grabTime;
+
+    private float startY;
+    private float startZ;
 
 
     public override void Spawned()
@@ -28,6 +30,9 @@ public class GeneratorDoorRotate : NetworkBehaviour
 
         grabInteractable.selectEntered.AddListener(OnGrab);
         grabInteractable.selectExited.AddListener(OnRelease);
+
+        startY = transform.localEulerAngles.y;
+        startZ = transform.localEulerAngles.z;
 
         if (HasStateAuthority)
         {
@@ -45,11 +50,9 @@ public class GeneratorDoorRotate : NetworkBehaviour
         float currentZ = interactor.position.z;
         float delta = currentZ - previousZ;
 
-        Debug.Log($"[Update] Local:{Runner.LocalPlayer}, Delta:{delta}, HasStateAuthority:{HasStateAuthority}");
-
         if (Mathf.Abs(delta) < 0.2f)
         {
-            float angleDelta = -delta * rotateSpeed * rotateDirection;
+            float angleDelta = -delta * rotateSpeed;
 
             if (HasStateAuthority)
                 ApplyAngle(angleDelta);
@@ -65,13 +68,11 @@ public class GeneratorDoorRotate : NetworkBehaviour
 
     public override void Render()
     {
-        transform.localRotation = Quaternion.Euler(CurrentAngle, 0f, 0f);
+        transform.localRotation = Quaternion.Euler(CurrentAngle, startY, startZ);
     }
 
     private void ApplyAngle(float angleDelta)
     {
-        float before = CurrentAngle;
-
         CurrentAngle += angleDelta;
         CurrentAngle = Mathf.Clamp(CurrentAngle, minAngle, maxAngle);
     }
