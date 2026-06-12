@@ -34,7 +34,7 @@ MonoBehaviour:
       Index: 0
       Type: 8
       Channel: baseColor
-    OutputTexture: {fileID: 2800000, guid: 662d0dc7164f0564b9b67f3086a8a74f, type: 3}
+    OutputTexture: {fileID: 2800000, guid: 1d1dc5868fcbaf54e804f52e97ac6819, type: 3}
     sRGB: 1
     IsVirtual: 0
     IsAlphaAssignable: 1
@@ -50,7 +50,7 @@ MonoBehaviour:
       Index: 1
       Type: 8
       Channel: normal
-    OutputTexture: {fileID: 2800000, guid: 033eff4fffe2e2747ac35195a1b51b6e, type: 3}
+    OutputTexture: {fileID: 2800000, guid: d7de8203273eca44dbd36ed407addc2d, type: 3}
     sRGB: 0
     IsVirtual: 0
     IsAlphaAssignable: 0
@@ -82,7 +82,7 @@ MonoBehaviour:
       Index: 3
       Type: 8
       Channel: metallic
-    OutputTexture: {fileID: 2800000, guid: 5660d726e24a7ef40919b711157343a5, type: 3}
+    OutputTexture: {fileID: 2800000, guid: 66960f1ce779daa4681860bad5377c06, type: 3}
     sRGB: 0
     IsVirtual: 0
     IsAlphaAssignable: 1
@@ -96,8 +96,11 @@ MonoBehaviour:
   Thumbnail: 
   CurrentStatePreset: " <sbspreset pkgurl=\"pkg://WetSurface\" label=\"\" >\n  <presetinput
     identifier=\"$randomseed\" uid=\"3807615878\" type=\"4\" value=\"550\" />\n 
-    <presetinput identifier=\"waterSoftness\" uid=\"3257427999\" type=\"0\" value=\"0.436\"
-    />\n </sbspreset>\n"
+    <presetinput identifier=\"waterSoftness\" uid=\"3257427999\" type=\"0\" value=\"0.458\"
+    />\n  <presetinput identifier=\"WaterAmount\" uid=\"3257428010\" type=\"0\" value=\"0.095\"
+    />\n  <presetinput identifier=\"surfaceshine\" uid=\"3257423144\" type=\"0\"
+    value=\"0.753\" />\n  <presetinput identifier=\"puddlecolor\" uid=\"3257423861\"
+    type=\"3\" value=\"0.184314,0.184314,0.184314,0.823529\" />\n </sbspreset>\n"
   IsRuntimeOnly: 0
   GenerateAllOutputs: 0
   GenerateAllMipmaps: 1
@@ -143,7 +146,7 @@ MonoBehaviour:
           GuiDescription: 
           Type: 0
           WidgetType: 1
-        Data: 0.436
+        Data: 0.458
         NumericalDescription:
           DefaultValue: 0
           MinValue: 0
@@ -163,7 +166,7 @@ MonoBehaviour:
           GuiDescription: 
           Type: 0
           WidgetType: 1
-        Data: 0
+        Data: 0.095
         NumericalDescription:
           DefaultValue: 0
           MinValue: 0
@@ -183,7 +186,7 @@ MonoBehaviour:
           GuiDescription: 
           Type: 0
           WidgetType: 1
-        Data: 0.7
+        Data: 0.753
         NumericalDescription:
           DefaultValue: 0.7
           MinValue: 0
@@ -203,7 +206,7 @@ MonoBehaviour:
           GuiDescription: 
           Type: 3
           WidgetType: 3
-        Data: {x: 0.401434, y: 0.410468, z: 0.443137, w: 1}
+        Data: {x: 0.18431373, y: 0.18431373, z: 0.18431373, w: 0.8235294}
         NumericalDescription:
           DefaultValue: {x: 0.401434, y: 0.410468, z: 0.443137, w: 1}
           MinValue: {x: 0, y: 0, z: 0, w: 0}
