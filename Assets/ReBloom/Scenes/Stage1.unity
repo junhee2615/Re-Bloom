@@ -1222,55 +1222,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8550522013231620331, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2036715069862706973, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 681159718}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
---- !u!1 &681159711 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2036715069862706973, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 681159710}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &681159712 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5908723787184746396, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 681159710}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &681159713 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7092021711014478233, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 681159710}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &681159714 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 498722056299981378, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 681159710}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &681159716 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 681159710}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &681159718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681159711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abb2f8fc8b81ebd429b28819a4121519, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HardwareRig
-  playerTransform: {fileID: 681159716}
-  headTransform: {fileID: 681159712}
-  leftHandTransform: {fileID: 681159714}
-  rightHandTransform: {fileID: 681159713}
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
