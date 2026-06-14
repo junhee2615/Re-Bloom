@@ -371,7 +371,9 @@ MonoBehaviour:
   - {fileID: 104267420603040855}
   - {fileID: 2244771845460819798}
   - {fileID: 7874007534624037014}
+  - {fileID: 6020368098959361095}
   - {fileID: 497737410415720117}
+  - {fileID: 3452856951919057316}
   - {fileID: 6485362447277290755}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &104267420603040855
@@ -483,6 +485,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6048476306809051451}
   - component: {fileID: 5012995520056916335}
+  - component: {fileID: 6020368098959361095}
   m_Layer: 0
   m_Name: LeftHand_IK_Target
   m_TagString: Untagged
@@ -575,6 +578,23 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+--- !u!114 &6020368098959361095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188605260414856453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &1216969941880331992
 GameObject:
   m_ObjectHideFlags: 0
@@ -2073,6 +2093,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8878765315723441653}
   - component: {fileID: 1643419134723224421}
+  - component: {fileID: 3452856951919057316}
   m_Layer: 0
   m_Name: RightHand_IK_Target
   m_TagString: Untagged
@@ -2165,6 +2186,23 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+--- !u!114 &3452856951919057316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5332959605234462412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &5545652480223208478
 GameObject:
   m_ObjectHideFlags: 0
