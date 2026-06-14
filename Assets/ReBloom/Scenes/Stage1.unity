@@ -476,6 +476,14 @@ PrefabInstance:
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
+      propertyPath: clearBuilding
+      value: 
+      objectReference: {fileID: 2099145800}
+    - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
+      propertyPath: beforebuilding
+      value: 
+      objectReference: {fileID: 1694344740}
     - target: {fileID: 7886334735591973132, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.073
@@ -1502,6 +1510,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6addf3b69271db043ac6159202ad05ad, type: 3}
+--- !u!1 &1694344740 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6981194980975012295, guid: 37d38877b5861514ebb48282483308a6, type: 3}
+  m_PrefabInstance: {fileID: 6315753329765915425}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1777988962
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2119,6 +2132,11 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &2099145800 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5509270180476976677, guid: e1fced25018f8074dbdb28e5da2730bb, type: 3}
+  m_PrefabInstance: {fileID: 664783381}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2107632369 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2914719374353934819, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}

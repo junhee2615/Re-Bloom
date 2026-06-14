@@ -8,6 +8,8 @@ public class LeverMissionManager : NetworkBehaviour
     public GameObject clearText;
     [Networked]
     public NetworkBool IsMissionClear { get; set; } // 미션 클리어 상태 공유
+    public GameObject beforebuilding;
+    public GameObject clearBuilding;
 
     void Update()
     {
@@ -27,6 +29,8 @@ public class LeverMissionManager : NetworkBehaviour
         if (leverA.isActivated && leverB.isActivated)
         {
             IsMissionClear = true;
+            beforebuilding.SetActive(false);
+            clearBuilding.SetActive(true);
         }
     }
 }
