@@ -52,7 +52,7 @@ public class GeneratorDoorRotate : NetworkBehaviour
 
         if (Mathf.Abs(delta) < 0.2f)
         {
-            float angleDelta = -delta * rotateSpeed;
+            float angleDelta = delta * rotateSpeed;
 
             if (HasStateAuthority)
                 ApplyAngle(angleDelta);
