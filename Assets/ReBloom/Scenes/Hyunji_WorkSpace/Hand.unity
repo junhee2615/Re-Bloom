@@ -775,6 +775,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeadTargetFollow
   hmdCamera: {fileID: 498539918}
+--- !u!1 &1488490715 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4691859092582270779, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
+  m_PrefabInstance: {fileID: 4389932158251924547}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1488490718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488490715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 029bf3a33d6bb1d45adea97a8098cc81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeadTargetFollow
+  hmdCamera: {fileID: 498539918}
 --- !u!1001 &1593699492
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -786,6 +804,10 @@ PrefabInstance:
     - target: {fileID: 1084002099886820816, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: m_Name
       value: Player_mental
+      objectReference: {fileID: 0}
+    - target: {fileID: 1084002099886820816, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1306487259344567644, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: SortKey
@@ -805,15 +827,15 @@ PrefabInstance:
       objectReference: {fileID: 1134303910}
     - target: {fileID: 9140594028986485547, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.44297
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.76883
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.5117766
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1062,23 +1084,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1084002099886820816, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1306487259344567644, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: SortKey
       value: 1566263292
       objectReference: {fileID: 0}
+    - target: {fileID: 4203942665151249738, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.44297
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.76883
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.51178
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9140594028986485547, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1111,7 +1137,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4691859092582270779, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1488490718}
   m_SourcePrefab: {fileID: 100100000, guid: 42e4933f4c0489e46977d30ef20031cc, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
