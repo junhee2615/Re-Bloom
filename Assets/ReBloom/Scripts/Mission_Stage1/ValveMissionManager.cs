@@ -1,8 +1,11 @@
+using System;
 using UnityEngine;
 using Fusion;
 
 public class ValveMissionManager : NetworkBehaviour
 {
+    public static event Action MissionCleared;
+
     public ValveRotate valve;
 
     [Range(0f, 1f)]
@@ -13,26 +16,34 @@ public class ValveMissionManager : NetworkBehaviour
 
     public GameObject gameClearText;
 
+    private bool clearEventRaised;
+
     void Update()
     {
         if (Object == null || !Object.IsValid)
             return;
 
-        // ÇöÀç ¹ëºê È¸Àü°ª
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½
         float angle = valve.CurrentAngle;
        
         if (angle > 180)
             angle -= 360;
 
-        // ¿ÞÂÊ È¸Àü·® ±âÁØ ¾ÈÁ¤µµ Áõ°¡
+        // ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         float normalized = Mathf.Abs(angle) / 90f;
         stability = Mathf.Clamp01(normalized);
 
-        // UI´Â Host/Client °¢ÀÚ È­¸é¿¡¼­ Ç¥½Ã
+        // UIï¿½ï¿½ Host/Client ï¿½ï¿½ï¿½ï¿½ È­ï¿½é¿¡ï¿½ï¿½ Ç¥ï¿½ï¿½
         if (gameClearText != null)
             gameClearText.SetActive(isMissionClear);
 
-        // ¹Ì¼Ç ¼º°ø ÆÇÁ¤Àº StateAuthority¸¸ Ã³¸®
+        if (isMissionClear && !clearEventRaised)
+        {
+            clearEventRaised = true;
+            MissionCleared?.Invoke();
+        }
+
+        // ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ StateAuthorityï¿½ï¿½ Ã³ï¿½ï¿½
         if (!HasStateAuthority)
             return;
 
@@ -43,5 +54,11 @@ public class ValveMissionManager : NetworkBehaviour
         {
             isMissionClear = true;
         }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetEvent()
+    {
+        MissionCleared = null;
     }
 }
