@@ -19,12 +19,6 @@ public class LeverMissionManager : NetworkBehaviour
         if (clearText != null)
             clearText.SetActive(IsMissionClear);
 
-        if (beforebuilding != null)
-            beforebuilding.SetActive(!IsMissionClear);
-
-        if (clearBuilding != null)
-            clearBuilding.SetActive(IsMissionClear);
-
         if (!HasStateAuthority)
             return;
 
@@ -35,6 +29,8 @@ public class LeverMissionManager : NetworkBehaviour
         if (leverA.isActivated && leverB.isActivated)
         {
             IsMissionClear = true;
+            beforebuilding.SetActive(false);
+            clearBuilding.SetActive(true);
         }
     }
 }
