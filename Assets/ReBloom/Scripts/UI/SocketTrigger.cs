@@ -7,10 +7,10 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 [RequireComponent(typeof(XRSocketInteractor))]
 public class SocketTrigger : MonoBehaviour
 {
+    [SerializeField] private GeneratorMissionManager generatorMissionManager;
+
     private const int RequiredSocketCount = 2;
     private static readonly HashSet<SocketTrigger> OccupiedSockets = new();
-
-    public static event Action AllGeneratorsRepaired;
 
     private XRSocketInteractor socketInteractor;
 
@@ -35,12 +35,18 @@ public class SocketTrigger : MonoBehaviour
     private void OnSocketed(SelectEnterEventArgs args)
     {
         OccupiedSockets.Add(this);
-        Debug.Log("Occupied Sockets: " + string.Join(", ", OccupiedSockets));
-        
+        Debug.Log($"[SocketTrigger] Socketed: {name}");
+        Debug.Log($"[SocketTrigger] Occupied Count: {OccupiedSockets.Count}");
+
         if (OccupiedSockets.Count == RequiredSocketCount)
         {
             Debug.Log("All generators repaired!");
-            AllGeneratorsRepaired?.Invoke();
+            if (generatorMissionManager == null)
+            {
+                Debug.LogError("[SocketTrigger] generatorMissionManager is NULL");
+                return;
+            }
+            generatorMissionManager.SetGeneratorClear();
         }
     }
 
@@ -53,6 +59,5 @@ public class SocketTrigger : MonoBehaviour
     private static void ResetState()
     {
         OccupiedSockets.Clear();
-        AllGeneratorsRepaired = null;
     }
 }

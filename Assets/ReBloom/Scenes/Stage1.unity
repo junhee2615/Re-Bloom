@@ -957,6 +957,71 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e3a2c9d22e3e24a48ac4ff6ab4d4a1ad, type: 3}
+--- !u!1 &373667140
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 373667143}
+  - component: {fileID: 373667142}
+  - component: {fileID: 373667141}
+  m_Layer: 0
+  m_Name: TutorialMissionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &373667141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 373667140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 798701492
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 373667142}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &373667142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 373667140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d966688ccb381e14fae132dc3364d424, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialMissionManager
+  _CurrentTutorial: 0
+--- !u!4 &373667143
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 373667140}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.08133, y: 0.5735, z: -7.34605}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &437114635
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1646,6 +1711,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3015783441929855748, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7931827681442592864, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
       propertyPath: m_IsTrigger
       value: 1
@@ -2319,6 +2388,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5532513145578930347, guid: 56a607f9c957ce24db93c142faab575b, type: 3}
+      propertyPath: spawnDistance
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 7330069920904951403, guid: 56a607f9c957ce24db93c142faab575b, type: 3}
       propertyPath: m_Name
       value: Canvas
@@ -2480,10 +2553,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: FuelGenerator
       objectReference: {fileID: 0}
+    - target: {fileID: 9018124630471120471, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
+      propertyPath: generatorMissionManager
+      value: 
+      objectReference: {fileID: 1816355870798395948}
     m_RemovedComponents:
     - {fileID: 2033321878203921738, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
     - {fileID: 1332585542094965656, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
     - {fileID: 8873004189816425905, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
+    - {fileID: 6636130112305695202, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
     m_RemovedGameObjects:
     - {fileID: -385841382144341882, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
     m_AddedGameObjects: []
@@ -2494,6 +2572,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1309520539045663578, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1816355870798395944}
+    - targetCorrespondingSourceObject: {fileID: 8634709176668673855, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1816355870798395949}
   m_SourcePrefab: {fileID: 100100000, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
 --- !u!1 &1816355870798395943 stripped
 GameObject:
@@ -2548,6 +2629,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c3d2cfdaa1d04e4384e744066d60861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeneratorDoorRotate
+--- !u!1 &1816355870798395947 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8634709176668673855, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
+  m_PrefabInstance: {fileID: 1816355870798395942}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1816355870798395948 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2137793881338916370, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
+  m_PrefabInstance: {fileID: 1816355870798395942}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816355870798395947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20520848df8ed4144875423fbb281c4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GeneratorMissionManager
+--- !u!114 &1816355870798395949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816355870798395947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3469275223
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1816355870798395948}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1001 &3462085714280546615
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2734,6 +2850,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8059396573185037090, guid: c4c6dcb4bd4df674bb7ea46f9e55ec69, type: 3}
+      propertyPath: generatorMissionManager
+      value: 
+      objectReference: {fileID: 1816355870798395948}
     - target: {fileID: 8352890078300973005, guid: c4c6dcb4bd4df674bb7ea46f9e55ec69, type: 3}
       propertyPath: m_Name
       value: PartTroubleGenerator
@@ -3443,3 +3563,4 @@ SceneRoots:
   - {fileID: 3578282095247875137}
   - {fileID: 1078895369397983015}
   - {fileID: 1270034173}
+  - {fileID: 373667143}

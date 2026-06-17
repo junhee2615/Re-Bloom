@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 5213573603166489837}
   - component: {fileID: 418550527637881536}
   - component: {fileID: 4385699766496301766}
-  - component: {fileID: 9140767517360733467}
   m_Layer: 5
   m_Name: Panel_Mission
   m_TagString: Untagged
@@ -27,20 +26,20 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 339039478360305995}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 4.1595497}
+  m_LocalScale: {x: 0.15000002, y: 0.15000002, z: 0.15000002}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6945148682816946785}
   - {fileID: 5782862230684889760}
   - {fileID: 882745453480242146}
   - {fileID: 5265825510502177630}
-  m_Father: {fileID: 8134535324889588499}
+  m_Father: {fileID: 840443003752811505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -5.9179792, y: 1.7861197}
+  m_SizeDelta: {x: 50, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &418550527637881536
 CanvasRenderer:
@@ -80,29 +79,59 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &9140767517360733467
+--- !u!1 &906876269638337417
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 840443003752811505}
+  - component: {fileID: 5532513145578930347}
+  m_Layer: 0
+  m_Name: UIPanelManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &840443003752811505
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906876269638337417}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 39.453197, y: -11.907465, z: -27.73033}
+  m_LocalScale: {x: 6.666666, y: 6.666666, z: 6.666666}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5213573603166489837}
+  m_Father: {fileID: 8134535324889588499}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5532513145578930347
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 339039478360305995}
+  m_GameObject: {fileID: 906876269638337417}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e65ec42c8cf45f4abf0a528c3b2b33c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPanel
-  duration: 2
-  showOnStart: 1
+  duration: 5
+  panelRoot: {fileID: 339039478360305995}
   missionText: {fileID: 1539244032637748717}
   titleText: {fileID: 6481185824765214112}
   descriptionText: {fileID: 607267753459659582}
   initialMessage: {fileID: 11400000, guid: 16a42a0ad478462798c745a759cd220e, type: 2}
   generatorCompleteMessage: {fileID: 11400000, guid: 38fd583d46ee4bcf8646939c3d545319, type: 2}
   valveCompleteMessage: {fileID: 11400000, guid: b13cb6ca748d4a309de1173b001e38db, type: 2}
-  spawnDistance: 6
-  verticalOffset: 1.5
-  frontPitchOffset: -12
 --- !u!1 &1551535861670540465
 GameObject:
   m_ObjectHideFlags: 0
@@ -683,7 +712,7 @@ RectTransform:
   m_LocalScale: {x: 0.15, y: 0.15, z: 0.15}
   m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 5213573603166489837}
+  - {fileID: 840443003752811505}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

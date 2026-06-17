@@ -5,89 +5,93 @@ using UnityEngine;
 
 public class UIPanel : MonoBehaviour
 {
-    [SerializeField, Min(0f)] private float duration = 2f;
-    [SerializeField] private bool showOnStart = true;
+    [SerializeField, Min(0f)] private float duration = 5f;
+
+    [SerializeField] private GameObject panelRoot;
+
     [SerializeField] private TMP_Text missionText;
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text descriptionText;
+
     [SerializeField] private MissionPanelData initialMessage;
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
 
-    public bool Active => gameObject.activeSelf;
-    
-    [SerializeField, Min(1f)] private float spawnDistance = 2f;
-    [SerializeField] private float verticalOffset = 0.25f;
-    [SerializeField] private float frontPitchOffset = 8f;
+    [SerializeField, Min(1f)] private float spawnDistance = 10f;
+    [SerializeField] private float fixedYPosition = 2.36f;
 
-    private Action showGeneratorCompleteMessage;
-    private Action showValveCompleteMessage;
+
+    private Coroutine hideCoroutine;
 
     private void Awake()
     {
-        showGeneratorCompleteMessage = () => ShowCompleteMessage(generatorCompleteMessage);
-        showValveCompleteMessage = () => ShowCompleteMessage(valveCompleteMessage);
-
-        SocketTrigger.AllGeneratorsRepaired += showGeneratorCompleteMessage;
-        ValveMissionManager.MissionCleared += showValveCompleteMessage;
+        TutorialMissionManager.TutorialChanged += OnTutorialChanged;
     }
 
-    private void Start()
+    private void OnTutorialChanged(TutorialStep step)
     {
-        if (showOnStart)
+        switch (step)
         {
-            ShowTemporarily(initialMessage);
-        }
-        else
-        {
-            gameObject.SetActive(false);
+            case TutorialStep.Initial:
+                ShowTemporarily(initialMessage);
+                break;
+
+            case TutorialStep.GeneratorComplete:
+                ShowTemporarily(generatorCompleteMessage);
+                break;
+
+            case TutorialStep.ValveComplete:
+                ShowTemporarily(valveCompleteMessage);
+                break;
         }
     }
-    
-    private void Show()
-    {
-        Transform cam = Camera.main.transform;
 
-        transform.position =
-            cam.position + cam.forward * spawnDistance + cam.up * verticalOffset;
-
-        Vector3 frontDirection = Quaternion.AngleAxis(-frontPitchOffset, cam.right)
-                                 * (transform.position - cam.position);
-
-        transform.rotation =
-            Quaternion.LookRotation(frontDirection, cam.up);
-
-        gameObject.SetActive(true);
-    }
-    
     public void ShowTemporarily(MissionPanelData message)
     {
-        if (message)
+        if (message != null)
         {
             missionText.text = message.MissionLabel;
             titleText.text = message.Title;
             descriptionText.text = message.Description;
         }
 
-        Show();
-        
-        StartCoroutine(nameof(HideAfterDelay));
+        MovePanelInFrontOfCamera();
+
+        panelRoot.SetActive(true);
+
+        if (hideCoroutine != null)
+            StopCoroutine(hideCoroutine);
+
+        hideCoroutine = StartCoroutine(HideAfterDelay());
     }
-    
+
+    private void MovePanelInFrontOfCamera()
+    {
+        Camera cam = Camera.main;
+
+        if (cam == null)
+        {
+            Debug.LogError("[UIPanel] Main Camera를 찾을 수 없습니다.");
+            return;
+        }
+
+        Vector3 newPosition = cam.transform.position + cam.transform.forward * spawnDistance;
+
+        // 높이는 원래 캔버스 높이로 고정
+        newPosition.y = fixedYPosition;
+        // 위치만 이동
+        panelRoot.transform.position = newPosition;
+    }
+
+
     private IEnumerator HideAfterDelay()
     {
         yield return new WaitForSeconds(duration);
-        gameObject.SetActive(false);
-    }
-
-    private void ShowCompleteMessage(MissionPanelData message)
-    {
-        ShowTemporarily(message);
+        panelRoot.SetActive(false);
     }
 
     private void OnDestroy()
     {
-        SocketTrigger.AllGeneratorsRepaired -= showGeneratorCompleteMessage;
-        ValveMissionManager.MissionCleared -= showValveCompleteMessage;
+        TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
     }
 }
