@@ -11,7 +11,7 @@ public class LeverSwitch : NetworkBehaviour
     private XRGrabInteractable grabInteractable;
     private Transform interactor;
 
-    private float previousZ;
+    private float previousY;
 
     public float rotateDirection = 1f;
     public float rotateSpeed = 200f;
@@ -42,8 +42,8 @@ public class LeverSwitch : NetworkBehaviour
         if (interactor == null)
             return;
 
-        float currentZ = interactor.position.z;
-        float delta = currentZ - previousZ;
+        float currentY = interactor.position.y;
+        float delta = currentY - previousY;
 
         Debug.Log($"[Update] Local:{Runner.LocalPlayer}, Delta:{delta}, HasStateAuthority:{HasStateAuthority}");
 
@@ -60,7 +60,7 @@ public class LeverSwitch : NetworkBehaviour
         {
             Debug.Log($"[Delta Blocked] Delta:{delta}");
         }
-        previousZ = currentZ;
+        previousY = currentY;
     }
 
     public override void Render()
@@ -85,7 +85,7 @@ public class LeverSwitch : NetworkBehaviour
     private void OnGrab(SelectEnterEventArgs args)
     {
         interactor = args.interactorObject.transform;
-        previousZ = interactor.position.z;
+        previousY = interactor.position.y;
     }
 
     private void OnRelease(SelectExitEventArgs args)
