@@ -8,7 +8,9 @@ using System.Collections.Generic;
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField]
-    private NetworkPrefabRef playerPrefab;
+    private NetworkPrefabRef playerEarPrefab; // 청각 제약 캐릭터
+    [SerializeField]
+    private NetworkPrefabRef playerMentalPrefab; // 정신 제약 캐릭터
 
     // Dictionary of spawned user prefabs, to destroy them on disconnection
     private Dictionary<PlayerRef, NetworkObject> _spawnedUsers = new Dictionary<PlayerRef, NetworkObject>();
@@ -31,13 +33,19 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        // Host만 스폰
+        // Host 스폰
         if (runner.IsServer)
         {
-            Vector3 spawnPosition = new Vector3(UnityEngine.Random.Range(1, 5), 0.5f, UnityEngine.Random.Range(1, 5));
+            NetworkPrefabRef prefabToSpawn;
 
-            NetworkObject networkPlayerObject = runner.Spawn(playerPrefab, Vector3.zero, Quaternion.identity, player);
-            // Keep track of the player avatars so we can remove it when they disconnect
+            // Host가 PlayerId 1, Client가 PlayerId 2
+            if (player.PlayerId == 1)
+                prefabToSpawn = playerMentalPrefab;    // Host
+            else
+                prefabToSpawn = playerEarPrefab;   // Client
+            NetworkObject networkPlayerObject =
+                runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player);
+
             _spawnedUsers.Add(player, networkPlayerObject);
         }
     }
