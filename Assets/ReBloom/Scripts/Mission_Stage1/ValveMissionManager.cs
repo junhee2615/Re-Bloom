@@ -1,11 +1,8 @@
-using System;
 using UnityEngine;
 using Fusion;
 
 public class ValveMissionManager : NetworkBehaviour
 {
-    public static event Action MissionCleared;
-
     public ValveRotate valve;
 
     [Range(0f, 1f)]
@@ -14,32 +11,28 @@ public class ValveMissionManager : NetworkBehaviour
     [Networked]
     public NetworkBool isMissionClear { get; set; }
 
-    // public GameObject gameClearText;
-
-    private bool clearEventRaised;
+    public GameObject gameClearText;
 
     void Update()
     {
         if (Object == null || !Object.IsValid)
             return;
 
+        // 현재 밸브 회전값
         float angle = valve.CurrentAngle;
        
         if (angle > 180)
             angle -= 360;
 
+        // 왼쪽 회전량 기준 안정도 증가
         float normalized = Mathf.Abs(angle) / 90f;
         stability = Mathf.Clamp01(normalized);
 
-        //if (gameClearText != null)
-        //    gameClearText.SetActive(isMissionClear);
+        // UI는 Host/Client 각자 화면에서 표시
+        if (gameClearText != null)
+            gameClearText.SetActive(isMissionClear);
 
-        if (isMissionClear && !clearEventRaised)
-        {
-            clearEventRaised = true;
-            MissionCleared?.Invoke();
-        }
-
+        // 미션 성공 판정은 StateAuthority만 처리
         if (!HasStateAuthority)
             return;
 
@@ -50,11 +43,5 @@ public class ValveMissionManager : NetworkBehaviour
         {
             isMissionClear = true;
         }
-    }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetEvent()
-    {
-        MissionCleared = null;
     }
 }
