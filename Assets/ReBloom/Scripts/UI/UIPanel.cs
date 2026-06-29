@@ -2,11 +2,10 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.XR;
 
 public class UIPanel : MonoBehaviour
 {
-    [SerializeField, Min(0f)] private float duration = 5f;
-
     [SerializeField] private GameObject panelRoot;
 
     [SerializeField] private TMP_Text missionText;
@@ -17,11 +16,32 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
 
-    private Coroutine hideCoroutine;
+    private bool previousXButton;
 
     private void Awake()
     {
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
+    }
+
+    private void Update()
+    {
+        CheckXButtonToggle();
+    }
+
+    private void CheckXButtonToggle()
+    {
+        InputDevice leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+
+        if (leftHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool xButton))
+        {
+            // 버튼을 누르는 순간 한 번만 실행
+            if (xButton && !previousXButton)
+            {
+                panelRoot.SetActive(!panelRoot.activeSelf);
+            }
+
+            previousXButton = xButton;
+        }
     }
 
     private void OnTutorialChanged(TutorialStep step)
@@ -29,20 +49,20 @@ public class UIPanel : MonoBehaviour
         switch (step)
         {
             case TutorialStep.Initial:
-                ShowTemporarily(initialMessage);
+                ShowTutorial(initialMessage);
                 break;
 
             case TutorialStep.GeneratorComplete:
-                ShowTemporarily(generatorCompleteMessage);
+                ShowTutorial(generatorCompleteMessage);
                 break;
 
             case TutorialStep.ValveComplete:
-                ShowTemporarily(valveCompleteMessage);
+                ShowTutorial(valveCompleteMessage);
                 break;
         }
     }
 
-    public void ShowTemporarily(MissionPanelData message)
+    public void ShowTutorial(MissionPanelData message)
     {
         if (message != null)
         {
@@ -50,20 +70,8 @@ public class UIPanel : MonoBehaviour
             titleText.text = message.Title;
             descriptionText.text = message.Description;
         }
-
+        // 새 튜토리얼이 뜰 때는 이전에 꺼져 있었어도 무조건 다시 켜기
         panelRoot.SetActive(true);
-
-        if (hideCoroutine != null)
-            StopCoroutine(hideCoroutine);
-
-        hideCoroutine = StartCoroutine(HideAfterDelay());
-    }
-
-
-    private IEnumerator HideAfterDelay()
-    {
-        yield return new WaitForSeconds(duration);
-        panelRoot.SetActive(false);
     }
 
     private void OnDestroy()
