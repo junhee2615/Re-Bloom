@@ -17,10 +17,6 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
 
-    [SerializeField, Min(1f)] private float spawnDistance = 10f;
-    [SerializeField] private float fixedYPosition = 2.36f;
-
-
     private Coroutine hideCoroutine;
 
     private void Awake()
@@ -55,32 +51,12 @@ public class UIPanel : MonoBehaviour
             descriptionText.text = message.Description;
         }
 
-        MovePanelInFrontOfCamera();
-
         panelRoot.SetActive(true);
 
         if (hideCoroutine != null)
             StopCoroutine(hideCoroutine);
 
         hideCoroutine = StartCoroutine(HideAfterDelay());
-    }
-
-    private void MovePanelInFrontOfCamera()
-    {
-        Camera cam = Camera.main;
-
-        if (cam == null)
-        {
-            Debug.LogError("[UIPanel] Main Camera를 찾을 수 없습니다.");
-            return;
-        }
-
-        Vector3 newPosition = cam.transform.position + cam.transform.forward * spawnDistance;
-
-        // 높이는 원래 캔버스 높이로 고정
-        newPosition.y = fixedYPosition;
-        // 위치만 이동
-        panelRoot.transform.position = newPosition;
     }
 
 
