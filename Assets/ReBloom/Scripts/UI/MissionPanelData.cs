@@ -5,9 +5,11 @@ public class MissionPanelData : ScriptableObject
 {
     [SerializeField] private string missionLabel;
     [SerializeField] private string title;
-    [SerializeField, TextArea] private string description;
+    [SerializeField, TextArea] private string hostdescription;
+    [SerializeField, TextArea] private string clientdescription;
 
     public string MissionLabel => missionLabel;
     public string Title => title;
-    public string Description => description;
+    public string HostDescription => hostdescription;
+    public string ClientDescription => clientdescription;
 }
