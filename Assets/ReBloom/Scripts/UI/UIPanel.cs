@@ -1,12 +1,13 @@
 using System;
 using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.XR;
+using Fusion;
 
 public class UIPanel : MonoBehaviour
 {
-    [SerializeField, Min(0f)] private float duration = 5f;
-
     [SerializeField] private GameObject panelRoot;
 
     [SerializeField] private TMP_Text missionText;
@@ -17,77 +18,95 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
 
-    [SerializeField, Min(1f)] private float spawnDistance = 10f;
-    [SerializeField] private float fixedYPosition = 2.36f;
+    private bool previousXButton;
 
-
-    private Coroutine hideCoroutine;
+    private Coroutine firstTutorialCoroutine;
+    private bool isFirstTutorial = true;
 
     private void Awake()
     {
+        panelRoot.SetActive(false);
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
+    }
+
+    private void Update()
+    {
+        CheckXButtonToggle();
+    }
+
+    private void CheckXButtonToggle()
+    {
+        InputDevice leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+
+        if (leftHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool xButton))
+        {
+            // 버튼을 누르는 순간 한 번만 실행
+            if (xButton && !previousXButton)
+            {
+                panelRoot.SetActive(!panelRoot.activeSelf);
+            }
+
+            previousXButton = xButton;
+        }
     }
 
     private void OnTutorialChanged(TutorialStep step)
     {
-        switch (step)
+        if (isFirstTutorial && step == TutorialStep.Initial)
         {
-            case TutorialStep.Initial:
-                ShowTemporarily(initialMessage);
-                break;
+            isFirstTutorial = false;
 
-            case TutorialStep.GeneratorComplete:
-                ShowTemporarily(generatorCompleteMessage);
-                break;
+            if (firstTutorialCoroutine != null)
+                StopCoroutine(firstTutorialCoroutine);
 
-            case TutorialStep.ValveComplete:
-                ShowTemporarily(valveCompleteMessage);
-                break;
-        }
-    }
-
-    public void ShowTemporarily(MissionPanelData message)
-    {
-        if (message != null)
-        {
-            missionText.text = message.MissionLabel;
-            titleText.text = message.Title;
-            descriptionText.text = message.Description;
-        }
-
-        MovePanelInFrontOfCamera();
-
-        panelRoot.SetActive(true);
-
-        if (hideCoroutine != null)
-            StopCoroutine(hideCoroutine);
-
-        hideCoroutine = StartCoroutine(HideAfterDelay());
-    }
-
-    private void MovePanelInFrontOfCamera()
-    {
-        Camera cam = Camera.main;
-
-        if (cam == null)
-        {
-            Debug.LogError("[UIPanel] Main Camera를 찾을 수 없습니다.");
+            firstTutorialCoroutine = StartCoroutine(ShowFirstTutorialAfterDelay());
             return;
         }
 
-        Vector3 newPosition = cam.transform.position + cam.transform.forward * spawnDistance;
+        switch (step)
+        {
+            case TutorialStep.Initial:
+                ShowTutorial(initialMessage);
+                break;
 
-        // 높이는 원래 캔버스 높이로 고정
-        newPosition.y = fixedYPosition;
-        // 위치만 이동
-        panelRoot.transform.position = newPosition;
+            case TutorialStep.GeneratorComplete:
+                ShowTutorial(generatorCompleteMessage);
+                break;
+
+            case TutorialStep.ValveComplete:
+                ShowTutorial(valveCompleteMessage);
+                break;
+        }
     }
 
-
-    private IEnumerator HideAfterDelay()
+    private IEnumerator ShowFirstTutorialAfterDelay()
     {
-        yield return new WaitForSeconds(duration);
-        panelRoot.SetActive(false);
+        yield return new WaitForSeconds(5f);
+        ShowTutorial(initialMessage);
+    }
+
+    public void ShowTutorial(MissionPanelData message)
+    {
+        if (message != null)
+        {
+            // 튜토리얼 메시지 구분
+            missionText.text = message.MissionLabel;
+            titleText.text = message.Title;
+
+            NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
+
+            if(runner != null && runner.LocalPlayer.PlayerId == 1)
+            {
+                descriptionText.text = message.HostDescription;
+            }
+            else
+            {
+                descriptionText.text = message.ClientDescription;
+            }
+            
+        }
+        // 새 튜토리얼이 뜰 때는 이전에 꺼져 있었어도 무조건 다시 켜기
+        panelRoot.SetActive(true);
     }
 
     private void OnDestroy()
