@@ -30,6 +30,16 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
         NetworkManager.Instance.Runner.AddCallbacks(this);
     }
 
+    public void SetTrainParent(Transform train)
+    {
+        transform.SetParent(train, true);
+    }
+
+    public void ClearTrainParent()
+    {
+        transform.SetParent(null, true);
+    }
+
 
     #region INetworkRunnerCallbacks
     void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input)
@@ -162,3 +172,5 @@ public struct RigState : INetworkInput
     public Vector3 RightHandPosition;
     public Quaternion RightHandRotation;
 }
+
+
