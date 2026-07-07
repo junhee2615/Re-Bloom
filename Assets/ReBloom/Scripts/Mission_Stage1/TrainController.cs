@@ -18,16 +18,21 @@ public class TrainController : NetworkBehaviour
         if (Object == null || !Object.IsValid)
             return;
 
+        HardwareRig rig = FindFirstObjectByType<HardwareRig>();
+
+        if (rig == null)
+            return;
+
         if (IsTrainMoving && !parentSet)
         {
             parentSet = true;
+            rig.SetTrainParent(transform);
+        }
 
-            HardwareRig rig = FindFirstObjectByType<HardwareRig>();
-
-            if (rig != null)
-            {
-                rig.SetTrainParent(transform);
-            }
+        if (!IsTrainMoving && parentSet)
+        {
+            parentSet = false;
+            rig.ClearTrainParent();
         }
     }
 
