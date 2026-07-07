@@ -9,6 +9,7 @@ public class TrainFloor : NetworkBehaviour
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
     [Networked] private NetworkBool IsActivated { get; set; }
+    [SerializeField] private TrainController trainController;
 
     public AudioSource audioSource;
     public AudioClip doorCloseClip;
@@ -98,5 +99,6 @@ public class TrainFloor : NetworkBehaviour
         }
         doorRight.localPosition = rightTarget;
         doorLeft.localPosition = leftTarget;
+        trainController.StartTrain();
     }
 }
