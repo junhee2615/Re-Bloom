@@ -4,14 +4,23 @@ using UnityEngine;
 
 public class TrainController : NetworkBehaviour
 {
-    [SerializeField] private float moveDistance = 30f;
+    [SerializeField] private float moveDistance = 20f;
     [SerializeField] private float maxSpeed = 8f;
     [SerializeField] private float acceleration = 2f;
     [Networked]
     private NetworkBool IsTrainMoving { get; set; }
+    [Networked]
+    private NetworkBool IsTrainArrived { get; set; }
     private bool parentSet = false;
+    private ScreenFade screenFade;
 
     private bool isMoving = false;
+    private bool lastTrainArrived = false;
+
+    private void Start()
+    {
+        screenFade = FindFirstObjectByType<ScreenFade>();
+    }
 
     private void Update()
     {
@@ -33,6 +42,16 @@ public class TrainController : NetworkBehaviour
         {
             parentSet = false;
             rig.ClearTrainParent();
+        }
+
+        if (IsTrainArrived && !lastTrainArrived)
+        {
+            lastTrainArrived = true;
+
+            if (screenFade != null)
+            {
+                StartCoroutine(screenFade.FadeOut(1f));
+            }
         }
     }
 
@@ -69,5 +88,6 @@ public class TrainController : NetworkBehaviour
 
         isMoving = false;
         IsTrainMoving = false;
+        IsTrainArrived = true;
     }
 }
