@@ -89,5 +89,20 @@ public class TrainController : NetworkBehaviour
         isMoving = false;
         IsTrainMoving = false;
         IsTrainArrived = true;
+
+        if (HasStateAuthority)
+        {
+            StartCoroutine(LoadStage2());
+        }
+    }
+
+    private IEnumerator LoadStage2()
+    {
+        yield return new WaitForSeconds(1f); // FadeOut 시간
+
+        if (HasStateAuthority)
+        {
+            Runner.LoadScene(SceneRef.FromIndex(2));
+        }
     }
 }
