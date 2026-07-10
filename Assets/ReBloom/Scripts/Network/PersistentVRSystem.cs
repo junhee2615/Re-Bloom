@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class PersistentXRRig : MonoBehaviour
+public class PersistentVRSystem : MonoBehaviour
 {
-    private static PersistentXRRig instance;
+    private static PersistentVRSystem instance;
 
     private void Awake()
     {
