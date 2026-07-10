@@ -1,5 +1,54 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6032835445932885674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cfd8a276368c7140bdbd86e806898a8, type: 3}
+  m_Name: HazeRendererFeature
+  m_EditorClassIdentifier: Haze.Runtime::Haze.Runtime.HazeRendererFeature
+  m_Active: 1
+  _froxelFogComputeShader: {fileID: 7200000, guid: e9ff39ed12ea7bf469b0b8bce4265ab1, type: 3}
+  _froxelFogCompositeShader: {fileID: 4800000, guid: b9e3eff296ab9a847ba7e2c588b7238f, type: 3}
+  _bloomShader: {fileID: 4800000, guid: ee50c2823ceea334383936f8d0ff9666, type: 3}
+  _renderBeforeTransparents: 0
+  _froxelBufferResolution: 3
+  _aspectRatioAdjustment: 0
+  _froxelBufferDepth: 2
+  _froxelFogRange:
+    x: 0.1
+    y: 500
+  _bufferSampling: 0
+  _interleavedGradientNoiseStrength: 1
+  _jitterNoiseMotion: 1
+  _excludeOverlayCameras: 1
+  _temporalAccumulationBlending: 0.95
+  _mainLightShadowBias: 0
+  _depthBias: 0
+  _maximumVolumeDistance: 100
+  _noiseTexture: {fileID: 11700000, guid: 72d1c9c4660825443891c86b3f611274, type: 2}
+  _noiseData:
+    noiseTiling: 0.1
+    noisePanningSpeed:
+      x: 0
+      y: 0
+      z: 0
+    noiseWeights:
+      x: 1
+      y: 1
+      z: 1
+      w: 1
+  _multipleScatteringData:
+    intensity: 1
+    radius: 1
+    scatter: 1
+    threshold: 0
+    maxIterations: 5
 --- !u!114 &-3206839589395164879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,7 +121,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: -3206839589395164879}
-  m_RendererFeatureMap: ad6b866f10d7b46c
+  - {fileID: -6032835445932885674}
+  m_RendererFeatureMap: ad6b866f10d7b46c56f9c810201047ac
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}

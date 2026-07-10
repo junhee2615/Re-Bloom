@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7062325871229619536
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72e935d2f44fe5e4d8189a02cd3b2bbf, type: 3}
+  m_Name: HazeOverridesVolumeComponent
+  m_EditorClassIdentifier: Haze.Runtime::Haze.Runtime.HazeOverridesVolumeComponent
+  active: 1
+  _noiseTiling:
+    m_OverrideState: 1
+    m_Value: 2.82
+  _noisePanningSpeed:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
+  _noiseWeights:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1, z: 1, w: 1}
+  _multipleScatteringIntensity:
+    m_OverrideState: 1
+    m_Value: 0
+  _multipleScatteringRadius:
+    m_OverrideState: 0
+    m_Value: 7
+  _multipleScatteringScatter:
+    m_OverrideState: 0
+    m_Value: 1
+  _multipleScatteringThreshold:
+    m_OverrideState: 0
+    m_Value: 0
+  _maxMultipleScatteringIterations:
+    m_OverrideState: 0
+    m_Value: 5
+--- !u!114 &-4346549147623121946
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d826a74763129a5418f79e0502eb07e5, type: 3}
+  m_Name: HazeGlobalFogVolumeComponent
+  m_EditorClassIdentifier: Haze.Runtime::Haze.Runtime.HazeGlobalFogVolumeComponent
+  active: 1
+  _globalDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 24.21
+  _globalDensityThreshold:
+    m_OverrideState: 1
+    m_Value: 0.4
+  _ambientColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.15979885, g: 0.3314316, b: 0.5377358, a: 1}
+  _mainLightContribution:
+    m_OverrideState: 1
+    m_Value: {r: 4, g: 4, b: 4, a: 1}
+  _heightFogFactor:
+    m_OverrideState: 1
+    m_Value: 0
+  _maxFogHeight:
+    m_OverrideState: 1
+    m_Value: 0
+  _heightFogSmoothness:
+    m_OverrideState: 1
+    m_Value: 0
+  _cameraRelativeHeightFog:
+    m_OverrideState: 1
+    m_Value: 0
+  _additionalLightContribution:
+    m_OverrideState: 1
+    m_Value: 29.01
+  _probeVolumeContribution:
+    m_OverrideState: 1
+    m_Value: 1
+  _mainLightScattering:
+    m_OverrideState: 1
+    m_Value: 0.16
+  _globalMainLightDensityBoost:
+    m_OverrideState: 1
+    m_Value: 0
+  _globalSecondaryLightDensityBoost:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &-1629136353634092073
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c23e3b12dc18c42a140437e53d3951, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.Tonemapping
+  active: 1
+  mode:
+    m_OverrideState: 1
+    m_Value: 1
+  neutralHDRRangeReductionMode:
+    m_OverrideState: 0
+    m_Value: 2
+  acesPreset:
+    m_OverrideState: 0
+    m_Value: 3
+  hueShiftAmount:
+    m_OverrideState: 0
+    m_Value: 0
+  detectPaperWhite:
+    m_OverrideState: 0
+    m_Value: 0
+  paperWhite:
+    m_OverrideState: 0
+    m_Value: 300
+  detectBrightnessLimits:
+    m_OverrideState: 0
+    m_Value: 1
+  minNits:
+    m_OverrideState: 0
+    m_Value: 0.005
+  maxNits:
+    m_OverrideState: 0
+    m_Value: 1000
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: HazeVolumeProfile_GlobalFog
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
+  components:
+  - {fileID: -4346549147623121946}
+  - {fileID: -1629136353634092073}
+  - {fileID: -7062325871229619536}
