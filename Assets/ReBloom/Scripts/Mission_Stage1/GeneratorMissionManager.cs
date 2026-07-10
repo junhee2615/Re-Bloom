@@ -13,6 +13,9 @@ public class GeneratorMissionManager : NetworkBehaviour
 
     private void Update()
     {
+        if (Object == null || !Object.IsValid)
+            return;
+
         if (IsGeneratorClear && !clearEventRaised)
         {
             clearEventRaised = true;
@@ -25,6 +28,11 @@ public class GeneratorMissionManager : NetworkBehaviour
         if (!HasStateAuthority) return;
 
         IsGeneratorClear = true;
+    }
+
+    public override void Spawned()
+    {
+        Debug.Log($"{name} Spawned!");
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using static Unity.Collections.Unicode;
 
 public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 {
@@ -44,7 +46,14 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input)
     {
-        Debug.Log("OnInput called");
+        if (playerTransform == null ||
+        headTransform == null ||
+        leftHandTransform == null ||
+        rightHandTransform == null)
+        {
+            return;
+        }
+
         RigState xrRigState = new RigState();
 
         xrRigState.HeadsetPosition = headTransform.position;
@@ -132,7 +141,10 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
+        //if (SceneManager.GetActiveScene().buildIndex != 2)
+        //    return;
 
+        StartCoroutine(MoveToSpawnPoint(runner));
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)
@@ -156,6 +168,37 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     }
     #endregion
 
+    private IEnumerator MoveToSpawnPoint(NetworkRunner runner)
+    {
+        yield return null;
+
+        Transform spawnPoint;
+
+        if (runner.LocalPlayer.PlayerId == 1)
+            spawnPoint = GameObject.Find("HostSpawnPoint").transform;
+        else
+            spawnPoint = GameObject.Find("ClientSpawnPoint").transform;
+
+        TeleportTo(spawnPoint);
+    }
+
+    public void TeleportTo(Transform target)
+    {
+        Vector3 headOffset = headTransform.position - playerTransform.position;
+        headOffset.y = 0f;
+
+        playerTransform.position = target.position - headOffset;
+        playerTransform.rotation = target.rotation;
+    }
+
+    private void OnDestroy()
+    {
+        if (NetworkManager.Instance != null &&
+            NetworkManager.Instance.Runner != null)
+        {
+            NetworkManager.Instance.Runner.RemoveCallbacks(this);
+        }
+    }
 }
 
 public struct RigState : INetworkInput

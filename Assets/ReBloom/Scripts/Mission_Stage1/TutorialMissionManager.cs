@@ -27,6 +27,8 @@ public class TutorialMissionManager : NetworkBehaviour
 
     private void Update()
     {
+        if (Object == null || !Object.IsValid)
+            return;
         if (CurrentTutorial != lastTutorial)
         {
             lastTutorial = CurrentTutorial;

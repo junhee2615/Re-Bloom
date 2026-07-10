@@ -2101,7 +2101,7 @@ GameObject:
   - component: {fileID: 3680679156343695418}
   - component: {fileID: 5983418528744635469}
   - component: {fileID: 2229746018018840622}
-  - component: {fileID: 8550522013231620331}
+  - component: {fileID: 582819287340409434}
   m_Layer: 2
   m_Name: XR Origin (XR Rig)
   m_TagString: Untagged
@@ -2255,7 +2255,7 @@ MonoBehaviour:
   headTransform: {fileID: 5908723787184746396}
   leftHandTransform: {fileID: 498722056299981378}
   rightHandTransform: {fileID: 7092021711014478233}
---- !u!114 &8550522013231620331
+--- !u!114 &582819287340409434
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2264,13 +2264,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2036715069862706973}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abb2f8fc8b81ebd429b28819a4121519, type: 3}
+  m_Script: {fileID: 11500000, guid: b3eac3984aa12504d866612864da62d5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HardwareRig
-  playerTransform: {fileID: 7712624025706478311}
-  headTransform: {fileID: 5908723787184746396}
-  leftHandTransform: {fileID: 498722056299981378}
-  rightHandTransform: {fileID: 7092021711014478233}
+  m_EditorClassIdentifier: Assembly-CSharp::PersistentXRRig
 --- !u!1 &2085628045782538864
 GameObject:
   m_ObjectHideFlags: 0
@@ -7075,6 +7071,7 @@ GameObject:
   - component: {fileID: 441640285508959581}
   - component: {fileID: 1802156859604737930}
   - component: {fileID: 1784264109018105104}
+  - component: {fileID: 7203407149938899195}
   m_Layer: 5
   m_Name: TutorialCanvas
   m_TagString: Untagged
@@ -7165,6 +7162,25 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &7203407149938899195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8676781682372684954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e65ec42c8cf45f4abf0a528c3b2b33c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPanel
+  panelRoot: {fileID: 9146772469149021953}
+  missionText: {fileID: 7880755873897102416}
+  titleText: {fileID: 5781261306730225827}
+  descriptionText: {fileID: 3247467413983124077}
+  initialMessage: {fileID: 11400000, guid: 16a42a0ad478462798c745a759cd220e, type: 2}
+  generatorCompleteMessage: {fileID: 11400000, guid: 38fd583d46ee4bcf8646939c3d545319, type: 2}
+  valveCompleteMessage: {fileID: 11400000, guid: b13cb6ca748d4a309de1173b001e38db, type: 2}
 --- !u!1 &8703561584327515536
 GameObject:
   m_ObjectHideFlags: 0

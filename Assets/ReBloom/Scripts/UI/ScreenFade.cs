@@ -1,9 +1,25 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ScreenFade : MonoBehaviour
 {
     [SerializeField] private CanvasGroup canvasGroup;
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(FadeIn(1f));
+    }
 
     public IEnumerator FadeOut(float duration)
     {
