@@ -1,0 +1,343 @@
+#pragma kernel ColorDensityGather
+#pragma kernel Scatter
+
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+#if UNITY_VERSION >= 60010000
+    #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+    #define USE_FORWARD_PLUS USE_CLUSTER_LIGHT_LOOP
+#else
+    #pragma multi_compile _ _FORWARD_PLUS
+#endif
+
+#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+#pragma multi_compile _ _LIGHT_COOKIES
+#pragma multi_compile _ _LIGHT_LAYERS
+#pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+
+#include "FroxelFogCommon.hlsl"
+
+RWTexture3D<float4> _ColorDensityBuffer;
+RWTexture3D<float4> _ScatterBuffer;
+Texture3D _ColorDensityReadBuffer;
+Texture3D _GlobalNoiseTexture;
+float4 _AmbientColor;
+float _MainLightShadowBias;
+float _LightScattering;
+
+float _GlobalDensityMultiplier;
+float _GlobalDensityThreshold;
+float _GlobalMainLightDensityBoost;
+float _GlobalSecondaryLightDensityBoost;
+float4 _GlobalNoisePanningTiling;
+float4 _GlobalNoiseWeights;
+float4 _GlobalMainLightContribution;
+float _GlobalAdditionalLightContribution;
+float _GlobalProbeVolumeContribution;
+float4 _GlobalHeightFog;
+
+float4x4 _InverseViewProjectionMatrix;
+float4x4 _PrevViewProjectionMatrix;
+
+float4 _ZBufferParameters;
+float _TemporalReprojection;
+float _TemporalAccumulationBlending;
+float _JitterNoiseMotion;
+// x - Contribution
+// y - Density
+// z - Color Alpha
+StructuredBuffer<float3> _SecondaryLightDataBuffer;
+
+#define NEAR_CLIP _ZBufferParameters.z
+#define FAR_CLIP _ZBufferParameters.w
+
+struct HazeDensityVolume
+{
+    float4x4 worldToLocal;
+    float shape;
+    /*
+     * X -> Density
+     * Y -> Noise Threshold
+     * Z -> Main light density boost
+     * W -> Secondary light density boost
+     */
+    float4 densitySettings;
+    float3 ambientColor;
+    float3 lightContribution;
+    float4 heightFog;
+    /*
+     * X -> Additional light contribution
+     * Y -> Probe volume contribution
+     * Z -> Main light phase
+     * W -> Gradient sampling index
+     */
+    float4 lightAndGradientSettings;
+    float gradientMappingMethod;
+    float override;
+};
+
+StructuredBuffer<HazeDensityVolume> _HazeDensityVolumeBuffer;
+float _VisibleDensityVolumes;
+Texture2D _VolumeGradientTexture;
+
+InputData GetInputData(float3 worldPos, float2 uv)
+{
+    InputData inputData = (InputData)0;
+    inputData.normalizedScreenSpaceUV = uv;
+    inputData.positionWS = worldPos;
+    return inputData;
+}
+
+void ColorDensityGatherCore(uint3 id)
+{
+    uint width, height, depth;
+    _ColorDensityBuffer.GetDimensions(width, height, depth);
+    if (id.x >= width || id.y >= height || id.z >= depth)
+    {
+        return;
+    }
+    float3 dim = float3(width, height, depth);
+    float3 gid = float3(id.xyz);
+    float ditherNoise = IGN(gid.x, gid.y, gid.z + _Time.y * unity_DeltaTime.w * _JitterNoiseMotion) * 0.999f;
+    // gid.z += ditherNoise;
+    
+    float3 uvw = (gid + 0.5) / dim;
+    uint3 gridSize = uint3(width, height, depth);
+    float3 pos = IDToWorldWithJitter(id.xyz, ditherNoise, NEAR_CLIP, FAR_CLIP, _InverseViewProjectionMatrix, gridSize);
+
+    //Main light settings
+    Light mainLight = GetCustomMainLight(pos);
+    float3 viewDir = normalize(_WorldSpaceCameraPos - pos);
+    float lightScattering = LightScattering(viewDir, mainLight.direction, _LightScattering);
+    
+#if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+    float4 shadowCoord = CustomTransformWorldToShadowCoord(pos);
+    shadowCoord.z -= _MainLightShadowBias;
+    float shadow = CustomSampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, GetMainLightShadowSamplingData(), GetMainLightShadowParams(), false);
+    shadow = ApplyShadowFade(shadow, pos);
+#else
+    float shadow = 1;
+#endif
+
+    float3 mainLightColorTerm = mainLight.color * shadow;
+
+    //Probe volume
+    float3 bakedLight = float3(0,0,0);
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    EvaluateAdaptiveProbeVolume(pos, uvw.xy, bakedLight);
+#endif
+
+    //Secondary light settings
+    float3 additionalLights = float3(0,0,0);
+
+    float additionalLightDensity = 0;
+
+    float3 dataDrivenAdditionalContribution = float3(0,0,0);
+    float dataDrivenAdditionalDensity = 0;
+#if USE_FORWARD_PLUS
+    #if defined(_ADDITIONAL_LIGHTS)
+        uint additionalLightsCount = GetAdditionalLightsCount();
+        InputData inputData = GetInputData(pos, uvw.xy);
+        LIGHT_LOOP_BEGIN(additionalLightsCount)
+            float3 lightData = _SecondaryLightDataBuffer[lightIndex];
+            Light light = CustomGetAdditionalPerObjectLight(lightIndex, pos);
+            light.shadowAttenuation = CustomAdditionalLightRealtimeShadow(lightIndex, pos, light.direction);
+            float3 contribution = light.color * light.shadowAttenuation * saturate(light.distanceAttenuation); 
+            float extraDensity = light.shadowAttenuation * pow(light.distanceAttenuation, 0.1);
+
+            additionalLights += contribution * lightData.z;
+            additionalLightDensity += extraDensity * lightData.z;
+
+            dataDrivenAdditionalContribution += contribution * lightData.x;
+            dataDrivenAdditionalDensity += extraDensity * lightData.y;
+        LIGHT_LOOP_END
+    #endif
+#endif
+
+    //Density Noise
+    float4 noise = _GlobalNoiseTexture.SampleLevel(sampler_TrilinearRepeat, pos * 0.01 * _GlobalNoisePanningTiling.w + _Time.y * _GlobalNoisePanningTiling.xyz, 0);
+    float weightedNoise = dot(noise, _GlobalNoiseWeights) * 0.5;
+    
+    float accumulatedVolumeDensity = 0;
+    float accumulatedSubtractiveDensity = 0;
+    float3 volumeAmbientColor = float3(0,0,0);
+    float3 lightCol = float3(0,0,0);
+    float3 probeVolumeLight = float3(0,0,0);
+    uint2 volumeGradientTextureDimensions;
+    _VolumeGradientTexture.GetDimensions(volumeGradientTextureDimensions.x, volumeGradientTextureDimensions.y);
+    
+    [branch]
+    if (_VisibleDensityVolumes > 0)
+    {
+        [loop]
+        for (uint i = 0; i < (uint)_VisibleDensityVolumes; i++)
+        {
+            HazeDensityVolume volume = _HazeDensityVolumeBuffer[i];
+            float3 objPos = mul(volume.worldToLocal, float4(pos, 1.0)).xyz * 2;
+            float shapeDensity = volume.shape == 0 ? saturate(1.0 - Max3(abs(objPos.x), abs(objPos.y), abs(objPos.z))) : saturate(1.0 - length(objPos));
+            float localHeightFogPos = lerp(pos.y - _WorldSpaceCameraPos.y * (volume.heightFog.w / 2), objPos.y, volume.heightFog.w % 2);
+
+            float heightFog = saturate(InverseLerp(volume.heightFog.x - volume.heightFog.y, volume.heightFog.x + volume.heightFog.y, localHeightFogPos)) * volume.heightFog.z;
+
+            float gradientMappingFactor = objPos.z * 0.5 + 0.5;
+
+            [branch]
+            switch (floor(volume.gradientMappingMethod))
+            {
+                case 0:
+                    gradientMappingFactor = objPos.z * 0.5 + 0.5;
+                break;
+                case 1:
+                    gradientMappingFactor = objPos.y * 0.5 + 0.5;
+                break;
+                case 2:
+                    gradientMappingFactor = objPos.x * 0.5 + 0.5;
+                break;
+                case 3:
+                    gradientMappingFactor = (objPos.z * 0.5 + 0.5 + (objPos.y * 0.5 + 0.5)) * 0.5;
+                break;
+                case 4:
+                    gradientMappingFactor = uvw.x;
+                break;
+                case 5:
+                    gradientMappingFactor = uvw.y;
+                break;
+                case 6:
+                    gradientMappingFactor = LightScattering(viewDir, mainLight.direction, frac(volume.gradientMappingMethod));
+                break;
+                default:
+                    gradientMappingFactor = objPos.z * 0.5 + 0.5;
+                break;
+            }
+            
+            float4 gradientColor = _VolumeGradientTexture.SampleLevel(sampler_LinearClamp, float2(gradientMappingFactor, volume.lightAndGradientSettings.w / (volumeGradientTextureDimensions.y * 0.5) + rcp(volumeGradientTextureDimensions.y)), 0);
+            float localNoiseAndHeightDensity = max(0, weightedNoise - volume.densitySettings.y - (1.0 - gradientColor.a) * 2 - heightFog + accumulatedSubtractiveDensity * saturate(sign(volume.densitySettings.x + 0.0001)));
+            float volumeDensity = localNoiseAndHeightDensity * volume.densitySettings.x;
+            float localDensity = shapeDensity * volumeDensity;
+            //Only contribute ambient color to main fog body
+            float3 localVolumeAmbientColor = localDensity * volume.ambientColor * gradientColor.rgb; 
+
+            //Additional density from main/secondary lights
+            float mainLightDensity = shadow * localNoiseAndHeightDensity * volume.densitySettings.z * volume.lightAndGradientSettings.z;
+            float secondaryLightDensity = (additionalLightDensity * volume.densitySettings.w + dataDrivenAdditionalDensity) * localNoiseAndHeightDensity * sign(volume.densitySettings.x + 0.0001);
+            float lightDensity = mainLightDensity + secondaryLightDensity;
+            volumeDensity += lightDensity;
+            localDensity = shapeDensity * volumeDensity;
+            
+            float volumeMainLightScattering = LightScattering(viewDir, mainLight.direction, volume.lightAndGradientSettings.z);
+            float3 localLightCol = (mainLightColorTerm * volumeMainLightScattering * volume.lightContribution + additionalLights * volume.lightAndGradientSettings.x + dataDrivenAdditionalContribution) * localDensity; 
+            float3 localProbeVolumeLight = bakedLight * volume.lightAndGradientSettings.y * localDensity;
+
+            [branch]
+            if (volume.override)
+            {
+                float shapeMask = smoothstep(0.01, 0.1, shapeDensity);
+                accumulatedVolumeDensity = lerp(accumulatedVolumeDensity, localDensity, shapeMask);
+                volumeAmbientColor = lerp(volumeAmbientColor, localVolumeAmbientColor, shapeMask);
+                lightCol = lerp(lightCol, localLightCol, shapeMask); 
+                probeVolumeLight = lerp(probeVolumeLight, localProbeVolumeLight, shapeMask);
+            } else
+            {
+                [branch]
+                if (volume.densitySettings.x >= 0)
+                {
+                    accumulatedVolumeDensity += localDensity;
+                } else
+                {
+                    accumulatedSubtractiveDensity += localDensity;
+                }
+
+                volumeAmbientColor += localVolumeAmbientColor;
+                lightCol += localLightCol; 
+                probeVolumeLight += localProbeVolumeLight;
+            }
+        }
+    }
+
+    //Global density
+    float heightFogPos = pos.y - _WorldSpaceCameraPos.y * _GlobalHeightFog.w;
+    float globalHeightFog = saturate(InverseLerp(_GlobalHeightFog.x - _GlobalHeightFog.y, _GlobalHeightFog.x + _GlobalHeightFog.y, heightFogPos)) * _GlobalHeightFog.z;
+    float globalNoiseAndHeightDensity = max(0, weightedNoise - _GlobalDensityThreshold - globalHeightFog + accumulatedSubtractiveDensity);
+    float density = globalNoiseAndHeightDensity * _GlobalDensityMultiplier;
+    float3 ambientCol = density * _AmbientColor.rgb;
+
+    density += shadow * globalNoiseAndHeightDensity * _GlobalMainLightDensityBoost * _LightScattering;
+    
+    probeVolumeLight += bakedLight * _GlobalProbeVolumeContribution * density;
+    
+    //Global color settings
+    lightCol += density * lightScattering * mainLightColorTerm * _GlobalMainLightContribution.rgb;
+
+    density += (additionalLightDensity * _GlobalSecondaryLightDensityBoost + dataDrivenAdditionalDensity) * globalNoiseAndHeightDensity;
+    lightCol += (additionalLights * _GlobalAdditionalLightContribution + dataDrivenAdditionalContribution) * density;
+
+    ambientCol += volumeAmbientColor;
+    density += accumulatedVolumeDensity;
+
+    float4 col = float4(ambientCol + lightCol + probeVolumeLight, density);
+    float3 posNoJitter = IDToWorld(id.xyz, NEAR_CLIP, FAR_CLIP, _InverseViewProjectionMatrix, uint3(width, height, depth));
+    float3 historyBufferUV = WorldToUV(posNoJitter, NEAR_CLIP, FAR_CLIP, _PrevViewProjectionMatrix, depth, unity_OrthoParams.w);
+    [branch]
+    if (_TemporalAccumulationBlending > 0 && all(historyBufferUV >= float3(0,0,0)) && all(historyBufferUV <= float3(1,1,1)))
+    {
+        col = lerp(col, lerp(_ColorDensityReadBuffer.SampleLevel(sampler_TrilinearClamp, historyBufferUV, 0), col, _TemporalAccumulationBlending.xxxx), _TemporalReprojection.xxxx);
+    }
+    
+    _ColorDensityBuffer[id] = col;
+} 
+
+float SliceDistance(int z, uint depth)
+{
+    return NEAR_CLIP * pow(abs(FAR_CLIP / NEAR_CLIP), (float(z) + 0.5f) / float(depth));
+}
+
+float SliceThickness(int z, uint depth)
+{
+    return abs(SliceDistance(z + 1, depth) - SliceDistance(z, depth));
+}
+
+// https://github.com/Unity-Technologies/VolumetricLighting/blob/master/Assets/VolumetricFog/Shaders/Scatter.compute
+float4 Accumulate(int z, float3 accum_scattering, float accum_transmittance, float3 slice_scattering, float slice_density, uint depth)
+{
+    slice_density = max(slice_density, 0.000001);
+    const float thickness = SliceThickness(z, depth);
+    const float slice_transmittance = exp(-slice_density * thickness * 0.01f);
+
+    float3 slice_scattering_integral = slice_scattering * (1.0 - slice_transmittance) / slice_density;
+
+    accum_scattering += slice_scattering_integral * accum_transmittance;
+    accum_transmittance *= slice_transmittance;
+
+    return float4(accum_scattering, accum_transmittance);
+}
+
+[numthreads(4,4,4)]
+void ColorDensityGather (uint3 id : SV_DispatchThreadID)
+{
+    ColorDensityGatherCore(id);
+}
+
+[numthreads(8,8,1)]
+void Scatter (uint3 id : SV_DispatchThreadID)
+{
+    uint width, height, depth;
+    _ScatterBuffer.GetDimensions(width, height, depth);
+    if (id.x >= width || id.y >= height)
+    {
+        return;
+    }
+    
+    float4 accum = float4(0,0,0,1);
+    uint3 pos = uint3(id.xy, 0);
+    uint steps = depth;
+
+    [loop]
+    for (uint z = 0; z < steps; z++)
+    {
+        pos.z = z;
+        float4 slice = _ColorDensityReadBuffer[pos];
+        accum = Accumulate(z, accum.rgb, accum.a, slice.rgb, slice.a, depth);
+        _ScatterBuffer[pos] = max(0, accum);
+    }
+}
+

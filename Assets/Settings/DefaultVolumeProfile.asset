@@ -107,6 +107,43 @@ MonoBehaviour:
   clamp:
     m_OverrideState: 1
     m_Value: 0.05
+--- !u!114 &-7712549492174494652
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72e935d2f44fe5e4d8189a02cd3b2bbf, type: 3}
+  m_Name: HazeOverridesVolumeComponent
+  m_EditorClassIdentifier: Haze.Runtime::Haze.Runtime.HazeOverridesVolumeComponent
+  active: 1
+  _noiseTiling:
+    m_OverrideState: 1
+    m_Value: 0.001
+  _noisePanningSpeed:
+    m_OverrideState: 1
+    m_Value: {x: 0, y: 0, z: 0}
+  _noiseWeights:
+    m_OverrideState: 1
+    m_Value: {x: 1, y: 1, z: 1, w: 1}
+  _multipleScatteringIntensity:
+    m_OverrideState: 1
+    m_Value: 1
+  _multipleScatteringRadius:
+    m_OverrideState: 1
+    m_Value: 7
+  _multipleScatteringScatter:
+    m_OverrideState: 1
+    m_Value: 1
+  _multipleScatteringThreshold:
+    m_OverrideState: 1
+    m_Value: 0
+  _maxMultipleScatteringIterations:
+    m_OverrideState: 1
+    m_Value: 5
 --- !u!114 &-7274224791359825572
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -468,6 +505,8 @@ MonoBehaviour:
   - {fileID: -6288072647309666549}
   - {fileID: 7518938298396184218}
   - {fileID: -1410297666881709256}
+  - {fileID: 4029133717281367098}
+  - {fileID: -7712549492174494652}
 --- !u!114 &853819529557874667
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -822,6 +861,58 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   bladeRotation:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &4029133717281367098
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d826a74763129a5418f79e0502eb07e5, type: 3}
+  m_Name: HazeGlobalFogVolumeComponent
+  m_EditorClassIdentifier: Haze.Runtime::Haze.Runtime.HazeGlobalFogVolumeComponent
+  active: 1
+  _globalDensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0
+  _globalDensityThreshold:
+    m_OverrideState: 1
+    m_Value: 0.2
+  _ambientColor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  _mainLightContribution:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  _heightFogFactor:
+    m_OverrideState: 1
+    m_Value: 0
+  _maxFogHeight:
+    m_OverrideState: 1
+    m_Value: 0
+  _heightFogSmoothness:
+    m_OverrideState: 1
+    m_Value: 0
+  _cameraRelativeHeightFog:
+    m_OverrideState: 1
+    m_Value: 0
+  _additionalLightContribution:
+    m_OverrideState: 1
+    m_Value: 0
+  _probeVolumeContribution:
+    m_OverrideState: 1
+    m_Value: 0
+  _mainLightScattering:
+    m_OverrideState: 1
+    m_Value: 1
+  _globalMainLightDensityBoost:
+    m_OverrideState: 1
+    m_Value: 0
+  _globalSecondaryLightDensityBoost:
     m_OverrideState: 1
     m_Value: 0
 --- !u!114 &4251301726029935498
