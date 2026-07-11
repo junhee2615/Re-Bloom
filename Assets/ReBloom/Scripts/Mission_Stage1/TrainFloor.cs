@@ -16,6 +16,11 @@ public class TrainFloor : NetworkBehaviour
     public Transform doorLeft;
     private ScreenFade screenFade;
 
+    private void Start()
+    {
+        screenFade = FindFirstObjectByType<ScreenFade>();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!HasStateAuthority)
@@ -67,8 +72,24 @@ public class TrainFloor : NetworkBehaviour
 
     private void Activate()
     {
-        StartCoroutine(CloseDoorAnimation());
-        StartCoroutine(screenFade.FadeOut(1f));
+        StartCoroutine(TrainSequence());
+    }
+
+    IEnumerator TrainSequence()
+    {
+        // 문 닫기
+        yield return StartCoroutine(CloseDoorAnimation());
+
+        // 문 닫힌 후 1초 대기
+        yield return new WaitForSeconds(1f);
+
+        // 페이드
+        if (screenFade != null)
+        {
+            yield return StartCoroutine(screenFade.FadeOut(1f));
+        }
+
+        // 씬 이동
         if (HasStateAuthority)
         {
             Runner.LoadScene(SceneRef.FromIndex(2));
