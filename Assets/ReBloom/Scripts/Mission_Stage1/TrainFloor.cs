@@ -9,12 +9,12 @@ public class TrainFloor : NetworkBehaviour
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
     [Networked] private NetworkBool IsActivated { get; set; }
-    [SerializeField] private TrainController trainController;
 
     public AudioSource audioSource;
     public AudioClip doorCloseClip;
     public Transform doorRight;
     public Transform doorLeft;
+    private ScreenFade screenFade;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -68,6 +68,11 @@ public class TrainFloor : NetworkBehaviour
     private void Activate()
     {
         StartCoroutine(CloseDoorAnimation());
+        StartCoroutine(screenFade.FadeOut(1f));
+        if (HasStateAuthority)
+        {
+            Runner.LoadScene(SceneRef.FromIndex(2));
+        }
     }
 
     IEnumerator CloseDoorAnimation()
@@ -99,6 +104,6 @@ public class TrainFloor : NetworkBehaviour
         }
         doorRight.localPosition = rightTarget;
         doorLeft.localPosition = leftTarget;
-        trainController.StartTrain();
+        // trainController.StartTrain();
     }
 }
