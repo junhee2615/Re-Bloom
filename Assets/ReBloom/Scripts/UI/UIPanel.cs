@@ -17,6 +17,8 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData initialMessage;
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip tutorialOpenClip;
 
     private bool previousXButton;
 
@@ -103,7 +105,11 @@ public class UIPanel : MonoBehaviour
             {
                 descriptionText.text = message.ClientDescription;
             }
-            
+            if (audioSource != null && tutorialOpenClip != null)
+            {
+                audioSource.PlayOneShot(tutorialOpenClip);
+            }
+
         }
         // 새 튜토리얼이 뜰 때는 이전에 꺼져 있었어도 무조건 다시 켜기
         panelRoot.SetActive(true);

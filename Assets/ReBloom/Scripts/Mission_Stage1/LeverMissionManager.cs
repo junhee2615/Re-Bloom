@@ -8,7 +8,6 @@ public class LeverMissionManager : NetworkBehaviour
 {
     public LeverSwitch leverA;
     public LeverSwitch leverB;
-    public GameObject clearText;
     public Transform doorRight;
     public Transform doorLeft;
     public AudioSource audioSource;
@@ -27,9 +26,6 @@ public class LeverMissionManager : NetworkBehaviour
     {
         if (Object == null || !Object.IsValid)
             return;
-
-        if (clearText != null)
-            clearText.SetActive(IsMissionClear);
 
         if (beforebuilding != null)
             beforebuilding.SetActive(!IsMissionClear);
