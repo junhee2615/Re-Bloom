@@ -17,6 +17,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public NetworkRunner Runner { get; private set; }
 
+    private bool _sessionStarted;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -38,6 +40,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void CreateSession(string roomCode)
     {
+        if (_sessionStarted) return;
+        _sessionStarted = true;
         CreateRunner();
 
         var args = new StartGameArgs()
@@ -52,6 +56,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void JoinSession(string roomCode)
     {
+        if (_sessionStarted) return;
+        _sessionStarted = true;
         CreateRunner();
 
         var args = new StartGameArgs()

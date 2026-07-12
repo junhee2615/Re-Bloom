@@ -126,15 +126,19 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-        // Respawn avatars for all active players after a scene transition.
-        // OnPlayerJoined does not fire again on scene load, so respawn here.
+        // After a scene transition the previous avatars are destroyed, leaving
+        // null entries in the dictionary. Prune only those, then spawn for any
+        // active player that has no live avatar. Never despawn/clear live
+        // entries (doing so caused duplicate spawns).
         if (!runner.IsServer)
             return;
 
+        var stale = new List<PlayerRef>();
         foreach (var kv in _spawnedUsers)
-            if (kv.Value != null)
-                runner.Despawn(kv.Value);
-        _spawnedUsers.Clear();
+            if (kv.Value == null)
+                stale.Add(kv.Key);
+        foreach (var p in stale)
+            _spawnedUsers.Remove(p);
 
         foreach (var player in runner.ActivePlayers)
             SpawnPlayer(runner, player);
