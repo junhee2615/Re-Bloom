@@ -1433,6 +1433,7 @@ GameObject:
   - component: {fileID: 1130117217}
   - component: {fileID: 1130117216}
   - component: {fileID: 1130117215}
+  - component: {fileID: 1130117220}
   m_Layer: 31
   m_Name: TrainFloor
   m_TagString: Untagged
@@ -1610,13 +1611,29 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1130117214}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.294, y: 2.85, z: 46.828}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -4.154, y: -0.96300006, z: -0.07785797}
   m_LocalScale: {x: 1.3009225, y: 0.06501452, z: 0.16151524}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1273324949}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1130117220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1130117214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d27dedea93cb2a4281de08eadae050b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrainFloor_stage2
+  audioSource: {fileID: 1273324946}
+  doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
+  doorRight: {fileID: 1273324948}
+  doorLeft: {fileID: 1273324947}
 --- !u!1001 &1175659010
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1699,6 +1716,14 @@ PrefabInstance:
       propertyPath: SortKey
       value: 427738990
       objectReference: {fileID: 0}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: NetworkedBehaviours.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: 'NetworkedBehaviours.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1130117220}
     - target: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.14
@@ -1741,9 +1766,32 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1130117219}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+--- !u!82 &1273324946 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 6048490511224281864, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1273324945}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1273324947 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3593106853151214169, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1273324945}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1273324948 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8837069044129766697, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1273324945}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1273324949 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1273324945}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1315158984
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3622,7 +3670,6 @@ SceneRoots:
   - {fileID: 1273324945}
   - {fileID: 1320295521}
   - {fileID: 498729171913658762}
-  - {fileID: 1130117219}
   - {fileID: 1654763338}
   - {fileID: 1726751552}
   - {fileID: 1683766827}
