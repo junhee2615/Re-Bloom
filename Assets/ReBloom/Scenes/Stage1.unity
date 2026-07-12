@@ -2009,17 +2009,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 777501311727040164, guid: e19a9bc77e8f5b7498d58ed9a470f66b, type: 3}
   m_PrefabInstance: {fileID: 1390032291}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1403859080 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2347496258219804305, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
-  m_PrefabInstance: {fileID: 1718984749}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6d45353034a25642bb033cd1885e65b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TrainController
 --- !u!1001 &1406985394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2479,6 +2468,14 @@ PrefabInstance:
       propertyPath: 'NestedObjects.Array.data[2]'
       value: 
       objectReference: {fileID: 1815723131}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: 'NestedObjects.Array.data[3]'
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: 'NestedObjects.Array.data[4]'
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.14
@@ -2884,7 +2881,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8a8f328380eb5c4293e372691500f57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainFloor
-  trainController: {fileID: 1403859080}
   audioSource: {fileID: 1718984750}
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
   doorRight: {fileID: 1718984752}

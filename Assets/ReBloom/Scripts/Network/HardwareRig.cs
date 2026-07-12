@@ -200,11 +200,6 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
             NetworkManager.Instance.Runner.RemoveCallbacks(this);
         }
     }
-
-    private void OnDisable()
-    {
-        Debug.LogWarning("HardwareRig Disabled");
-    }
 }
 
 public struct RigState : INetworkInput
