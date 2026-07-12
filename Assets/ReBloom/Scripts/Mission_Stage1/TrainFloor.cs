@@ -89,6 +89,9 @@ public class TrainFloor : NetworkBehaviour
             yield return StartCoroutine(screenFade.FadeOut(1f));
         }
 
+        // 검은 화면 상태로 3초 대기
+        yield return new WaitForSeconds(3f);
+
         // 씬 이동
         if (HasStateAuthority)
         {
@@ -125,6 +128,5 @@ public class TrainFloor : NetworkBehaviour
         }
         doorRight.localPosition = rightTarget;
         doorLeft.localPosition = leftTarget;
-        // trainController.StartTrain();
     }
 }
