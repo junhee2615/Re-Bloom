@@ -193,7 +193,6 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
     private void OnDestroy()
     {
-        Debug.LogError("HardwareRig Destroyed!");
         if (NetworkManager.Instance != null &&
             NetworkManager.Instance.Runner != null)
         {

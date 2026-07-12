@@ -4,73 +4,23 @@ using Fusion;
 
 public class TrainFloor_stage2 : NetworkBehaviour
 {
-    [Networked] private NetworkBool Player1On { get; set; }
-    [Networked] private NetworkBool Player2On { get; set; }
-    [Networked] private NetworkBool IsActivated { get; set; }
-
     public AudioSource audioSource;
     public AudioClip doorCloseClip;
 
     public Transform doorRight;
     public Transform doorLeft;
 
-    private void OnTriggerEnter(Collider other)
+    public override void Spawned()
     {
         if (!HasStateAuthority)
             return;
 
-        NetworkObject obj = other.GetComponentInParent<NetworkObject>();
-
-        if (obj == null)
-            return;
-
-        if (obj.InputAuthority.PlayerId == 1)
-            Player1On = true;
-
-        if (obj.InputAuthority.PlayerId == 2)
-            Player2On = true;
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!HasStateAuthority)
-            return;
-
-        NetworkObject obj = other.GetComponentInParent<NetworkObject>();
-
-        if (obj == null)
-            return;
-
-        if (obj.InputAuthority.PlayerId == 1)
-            Player1On = false;
-
-        if (obj.InputAuthority.PlayerId == 2)
-            Player2On = false;
-    }
-
-    public override void FixedUpdateNetwork()
-    {
-        if (!HasStateAuthority)
-            return;
-
-        if (Player1On &&
-            Player2On &&
-            !IsActivated)
-        {
-            IsActivated = true;
-
-            Activate();
-        }
-    }
-
-    private void Activate()
-    {
         StartCoroutine(OpenDoorAnimation());
     }
 
     IEnumerator OpenDoorAnimation()
     {
-        // 두 플레이어 스폰 후 3초 대기
+        // Stage2 시작 후 3초 대기
         yield return new WaitForSeconds(3f);
 
         if (audioSource != null)
@@ -79,8 +29,11 @@ public class TrainFloor_stage2 : NetworkBehaviour
         Vector3 rightStart = doorRight.localPosition;
         Vector3 leftStart = doorLeft.localPosition;
 
-        Vector3 rightTarget = rightStart + Vector3.right * 0.5f;
-        Vector3 leftTarget = leftStart + Vector3.left * 0.5f;
+        Vector3 rightTarget =
+            rightStart + Vector3.right * 0.5f;
+
+        Vector3 leftTarget =
+            leftStart + Vector3.left * 0.5f;
 
         float t = 0;
 
