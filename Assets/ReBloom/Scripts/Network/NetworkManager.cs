@@ -15,6 +15,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField]
     private GameObject _runnerPrefab;
 
+    [SerializeField, Tooltip("Host가 세션 시작 시 로드할 씬 이름. Build Settings에 등록된 씬이어야 함.")]
+    private string _targetSceneName = "Stage1";
+
     public NetworkRunner Runner { get; private set; }
 
     private bool _sessionStarted;
@@ -42,14 +45,22 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (_sessionStarted) return;
         _sessionStarted = true;
+
+        NetworkSceneManagerDefault sceneManager = GetComponent<NetworkSceneManagerDefault>();
+        if (!GetTargetScene(sceneManager, out SceneRef targetScene))
+        {
+            _sessionStarted = false;
+            return;
+        }
+
         CreateRunner();
 
         var args = new StartGameArgs()
         {
             GameMode = GameMode.Host,   // ⭐ Host
             SessionName = roomCode,
-            SceneManager = GetComponent<NetworkSceneManagerDefault>(),
-            Scene = SceneRef.FromIndex(1)
+            SceneManager = sceneManager,
+            Scene = targetScene
         };
         await Runner.StartGame(args);
     }
@@ -78,15 +89,47 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     private async Task Connect(string SessionName)
     {
+        NetworkSceneManagerDefault sceneManager = GetComponent<NetworkSceneManagerDefault>();
+        if (!GetTargetScene(sceneManager, out SceneRef targetScene))
+            return;
+
         var args = new StartGameArgs()
         {
             GameMode = GameMode.Shared,
             SessionName = SessionName,
-            SceneManager = GetComponent<NetworkSceneManagerDefault>(),
-            Scene = SceneRef.FromIndex(1)
+            SceneManager = sceneManager,
+            Scene = targetScene
 
         };
         await Runner.StartGame(args);
+    }
+
+    private bool GetTargetScene(NetworkSceneManagerDefault sceneManager, out SceneRef targetScene)
+    {
+        targetScene = SceneRef.None;
+
+        if (sceneManager == null)
+        {
+            Debug.LogError("NetworkSceneManagerDefault가 없어 네트워크 씬을 로드할 수 없습니다.", this);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_targetSceneName))
+        {
+            Debug.LogError("Target Scene Name이 비어 있습니다.", this);
+            return false;
+        }
+
+        targetScene = sceneManager.GetSceneRef(_targetSceneName.Trim());
+        if (targetScene == SceneRef.None)
+        {
+            Debug.LogError(
+                $"씬 '{_targetSceneName}'을 찾을 수 없습니다. File > Build Profiles > Scene List에 씬을 등록했는지 확인하세요.",
+                this);
+            return false;
+        }
+
+        return true;
     }
 
     #region INetworkRunnerCallbacks
