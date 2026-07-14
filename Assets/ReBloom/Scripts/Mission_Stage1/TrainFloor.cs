@@ -9,17 +9,12 @@ public class TrainFloor : NetworkBehaviour
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
     [Networked] private NetworkBool IsActivated { get; set; }
+    [SerializeField] private TrainController trainController;
 
     public AudioSource audioSource;
     public AudioClip doorCloseClip;
     public Transform doorRight;
     public Transform doorLeft;
-    private ScreenFade screenFade;
-
-    private void Start()
-    {
-        screenFade = FindFirstObjectByType<ScreenFade>();
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -72,31 +67,7 @@ public class TrainFloor : NetworkBehaviour
 
     private void Activate()
     {
-        StartCoroutine(TrainSequence());
-    }
-
-    IEnumerator TrainSequence()
-    {
-        // 문 닫기
-        yield return StartCoroutine(CloseDoorAnimation());
-
-        // 문 닫힌 후 1초 대기
-        yield return new WaitForSeconds(1f);
-
-        // 페이드
-        if (screenFade != null)
-        {
-            yield return StartCoroutine(screenFade.FadeOut(1f));
-        }
-
-        // 검은 화면 상태로 3초 대기
-        yield return new WaitForSeconds(3f);
-
-        // 씬 이동
-        if (HasStateAuthority)
-        {
-            Runner.LoadScene(SceneRef.FromIndex(2));
-        }
+        StartCoroutine(CloseDoorAnimation());
     }
 
     IEnumerator CloseDoorAnimation()
@@ -128,5 +99,6 @@ public class TrainFloor : NetworkBehaviour
         }
         doorRight.localPosition = rightTarget;
         doorLeft.localPosition = leftTarget;
+        trainController.StartTrain();
     }
 }
