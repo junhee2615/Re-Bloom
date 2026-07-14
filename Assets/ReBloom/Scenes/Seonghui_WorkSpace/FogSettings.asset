@@ -48,9 +48,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _DistanceFogIntensity: 0.95
-    - _DistanceHeightBlend: 0.2
+    - _DistanceHeightBlend: 0.05
     - _Far: 5
-    - _HeightFogIntensity: 0.631
+    - _HeightFogIntensity: 0.2
     - _HighWorldY: 35
     - _LowWorldY: 0
     - _Near: 0
@@ -67,14 +67,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a6f656ab8114e939b71b289ffd9d7b2, type: 3}
-  m_Name: Valley-FogSettings
+  m_Name: FogSettings
   m_EditorClassIdentifier: 
   useDistance: 1
   distanceGradient:
     serializedVersion: 2
     key0: {r: 0.10461649, g: 0.043735042, b: 0.21586053, a: 0}
-    key1: {r: 0.22, g: 0.18, b: 0.27, a: 0.75}
-    key2: {r: 0, g: 0, b: 0, a: 0.75}
+    key1: {r: 0.47843137, g: 0.4619082, b: 0.5686275, a: 0.75}
+    key2: {r: 0.34509805, g: 0.31764704, b: 0.5294118, a: 0.75}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
@@ -82,7 +82,7 @@ MonoBehaviour:
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
     ctime1: 64379
-    ctime2: 0
+    ctime2: 65535
     ctime3: 0
     ctime4: 0
     ctime5: 0
@@ -97,7 +97,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_ColorSpace: -1
+    m_ColorSpace: 0
     m_NumColorKeys: 2
     m_NumAlphaKeys: 3
   near: 0
@@ -107,7 +107,7 @@ MonoBehaviour:
   heightGradient:
     serializedVersion: 2
     key0: {r: 0.12, g: 0.08, b: 0.18, a: 0.5}
-    key1: {r: 0.15, g: 0.12, b: 0.2, a: 0.25}
+    key1: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 0.25}
     key2: {r: 0.18, g: 0.15, b: 0.22, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
@@ -131,14 +131,14 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_ColorSpace: -1
+    m_ColorSpace: 0
     m_NumColorKeys: 3
     m_NumAlphaKeys: 3
   low: 0
   high: 35
-  heightFogIntensity: 0.631
+  heightFogIntensity: 0.2
   cameraRelativePosition: 0
-  distanceHeightBlend: 0.2
+  distanceHeightBlend: 0.05
   renderEvent: 550
   applyInSceneView: 1
   effectMaterial: {fileID: -5893212418065708504}
