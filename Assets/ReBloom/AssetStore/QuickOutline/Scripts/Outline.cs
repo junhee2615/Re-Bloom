@@ -62,6 +62,13 @@ public class Outline : MonoBehaviour {
   [SerializeField, Range(0f, 10f)]
   private float outlineWidth = 2f;
 
+  [Header("Alpha Cutoff Settings (투명도 외곽선)")]
+  [SerializeField, Tooltip("식물의 잎사귀 텍스처 이미지를 넣어주세요.")]
+  private Texture alphaTexture;
+
+  [SerializeField, Range(0f, 1f), Tooltip("투명도를 잘라낼 기준값입니다.")]
+  private float alphaCutoff = 0.5f;
+
   [Header("Optional")]
 
   [SerializeField, Tooltip("Precompute enabled: Per-vertex calculations are performed in the editor and serialized with the object. "
@@ -274,7 +281,14 @@ public class Outline : MonoBehaviour {
     // Apply properties according to mode
     outlineFillMaterial.SetColor("_OutlineColor", outlineColor);
 
-    switch (outlineMode) {
+        if (alphaTexture != null)
+        {
+            outlineFillMaterial.SetTexture("_MainTex", alphaTexture);
+            outlineMaskMaterial.SetTexture("_MainTex", alphaTexture); 
+        }
+        outlineFillMaterial.SetFloat("_Cutoff", alphaCutoff);
+
+        switch (outlineMode) {
       case Mode.OutlineAll:
         outlineMaskMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
         outlineFillMaterial.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
