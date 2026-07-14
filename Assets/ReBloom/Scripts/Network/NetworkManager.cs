@@ -1,4 +1,4 @@
-﻿using Fusion;
+using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections;
@@ -16,6 +16,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     private GameObject _runnerPrefab;
 
     public NetworkRunner Runner { get; private set; }
+
+    private bool _sessionStarted;
 
     private void Awake()
     {
@@ -38,8 +40,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void CreateSession(string roomCode)
     {
+        if (_sessionStarted) return;
+        _sessionStarted = true;
         CreateRunner();
-        await LoadScene();
 
         var args = new StartGameArgs()
         {
@@ -53,15 +56,15 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void JoinSession(string roomCode)
     {
+        if (_sessionStarted) return;
+        _sessionStarted = true;
         CreateRunner();
-        await LoadScene();
 
         var args = new StartGameArgs()
         {
             GameMode = GameMode.Client, // ⭐ Client
             SessionName = roomCode,
-            SceneManager = GetComponent<NetworkSceneManagerDefault>(),
-            Scene = SceneRef.FromIndex(1)
+            SceneManager = GetComponent<NetworkSceneManagerDefault>()
         };
         await Runner.StartGame(args);
     }
@@ -71,16 +74,6 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         Runner = Instantiate(_runnerPrefab, transform).GetComponent<NetworkRunner>();
         Runner.AddCallbacks(this);
         Runner.ProvideInput = true;
-    }
-
-    public async Task LoadScene()
-    {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(1);
-
-        while (!asyncLoad.isDone)
-        {
-            await Task.Yield();
-        }
     }
 
     private async Task Connect(string SessionName)
