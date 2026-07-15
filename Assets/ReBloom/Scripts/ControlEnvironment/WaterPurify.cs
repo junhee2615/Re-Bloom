@@ -11,7 +11,7 @@ public class WaterPurify : MonoBehaviour
     public Material cleanWaterMat;
 
     [Header("연출 설정")]
-    public float purifyDuration = 2.0f; // 정화되는 데 걸리는 시간 (초)
+    public float purifyDuration = 5.0f; // 정화되는 데 걸리는 시간 (초)
 
     private Renderer waterRenderer;
     private bool isPurifying = false;
