@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlantRevive : MonoBehaviour
 {
     [Header("연출 설정")]
-    public float reviveDuration = 2.0f; // 컬러로 변하는 데 걸리는 시간 (초)
+    public float reviveDuration = 5.0f; // 컬러로 변하는 데 걸리는 시간 (초)
 
     private Material plantMaterial;
     private bool isReviving = false;
