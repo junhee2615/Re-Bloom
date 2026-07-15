@@ -2428,6 +2428,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Train
       objectReference: {fileID: 0}
+    - target: {fileID: 2347496258219804305, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5219718100652919404, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -2881,7 +2885,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8a8f328380eb5c4293e372691500f57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrainFloor
-  trainController: {fileID: 0}
   audioSource: {fileID: 1718984750}
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
   doorRight: {fileID: 1718984752}
