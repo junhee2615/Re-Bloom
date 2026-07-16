@@ -14,11 +14,11 @@ public class TrainFloor : NetworkBehaviour
     public AudioClip doorCloseClip;
     public Transform doorRight;
     public Transform doorLeft;
-    private ScreenFade screenFade;
+    private CutscenePlayer cutscenePlayer;
 
-    private void Start()
+private void Start()
     {
-        screenFade = FindFirstObjectByType<ScreenFade>();
+        cutscenePlayer = GetComponent<CutscenePlayer>();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -55,7 +55,7 @@ public class TrainFloor : NetworkBehaviour
             Player2On = false;
     }
 
-    public override void FixedUpdateNetwork()
+public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority)
             return;
@@ -66,42 +66,24 @@ public class TrainFloor : NetworkBehaviour
         {
             IsActivated = true;
 
-            Activate();
+            if (cutscenePlayer != null)
+                cutscenePlayer.BeginCutscene();
         }
     }
 
-    private void Activate()
-    {
-        StartCoroutine(TrainSequence());
-    }
 
-    IEnumerator TrainSequence()
-    {
-        // 문 닫기
-        yield return StartCoroutine(CloseDoorAnimation());
 
-        // 문 닫힌 후 1초 대기
-        yield return new WaitForSeconds(1f);
 
-        // 페이드
-        if (screenFade != null)
-        {
-            yield return StartCoroutine(screenFade.FadeOut(1f));
-        }
 
-        // 씬 이동
-        if (HasStateAuthority)
-        {
-            Runner.LoadScene(SceneRef.FromIndex(2));
-        }
-    }
-
-    IEnumerator CloseDoorAnimation()
+public IEnumerator CloseDoorsRoutine()
     {
         yield return new WaitForSeconds(3f);
 
-        if (audioSource != null)
+        if (audioSource != null && doorCloseClip != null)
             audioSource.PlayOneShot(doorCloseClip);
+
+        if (doorRight == null || doorLeft == null)
+            yield break;
 
         Vector3 rightStart = doorRight.localPosition;
         Vector3 leftStart = doorLeft.localPosition;
@@ -109,22 +91,19 @@ public class TrainFloor : NetworkBehaviour
         Vector3 rightTarget = rightStart + Vector3.left * 0.5f;
         Vector3 leftTarget = leftStart + Vector3.right * 0.5f;
 
-        float t = 0;
+        float t = 0f;
 
-        while (t < 1)
+        while (t < 1f)
         {
             t += Time.deltaTime;
 
-            doorRight.localPosition =
-                Vector3.Lerp(rightStart, rightTarget, t);
-
-            doorLeft.localPosition =
-                Vector3.Lerp(leftStart, leftTarget, t);
+            doorRight.localPosition = Vector3.Lerp(rightStart, rightTarget, t);
+            doorLeft.localPosition = Vector3.Lerp(leftStart, leftTarget, t);
 
             yield return null;
         }
+
         doorRight.localPosition = rightTarget;
         doorLeft.localPosition = leftTarget;
-        // trainController.StartTrain();
     }
 }
