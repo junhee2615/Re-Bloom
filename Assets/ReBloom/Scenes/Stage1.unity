@@ -2009,6 +2009,74 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 777501311727040164, guid: e19a9bc77e8f5b7498d58ed9a470f66b, type: 3}
   m_PrefabInstance: {fileID: 1390032291}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1391991066
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1391991068}
+  - component: {fileID: 1391991067}
+  m_Layer: 0
+  m_Name: TrainVideoPlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!328 &1391991067
+VideoPlayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1391991066}
+  m_Enabled: 1
+  m_VideoClip: {fileID: 32900000, guid: 5186e0becae619e4a8e5b2575a70809f, type: 3}
+  m_TargetCameraAlpha: 1
+  m_TargetCamera3DLayout: 0
+  m_TargetCamera: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: d47028d91ff2667419db4b1764df4f16, type: 2}
+  m_TimeReference: 0
+  m_TargetMaterialRenderer: {fileID: 0}
+  m_TargetMaterialProperty: <noninit>
+  m_RenderMode: 2
+  m_AspectRatio: 2
+  m_DataSource: 0
+  m_TimeUpdateMode: 2
+  m_PlaybackSpeed: 1
+  m_AudioOutputMode: 2
+  m_TargetAudioSources:
+  - {fileID: 0}
+  m_DirectAudioVolumes:
+  - 1
+  m_Url: 
+  m_EnabledAudioTracks: 01
+  m_DirectAudioMutes: 00
+  m_ControlledAudioTrackCount: 1
+  m_PlayOnAwake: 0
+  m_SkipOnDrop: 1
+  m_Looping: 0
+  m_WaitForFirstFrame: 1
+  m_FrameReadyEventEnabled: 0
+  m_VideoShaders: []
+--- !u!4 &1391991068
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1391991066}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8.89356, y: 0.03, z: 11.67116}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1406985394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2622,6 +2690,7 @@ GameObject:
   - component: {fileID: 1749290826}
   - component: {fileID: 1749290828}
   - component: {fileID: 1749290827}
+  - component: {fileID: 1749290829}
   m_Layer: 31
   m_Name: TrainFloor
   m_TagString: Untagged
@@ -2872,6 +2941,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 1749290828}
+  - {fileID: 1749290829}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &1749290828
 MonoBehaviour:
@@ -2889,6 +2959,23 @@ MonoBehaviour:
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
   doorRight: {fileID: 1718984752}
   doorLeft: {fileID: 1718984751}
+--- !u!114 &1749290829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749290818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 279453cb92b9f684bb3a192d0291ab23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutscenePlayer
+  videoPlayer: {fileID: 1391991067}
+  fadeDuration: 1
+  maxVideoSeconds: 60
+  clientWaitTimeout: 15
+  nextSceneBuildIndex: 2
 --- !u!1 &1756398498
 GameObject:
   m_ObjectHideFlags: 0
@@ -5000,3 +5087,4 @@ SceneRoots:
   - {fileID: 1042811737}
   - {fileID: 429216927}
   - {fileID: 1663898910}
+  - {fileID: 1391991068}
