@@ -364,7 +364,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4248531788985554880
 Transform:
   m_ObjectHideFlags: 0
@@ -396,7 +396,7 @@ MonoBehaviour:
   m_TransformationPriority: 0
   m_MoveSpeed: 2.5
   m_InAirControlModifier: 0.5
-  m_EnableStrafe: 1
+  m_EnableStrafe: 0
   m_EnableFly: 0
   m_ForwardSource: {fileID: 5908723787184746396}
   m_LeftHandMoveInput:
@@ -424,7 +424,7 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_InputActionReference: {fileID: -8198699208435500284, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    m_InputActionReference: {fileID: 0}
     m_ObjectReferenceObject: {fileID: 0}
     m_ManualValue: {x: 0, y: 0}
   m_UseGravity: 1
@@ -732,13 +732,13 @@ MonoBehaviour:
   m_RayInteractor: {fileID: 0}
   m_NearFarInteractor: {fileID: 5460391921020812838}
   m_TeleportInteractor: {fileID: 4512421803703931103}
-  m_TeleportMode: {fileID: 1263111715868034790, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  m_TeleportModeCancel: {fileID: 737890489006591557, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  m_TeleportMode: {fileID: 0}
+  m_TeleportModeCancel: {fileID: 0}
   m_Turn: {fileID: 1010738217276881514, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_SnapTurn: {fileID: -7374733323251553461, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_Move: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_UIScroll: {fileID: 2464016903823916871, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  m_SmoothMotionEnabled: 0
+  m_SmoothMotionEnabled: 1
   m_SmoothTurnEnabled: 0
   m_NearFarEnableTeleportDuringNearInteraction: 1
   m_UIScrollingEnabled: 1
