@@ -1621,6 +1621,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 777501311727040164, guid: e19a9bc77e8f5b7498d58ed9a470f66b, type: 3}
   m_PrefabInstance: {fileID: 980490754}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &983270715 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 405923377073556104, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1718984749}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1042811737
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1942,11 +1947,6 @@ MonoBehaviour:
   m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
---- !u!4 &1355600148 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
-  m_PrefabInstance: {fileID: 1718984749}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1390032291
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2531,15 +2531,15 @@ PrefabInstance:
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[0]'
       value: 
-      objectReference: {fileID: 1749290827}
+      objectReference: {fileID: 1718984755}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[1]'
       value: 
-      objectReference: {fileID: 1718984755}
+      objectReference: {fileID: 1815723131}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[2]'
       value: 
-      objectReference: {fileID: 1815723131}
+      objectReference: {fileID: 1749290827}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[3]'
       value: 
@@ -2595,8 +2595,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
-      insertIndex: 0
+    - targetCorrespondingSourceObject: {fileID: 405923377073556104, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1749290823}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 763762979804170810, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
@@ -2873,7 +2873,7 @@ Transform:
   m_LocalScale: {x: 1.3009225, y: 0.06501452, z: 0.16151524}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1355600148}
+  m_Father: {fileID: 983270715}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1749290824
 BoxCollider:
