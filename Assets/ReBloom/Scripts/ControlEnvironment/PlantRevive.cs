@@ -29,12 +29,7 @@ public class PlantRevive : MonoBehaviour
 
     void Update()
     {
-        // 키보드 스페이스바(Space)를 누르는 순간 작동합니다.
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.Log("부활 연출 테스트 시작!"); // 콘솔창에 알림 띄우기
-            StartRevive();
-        }
+        
     }
 
     // 외부(또는 Update)에서 이 함수를 부르면 부활 연출이 시작됩니다!
