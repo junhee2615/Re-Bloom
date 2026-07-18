@@ -261,7 +261,6 @@ GameObject:
   - component: {fileID: 7901053676925115994}
   - component: {fileID: 6070640001493653637}
   - component: {fileID: 6048490511224281864}
-  - component: {fileID: 2347496258219804305}
   - component: {fileID: -4060599768809639524}
   m_Layer: 8
   m_Name: Train
@@ -322,7 +321,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 7901053676925115994}
-  - {fileID: 2347496258219804305}
   ForceRemoteRenderTimeframe: 0
 --- !u!82 &6048490511224281864
 AudioSource:
@@ -421,21 +419,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &2347496258219804305
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1076717472749852548}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6d45353034a25642bb033cd1885e65b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TrainController
-  moveDistance: 30
-  maxSpeed: 8
-  acceleration: 2
 --- !u!114 &-4060599768809639524
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -33,21 +33,24 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        // Host 스폰
         if (runner.IsServer)
         {
-            NetworkPrefabRef prefabToSpawn;
-
-            // Host가 PlayerId 1, Client가 PlayerId 2
-            if (player.PlayerId == 1)
-                prefabToSpawn = playerMentalPrefab;    // Host
-            else
-                prefabToSpawn = playerEarPrefab;   // Client
-            NetworkObject networkPlayerObject =
-                runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player);
-
-            _spawnedUsers.Add(player, networkPlayerObject);
+            SpawnPlayer(runner, player);
         }
+    }
+
+    private void SpawnPlayer(NetworkRunner runner, PlayerRef player)
+    {
+        if (_spawnedUsers.ContainsKey(player))
+            return;
+
+        NetworkPrefabRef prefabToSpawn =
+            (player.PlayerId == 1) ? playerMentalPrefab : playerEarPrefab;
+
+        NetworkObject networkPlayerObject =
+            runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player);
+
+        _spawnedUsers.Add(player, networkPlayerObject);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -120,7 +123,22 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
+        // After a scene transition the previous avatars are destroyed, leaving
+        // null entries. Prune only those, then spawn for any active player that
+        // has no live avatar. Never despawn/clear live entries (that caused
+        // duplicate spawns).
+        if (!runner.IsServer)
+            return;
 
+        var stale = new List<PlayerRef>();
+        foreach (var kv in _spawnedUsers)
+            if (kv.Value == null)
+                stale.Add(kv.Key);
+        foreach (var p in stale)
+            _spawnedUsers.Remove(p);
+
+        foreach (var player in runner.ActivePlayers)
+            SpawnPlayer(runner, player);
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)

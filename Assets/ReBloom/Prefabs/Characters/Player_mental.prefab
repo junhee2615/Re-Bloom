@@ -1699,6 +1699,7 @@ GameObject:
   - component: {fileID: 8853732940755103184}
   - component: {fileID: 7821430359981905921}
   - component: {fileID: 7309437370111076747}
+  - component: {fileID: 4664153443613875771}
   m_Layer: 0
   m_Name: Base
   m_TagString: Untagged
@@ -1753,6 +1754,24 @@ MonoBehaviour:
   leftFootTarget: {fileID: 7172564829801003438}
   rightFootTarget: {fileID: 6929704226214639961}
   crouchSpeed: 8
+--- !u!114 &4664153443613875771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4895060287329297665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf202ecbe6687a4b9444bc4ed6a782d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::XRWalkingAnimation
+  characterAnimator: {fileID: 4203942665151249738}
+  moveInput: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  leftLegIK: {fileID: 6608968780078355824}
+  rightLegIK: {fileID: 2922592300688670702}
+  inputThreshold: 0.1
+  ikBlendSpeed: 8
 --- !u!1 &4916041076404112989
 GameObject:
   m_ObjectHideFlags: 0

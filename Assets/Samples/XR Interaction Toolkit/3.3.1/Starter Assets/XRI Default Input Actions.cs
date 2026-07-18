@@ -1420,7 +1420,7 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
                     ""type"": ""Value"",
                     ""id"": ""9693e25f-8a4f-4aed-842f-3961243c69a1"",
                     ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
+                    ""processors"": ""ForwardOnlyVector2"",
                     ""interactions"": """",
                     ""initialStateCheck"": true
                 },
