@@ -3,6 +3,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class TeleportGhostPosition : MonoBehaviour
 {
+    [Header("Teleport")]
     [SerializeField]
     private XRRayInteractor teleportInteractor;
 
@@ -11,7 +12,9 @@ public class TeleportGhostPosition : MonoBehaviour
 
     private void Awake()
     {
-        ghostRenderers = GetComponentsInChildren<Renderer>(true);
+        ghostRenderers =
+            GetComponentsInChildren<Renderer>(true);
+
         SetGhostVisible(false);
     }
 
@@ -28,7 +31,8 @@ public class TeleportGhostPosition : MonoBehaviour
             teleportInteractor.gameObject.activeInHierarchy;
 
         if (teleportActive &&
-            teleportInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+            teleportInteractor.TryGetCurrent3DRaycastHit(
+                out RaycastHit hit))
         {
             transform.position = hit.point;
             SetGhostVisible(true);
@@ -37,6 +41,12 @@ public class TeleportGhostPosition : MonoBehaviour
         {
             SetGhostVisible(false);
         }
+    }
+
+    public void Initialize(
+        XRRayInteractor newTeleportInteractor)
+    {
+        teleportInteractor = newTeleportInteractor;
     }
 
     private void SetGhostVisible(bool visible)

@@ -1,31 +1,20 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TeleportGhostPoseCopy : MonoBehaviour
 {
+    [Header("Pose Roots")]
     [SerializeField]
     private Transform sourceRoot;
 
     [SerializeField]
     private Transform ghostRoot;
 
-    private readonly List<TransformPair> transformPairs = new();
-
-    private class TransformPair
-    {
-        public Transform source;
-        public Transform ghost;
-
-        public TransformPair(Transform source, Transform ghost)
-        {
-            this.source = source;
-            this.ghost = ghost;
-        }
-    }
+    private Transform[] sourceBones;
+    private Transform[] ghostBones;
 
     private void Awake()
     {
-        BuildTransformPairs();
+        RefreshBones();
     }
 
     private void LateUpdate()
@@ -35,97 +24,69 @@ public class TeleportGhostPoseCopy : MonoBehaviour
             return;
         }
 
-        // 앉거나 일어날 때 변하는 캐릭터 루트 높이 복사
-        ghostRoot.localPosition = sourceRoot.localPosition;
-
-        // 실제 캐릭터의 월드 Y축 방향만 고스트에 복사
-        ghostRoot.rotation = Quaternion.Euler(
-            0f,
-            sourceRoot.eulerAngles.y,
-            0f
-        );
-
-        // 실제 캐릭터의 모든 본 자세를 고스트에 복사
-        foreach (TransformPair pair in transformPairs)
+        if (sourceBones == null || ghostBones == null)
         {
-            if (pair.source == null || pair.ghost == null)
-            {
-                continue;
-            }
-
-            pair.ghost.localPosition = pair.source.localPosition;
-            pair.ghost.localRotation = pair.source.localRotation;
-            pair.ghost.localScale = pair.source.localScale;
-        }
-    }
-
-    [ContextMenu("Rebuild Transform Pairs")]
-    private void BuildTransformPairs()
-    {
-        transformPairs.Clear();
-
-        if (sourceRoot == null || ghostRoot == null)
-        {
-            Debug.LogWarning(
-                "Source Root 또는 Ghost Root가 연결되지 않았습니다.",
-                this
-            );
-
+            RefreshBones();
             return;
         }
 
-        Transform[] sourceTransforms =
-            sourceRoot.GetComponentsInChildren<Transform>(true);
+        // 앉기 높이 등 실제 플레이어 루트의 위치 복사
+        ghostRoot.localPosition = sourceRoot.localPosition;
 
-        foreach (Transform sourceTransform in sourceTransforms)
-        {
-            // 루트는 LateUpdate에서 별도로 처리
-            if (sourceTransform == sourceRoot)
-            {
-                continue;
-            }
+        // 실제 플레이어가 바라보는 Y축 방향 복사
+        Vector3 sourceEulerAngles = sourceRoot.eulerAngles;
 
-            string relativePath = GetRelativePath(
-                sourceRoot,
-                sourceTransform
-            );
-
-            Transform matchingGhostTransform =
-                ghostRoot.Find(relativePath);
-
-            if (matchingGhostTransform == null)
-            {
-                continue;
-            }
-
-            transformPairs.Add(
-                new TransformPair(
-                    sourceTransform,
-                    matchingGhostTransform
-                )
-            );
-        }
-
-        Debug.Log(
-            $"고스트 포즈 복사 대상 {transformPairs.Count}개 연결 완료",
-            this
+        ghostRoot.rotation = Quaternion.Euler(
+            0f,
+            sourceEulerAngles.y,
+            0f
         );
+
+        int boneCount = Mathf.Min(
+            sourceBones.Length,
+            ghostBones.Length
+        );
+
+        // 루트 다음의 자식 본부터 자세 복사
+        for (int i = 1; i < boneCount; i++)
+        {
+            ghostBones[i].localPosition =
+                sourceBones[i].localPosition;
+
+            ghostBones[i].localRotation =
+                sourceBones[i].localRotation;
+
+            ghostBones[i].localScale =
+                sourceBones[i].localScale;
+        }
     }
 
-    private string GetRelativePath(
-        Transform root,
-        Transform target
-    )
+    public void Initialize(Transform newSourceRoot)
     {
-        string path = target.name;
-        Transform current = target.parent;
+        sourceRoot = newSourceRoot;
+        RefreshBones();
+    }
 
-        while (current != null && current != root)
+    private void RefreshBones()
+    {
+        if (sourceRoot != null)
         {
-            path = current.name + "/" + path;
-            current = current.parent;
+            sourceBones =
+                sourceRoot.GetComponentsInChildren<Transform>(true);
+        }
+        else
+        {
+            sourceBones = null;
         }
 
-        return path;
+        if (ghostRoot != null)
+        {
+            ghostBones =
+                ghostRoot.GetComponentsInChildren<Transform>(true);
+        }
+        else
+        {
+            ghostBones = null;
+        }
     }
 }
