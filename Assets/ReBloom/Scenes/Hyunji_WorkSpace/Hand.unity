@@ -142,6 +142,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: XR Origin (XR Rig)
       objectReference: {fileID: 0}
+    - target: {fileID: 6480011120692463821, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
+      propertyPath: characterType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6480011120692463821, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
+      propertyPath: earSourceRoot
+      value: 
+      objectReference: {fileID: 579351850}
+    - target: {fileID: 6480011120692463821, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
+      propertyPath: mentalSourceRoot
+      value: 
+      objectReference: {fileID: 679265270}
     - target: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.40055
@@ -184,10 +196,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1437194241}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
 --- !u!1 &427640128
@@ -521,11 +530,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1161072700954318278, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
   m_PrefabInstance: {fileID: 1593699492}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &713129784 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
-  m_PrefabInstance: {fileID: 344922064}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &875133413 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5168115213708118743, guid: 09b0dfc665b563445b1a148f200f0b8b, type: 3}
@@ -791,56 +795,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1437194240
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1437194241}
-  - component: {fileID: 1437194242}
-  m_Layer: 2
-  m_Name: TeleportGhostManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1437194241
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1437194240}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 713129784}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1437194242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1437194240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4deb908d12b9154abba96917038109d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TeleportGhostManager
-  characterType: 1
-  earSourceRoot: {fileID: 579351850}
-  mentalSourceRoot: {fileID: 679265270}
-  teleportInteractor: {fileID: 35272526}
-  earGhostPrefab: {fileID: 3182403560368966822, guid: 1dc36d2dd10252a42a34674577828097, type: 3}
-  mentalGhostPrefab: {fileID: 3643236722652953148, guid: fd1b0a8489c62864491b7711778b712e, type: 3}
 --- !u!1001 &1593699492
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -2124,6 +2124,7 @@ Transform:
   - {fileID: 3218652661563215942}
   - {fileID: 4969826836793410453}
   - {fileID: 508740200789457284}
+  - {fileID: 4900064252065180188}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2904062438427356773
@@ -2254,6 +2255,7 @@ MonoBehaviour:
   headTransform: {fileID: 5908723787184746396}
   leftHandTransform: {fileID: 498722056299981378}
   rightHandTransform: {fileID: 7092021711014478233}
+  teleportInteractor: {fileID: 9000355448505213426}
 --- !u!1 &2085628045782538864
 GameObject:
   m_ObjectHideFlags: 0
@@ -4435,6 +4437,55 @@ Transform:
   - {fileID: 6905977730859849080}
   m_Father: {fileID: 2660648772908714227}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5290056378001791337
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4900064252065180188}
+  - component: {fileID: 6480011120692463821}
+  m_Layer: 2
+  m_Name: TeleportGhostManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4900064252065180188
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5290056378001791337}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7712624025706478311}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6480011120692463821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5290056378001791337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4deb908d12b9154abba96917038109d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeleportGhostManager
+  characterType: 1
+  sourceRoot: {fileID: 0}
+  teleportInteractor: {fileID: 9000355448505213426}
+  earGhostPrefab: {fileID: 3182403560368966822, guid: 1dc36d2dd10252a42a34674577828097, type: 3}
+  mentalGhostPrefab: {fileID: 3643236722652953148, guid: fd1b0a8489c62864491b7711778b712e, type: 3}
 --- !u!1 &5317350771704884152
 GameObject:
   m_ObjectHideFlags: 0
