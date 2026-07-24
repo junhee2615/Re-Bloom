@@ -62,10 +62,24 @@ public class RightRayModeToggle : MonoBehaviour
 
     private void ApplyMode()
     {
-        if (teleportInteractor != null)
-            teleportInteractor.SetActive(!isUIMode);
+        if (isUIMode)
+        {
+            // UI 모드
+            if (teleportInteractor != null)
+                teleportInteractor.SetActive(false);
 
-        if (uiInteractor != null)
-            uiInteractor.SetActive(isUIMode);
+            if (uiInteractor != null)
+                uiInteractor.SetActive(true);
+        }
+        else
+        {
+            // 텔레포트 대기 모드
+            if (uiInteractor != null)
+                uiInteractor.SetActive(false);
+
+            // 바로 표시하지 않고 비활성 상태로 대기
+            if (teleportInteractor != null)
+                teleportInteractor.SetActive(false);
+        }
     }
 }
