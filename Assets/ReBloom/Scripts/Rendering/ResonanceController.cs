@@ -20,13 +20,12 @@ public sealed class ResonanceController : MonoBehaviour
     [Header("Networked Resonance Trigger")]
     [Tooltip("Networked Tutorial state가 각 클라이언트에 도착할 때 로컬 Fog를 전환합니다.")]
     [SerializeField] private bool useNetworkedTutorialState = true;
-    [SerializeField] private TutorialStep activateOnStep = TutorialStep.GeneratorComplete;
-    [SerializeField] private TutorialStep deactivateOnStep = TutorialStep.ValveComplete;
+    [SerializeField] private TutorialStep activateStep = TutorialStep.GeneratorComplete;
+    [SerializeField] private TutorialStep deactivateStep = TutorialStep.ValveComplete;
     [SerializeField, Min(0f)] private float lateJoinStateWaitSeconds = 10f;
 
     private Material fogMaterial;
     private Coroutine transitionCoroutine;
-    private Coroutine lateJoinCoroutine;
     private float configuredDistanceIntensity;
     private float configuredHeightIntensity;
     private float currentIntensity;
@@ -43,28 +42,17 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (!useNetworkedTutorialState)
-            return;
+        if (!useNetworkedTutorialState) return;
 
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
-        lateJoinCoroutine = StartCoroutine(ApplyLateJoinState());
+        StartCoroutine(ApplyLateJoinState());
     }
 
     private void OnDisable()
     {
         TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
 
-        if (transitionCoroutine != null)
-        {
-            StopCoroutine(transitionCoroutine);
-            transitionCoroutine = null;
-        }
-
-        if (lateJoinCoroutine != null)
-        {
-            StopCoroutine(lateJoinCoroutine);
-            lateJoinCoroutine = null;
-        }
+        StopAllCoroutines();
 
         if (Application.isPlaying)
             ApplyIntensity(0f);
@@ -82,7 +70,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     public void SetFogActive(bool active)
     {
-        if (!initialized && !InitializeFog())
+        if (!initialized)
             return;
 
         float target = active ? activeIntensity : 0f;
@@ -95,23 +83,24 @@ public sealed class ResonanceController : MonoBehaviour
 
     public void ActivateFog()
     {
+        Debug.Log("Fog 활성화");
         SetFogActive(true);
     }
 
     public void DeactivateFog()
     {
+        Debug.Log("Fog 비활성화");        
         SetFogActive(false);
     }
 
-    private bool InitializeFog()
+    private void InitializeFog()
     {
-        if (initialized)
-            return true;
+        if (initialized) return;
 
         if (fogSettings == null || fogSettings.effectMaterial == null)
         {
             Debug.LogError("ResonanceController에 FlatKit FogSettings와 Effect Material이 필요합니다.", this);
-            return false;
+            return;
         }
 
         fogMaterial = fogSettings.effectMaterial;
@@ -119,13 +108,12 @@ public sealed class ResonanceController : MonoBehaviour
         configuredHeightIntensity = fogSettings.heightFogIntensity;
         currentIntensity = 0f;
         initialized = true;
-        return true;
     }
 
     private IEnumerator TransitionTo(float targetIntensity)
     {
         float startIntensity = currentIntensity;
-        float duration = Mathf.Max(0f, transitionDuration);
+        float duration = transitionDuration;
 
         if (duration <= 0f)
         {
@@ -137,11 +125,10 @@ public sealed class ResonanceController : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += Time.deltaTime;
             float normalizedTime = Mathf.Clamp01(elapsed / duration);
             float curvedTime = transitionCurve == null
-                ? normalizedTime
-                : transitionCurve.Evaluate(normalizedTime);
+                ? normalizedTime : transitionCurve.Evaluate(normalizedTime);
 
             ApplyIntensity(Mathf.LerpUnclamped(startIntensity, targetIntensity, curvedTime));
             yield return null;
@@ -153,8 +140,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void ApplyIntensity(float multiplier)
     {
-        if (!initialized || fogMaterial == null)
-            return;
+        if (!initialized || fogMaterial == null) return;
 
         currentIntensity = Mathf.Max(0f, multiplier);
         float distanceIntensity = configuredDistanceIntensity * currentIntensity;
@@ -170,8 +156,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void RestoreMaterialValues()
     {
-        if (!initialized || fogMaterial == null)
-            return;
+        if (!initialized || fogMaterial == null) return;
 
         fogSettings.distanceFogIntensity = configuredDistanceIntensity;
         fogSettings.heightFogIntensity = configuredHeightIntensity;
@@ -183,12 +168,13 @@ public sealed class ResonanceController : MonoBehaviour
     {
         receivedNetworkState = true;
 
-        if (step == activateOnStep)
+        if (step == activateStep)
             ActivateFog();
-        else if (step == deactivateOnStep)
+        else if (step == deactivateStep)
             DeactivateFog();
     }
 
+    // 중간에 참가한 클라이언트가 현재 튜토리얼 상태 받기
     private IEnumerator ApplyLateJoinState()
     {
         float elapsed = 0f;
@@ -205,7 +191,5 @@ public sealed class ResonanceController : MonoBehaviour
             elapsed += Time.unscaledDeltaTime;
             yield return null;
         }
-
-        lateJoinCoroutine = null;
     }
 }
