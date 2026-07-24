@@ -14,10 +14,10 @@ public class NetworkPlayer : NetworkBehaviour
         {
             if (Object.InputAuthority.PlayerId == 1)
             {
-                return TeleportGhostManager.CharacterType.Ear;
+                return TeleportGhostManager.CharacterType.Mental;
             }
 
-            return TeleportGhostManager.CharacterType.Mental;
+            return TeleportGhostManager.CharacterType.Ear;
         }
     }
 
