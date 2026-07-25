@@ -13,9 +13,16 @@ public sealed class ResonanceController : MonoBehaviour
 
     [Header("Fog")]
     [SerializeField] private FogSettings fogSettings;
+    [SerializeField, Range(0f, 1f)] private float startIntensity = 1f;
     [SerializeField, Range(0f, 1f)] private float activeIntensity = 1f;
     [SerializeField, Min(0f)] private float transitionDuration = 1.5f;
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    [Header("Distance-Based Constraint")]
+    [SerializeField, Min(0.01f)] private float resonanceDistance = 15f; // Host, Client Spawn 차이
+    [SerializeField, Min(0f)] private float minDistance = 2f;
+    [SerializeField, Range(0f, 0.99f)] private float maxConstraintRelief = 0.7f;
+    [SerializeField, Min(0f)] private float distanceResponseSpeed = 6f;
 
     [Header("Networked Resonance Trigger")]
     [Tooltip("Networked Tutorial state가 각 클라이언트에 도착할 때 로컬 Fog를 전환합니다.")]
@@ -31,17 +38,19 @@ public sealed class ResonanceController : MonoBehaviour
     private float currentIntensity;
     private bool initialized;
     private bool receivedNetworkState;
+    // private bool distanceConstraintActive;
 
     private void Awake()
     {
         InitializeFog();
 
-        // The local visual starts off on every scene entry, regardless of authority.
-        ApplyIntensity(0f);
+        ApplyIntensity(startIntensity);
     }
 
     private void OnEnable()
     {
+        // distanceConstraintActive = !useNetworkedTutorialState;
+
         if (!useNetworkedTutorialState) return;
 
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
@@ -50,6 +59,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void OnDisable()
     {
+        // distanceConstraintActive = false;
         TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
 
         StopAllCoroutines();
@@ -74,11 +84,15 @@ public sealed class ResonanceController : MonoBehaviour
             return;
 
         float target = active ? activeIntensity : 0f;
-
+        
         if (transitionCoroutine != null)
             StopCoroutine(transitionCoroutine);
 
+        // distanceConstraintActive = active;
+
         transitionCoroutine = StartCoroutine(TransitionTo(target));
+        // if (!active)
+        //     transitionCoroutine = StartCoroutine(TransitionTo(0f));
     }
 
     public void ActivateFog()
@@ -106,13 +120,65 @@ public sealed class ResonanceController : MonoBehaviour
         fogMaterial = fogSettings.effectMaterial;
         configuredDistanceIntensity = fogSettings.distanceFogIntensity;
         configuredHeightIntensity = fogSettings.heightFogIntensity;
-        currentIntensity = 0f;
+        currentIntensity = startIntensity;
         initialized = true;
+    }
+
+    private void Update()
+    {
+        // if (!initialized || !distanceConstraintActive)
+        if (!initialized)
+            return;
+
+        float targetIntensity = CalculateDistanceConstraintIntensity();
+        float interpolation = distanceResponseSpeed <= 0f
+            ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
+
+        ApplyIntensity(Mathf.Lerp(currentIntensity, targetIntensity, interpolation));
+    }
+
+    private float CalculateDistanceConstraintIntensity()
+    {
+        float relief = 0f; // 제약이 얼마나 완화되는지
+        if (TryGetOtherPlayerDistance(out float playerDistance))
+        {
+            float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
+            float proximity = Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
+            relief = Mathf.Lerp(0f, maxConstraintRelief, proximity);
+        }
+
+        // maxConstraintRelief is capped below 1 in the Inspector, so the fog
+        // constraint can never be fully removed merely by getting closer.
+        return activeIntensity * (1f - relief);
+    }
+
+    private static bool TryGetOtherPlayerDistance(out float playerDistance)
+    {
+        playerDistance = 0f;
+
+        NetworkPlayer localPlayer = null;
+        NetworkPlayer remotePlayer = null;
+        foreach (NetworkPlayer player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+        {
+            if (player == null || player.Object == null || !player.Object.IsValid ||
+                player.PlayerTransform == null)
+                continue;
+
+            if (player.IsLocalNetworkRig)
+                localPlayer = player;
+            else
+                remotePlayer ??= player;
+        }
+
+        if (localPlayer == null || remotePlayer == null) return false;
+
+        playerDistance = Vector3.Distance(localPlayer.PlayerTransform.position, remotePlayer.PlayerTransform.position);
+        return true;
     }
 
     private IEnumerator TransitionTo(float targetIntensity)
     {
-        float startIntensity = currentIntensity;
+        float start = currentIntensity;
         float duration = transitionDuration;
 
         if (duration <= 0f)
@@ -130,7 +196,7 @@ public sealed class ResonanceController : MonoBehaviour
             float curvedTime = transitionCurve == null
                 ? normalizedTime : transitionCurve.Evaluate(normalizedTime);
 
-            ApplyIntensity(Mathf.LerpUnclamped(startIntensity, targetIntensity, curvedTime));
+            ApplyIntensity(Mathf.LerpUnclamped(start, targetIntensity, curvedTime));
             yield return null;
         }
 
