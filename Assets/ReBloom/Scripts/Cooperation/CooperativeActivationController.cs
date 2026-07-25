@@ -19,6 +19,11 @@ public sealed class CooperativeActivationController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float handContactDistance = 0.16f;
     [SerializeField, Min(0f)] private float holdDuration = 1.5f;
 
+    [Header("Debug")]
+    [Tooltip("활성화 판정 상태를 주기적으로 출력합니다. 검증 후 끄세요.")]
+    [SerializeField] private bool logActivationDebug = true;
+    [SerializeField, Min(0.05f)] private float debugLogInterval = 0.25f;
+
     [Header("Feedback")]
     [SerializeField] private HapticPattern contactHapticPattern;
     [SerializeField] private UnityEvent onActivationSucceeded;
@@ -27,6 +32,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
     private float holdElapsed;
     private bool previousContact;
     private bool previousSuccess;
+    private float nextDebugLogTime;
 
     private void Awake()
     {
@@ -43,8 +49,13 @@ public sealed class CooperativeActivationController : MonoBehaviour
             owner != hostPlayer)
             return;
 
-        bool handsContacted = AreHandsContacted(hostPlayer, clientPlayer);
-        bool bothReady = IsActivationReady(hostPlayer) && IsActivationReady(clientPlayer);
+        float hostForwardDistance = GetForwardDistance(hostPlayer);
+        float clientForwardDistance = GetForwardDistance(clientPlayer);
+        bool hostReady = IsActivationReady(hostPlayer, hostForwardDistance);
+        bool clientReady = IsActivationReady(clientPlayer, clientForwardDistance);
+        float handDistance = GetHandDistance(hostPlayer, clientPlayer);
+        bool handsContacted = handDistance <= handContactDistance;
+        bool bothReady = IsActivationReady(hostPlayer, hostForwardDistance) && clientReady;
         bool holding = handsContacted && bothReady;
 
         hostPlayer.SetCooperativeHandsContacted(handsContacted);
@@ -53,10 +64,16 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (!holding)
         {
             holdElapsed = 0f;
+            LogActivationState(
+                hostPlayer, clientPlayer, hostForwardDistance, clientForwardDistance,
+                handDistance, hostReady, clientReady, handsContacted, holding);
             return;
         }
 
         holdElapsed += Time.fixedDeltaTime;
+        LogActivationState(
+            hostPlayer, clientPlayer, hostForwardDistance, clientForwardDistance,
+            handDistance, hostReady, clientReady, handsContacted, holding);
         if (holdElapsed < holdDuration)
             return;
 
@@ -84,22 +101,60 @@ public sealed class CooperativeActivationController : MonoBehaviour
         previousSuccess = succeeded;
     }
 
-    private bool IsActivationReady(NetworkPlayer player)
+    private bool IsActivationReady(NetworkPlayer player, float forwardDistance)
     {
-        if (!player.IsActivationTriggerHeld || player.PlayerTransform == null || player.RightHandTransform == null)
-            return false;
-
-        Vector3 localHandPosition = player.PlayerTransform.InverseTransformPoint(player.RightHandTransform.position);
-        return localHandPosition.z >= minimumForwardDistance;
+        return player.IsActivationTriggerHeld && forwardDistance >= minimumForwardDistance;
     }
 
-    private bool AreHandsContacted(NetworkPlayer first, NetworkPlayer second)
+    private static float GetForwardDistance(NetworkPlayer player)
+    {
+        if (player.PlayerTransform == null || player.RightHandTransform == null)
+            return float.NegativeInfinity;
+
+        // playerTransform은 월드 -축을 정면으로 보고 있어 손을 앞으로 뻗으면 월드 좌표는
+        // 감소하지만, InverseTransformPoint가 회전을 반영하므로 로컬 +Z(정면)는 증가한다.
+        // 따라서 부호 반전 없이 로컬 z가 곧 "정면으로 뻗은 거리"다.
+        return player.PlayerTransform.InverseTransformPoint(player.RightHandTransform.position).z;
+    }
+
+    private static float GetHandDistance(NetworkPlayer first, NetworkPlayer second)
     {
         if (first.RightHandTransform == null || second.RightHandTransform == null)
-            return false;
+            return float.PositiveInfinity;
 
-        return Vector3.Distance(first.RightHandTransform.position, second.RightHandTransform.position)
-               <= handContactDistance;
+        return Vector3.Distance(first.RightHandTransform.position, second.RightHandTransform.position);
+    }
+
+    private static Vector3 GetLocalHandOffset(NetworkPlayer player)
+    {
+        if (player.PlayerTransform == null || player.RightHandTransform == null)
+            return Vector3.zero;
+
+        return player.PlayerTransform.InverseTransformPoint(player.RightHandTransform.position);
+    }
+
+    private void LogActivationState(
+        NetworkPlayer hostPlayer,
+        NetworkPlayer clientPlayer,
+        float hostForwardDistance,
+        float clientForwardDistance,
+        float handDistance,
+        bool hostReady,
+        bool clientReady,
+        bool handsContacted,
+        bool holding)
+    {
+        if (!logActivationDebug || Time.unscaledTime < nextDebugLogTime)
+            return;
+
+        nextDebugLogTime = Time.unscaledTime + debugLogInterval;
+        Vector3 hostLocal = GetLocalHandOffset(hostPlayer);
+        Vector3 clientLocal = GetLocalHandOffset(clientPlayer);
+        Debug.Log(
+            $"[Cooperative Activation] host(trigger={hostPlayer.IsActivationTriggerHeld}, forward={hostForwardDistance:F2}, ready={hostReady}, local=({hostLocal.x:F2},{hostLocal.y:F2},{hostLocal.z:F2})) " +
+            $"client(trigger={clientPlayer.IsActivationTriggerHeld}, forward={clientForwardDistance:F2}, ready={clientReady}, local=({clientLocal.x:F2},{clientLocal.y:F2},{clientLocal.z:F2})) " +
+            $"hands(distance={handDistance:F2}/{handContactDistance:F2}, contact={handsContacted}) " +
+            $"holding={holding}, hold={holdElapsed:F2}/{holdDuration:F2}, success={hostPlayer.HasCooperativeActivationSucceeded}", this);
     }
 
     private static bool TryGetPair(
