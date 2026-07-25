@@ -15,8 +15,13 @@ public class LivingRoot : MonoBehaviour
 
     private float timer;
 
-    private void OnTriggerStay(Collider other)
+private void OnTriggerStay(Collider other)
     {
+        // 미션이 끝나 비활성화되면 진동/발견을 멈춘다.
+        // (enabled=false 만으로는 OnTriggerStay가 계속 호출될 수 있어 직접 가드)
+        if (!enabled)
+            return;
+
         // 오른손 Collider만 반응하도록 태그를 사용하는 것을 추천
         if (!other.CompareTag("Right Controller"))
             return;
