@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 119347540}
   - component: {fileID: 119347542}
   - component: {fileID: 119347541}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -268,7 +268,8 @@ GameObject:
   - component: {fileID: 294652572}
   - component: {fileID: 294652571}
   - component: {fileID: 294652570}
-  m_Layer: 5
+  - component: {fileID: 294652573}
+  m_Layer: 0
   m_Name: MissionCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -359,6 +360,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &294652573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 294652568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1 &298372794
 GameObject:
   m_ObjectHideFlags: 0
@@ -368,7 +388,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 298372795}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: MissionPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -481,7 +501,8 @@ GameObject:
   - component: {fileID: 362230299}
   - component: {fileID: 362230298}
   - component: {fileID: 362230297}
-  m_Layer: 5
+  - component: {fileID: 362230300}
+  m_Layer: 0
   m_Name: StartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -590,6 +611,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362230295}
   m_CullTransparentMesh: 1
+--- !u!114 &362230300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362230295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
+  m_PokeFollowTransform: {fileID: 0}
+  m_SmoothingSpeed: 16
+  m_ReturnToInitialPosition: 1
+  m_ApplyIfChildIsTarget: 1
+  m_ClampToMaxDistance: 0
+  m_MaxDistance: 0
+  m_PokeFilter: {fileID: 0}
 --- !u!1 &478841724
 GameObject:
   m_ObjectHideFlags: 0
@@ -601,7 +641,7 @@ GameObject:
   - component: {fileID: 478841725}
   - component: {fileID: 478841727}
   - component: {fileID: 478841726}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -736,7 +776,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 563987425}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: MissionPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1088,7 +1128,7 @@ GameObject:
   - component: {fileID: 770290316}
   - component: {fileID: 770290318}
   - component: {fileID: 770290317}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1164,7 +1204,8 @@ GameObject:
   - component: {fileID: 859886972}
   - component: {fileID: 859886971}
   - component: {fileID: 859886970}
-  m_Layer: 5
+  - component: {fileID: 859886973}
+  m_Layer: 0
   m_Name: StartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1180,8 +1221,8 @@ RectTransform:
   m_GameObject: {fileID: 859886968}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.72, y: 0.72, z: 0.72}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 478841725}
   m_Father: {fileID: 1241409341}
@@ -1285,6 +1326,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 859886968}
   m_CullTransparentMesh: 1
+--- !u!114 &859886973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859886968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
+  m_PokeFollowTransform: {fileID: 0}
+  m_SmoothingSpeed: 16
+  m_ReturnToInitialPosition: 1
+  m_ApplyIfChildIsTarget: 1
+  m_ClampToMaxDistance: 0
+  m_MaxDistance: 0
+  m_PokeFilter: {fileID: 0}
 --- !u!1 &876165701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1296,7 +1356,7 @@ GameObject:
   - component: {fileID: 876165702}
   - component: {fileID: 876165704}
   - component: {fileID: 876165703}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: FirstText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1370,8 +1430,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 15
+  m_fontSizeBase: 15
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1580,7 +1640,7 @@ GameObject:
   - component: {fileID: 998460917}
   - component: {fileID: 998460919}
   - component: {fileID: 998460918}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: FirstText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1719,7 +1779,8 @@ GameObject:
   - component: {fileID: 1038303522}
   - component: {fileID: 1038303521}
   - component: {fileID: 1038303520}
-  m_Layer: 5
+  - component: {fileID: 1038303523}
+  m_Layer: 0
   m_Name: MissionCanvas2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1810,6 +1871,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1038303523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038303518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1 &1112620244
 GameObject:
   m_ObjectHideFlags: 0
@@ -1821,7 +1901,7 @@ GameObject:
   - component: {fileID: 1112620247}
   - component: {fileID: 1112620246}
   - component: {fileID: 1112620245}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: ButtonImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1882,7 +1962,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 27.9}
+  m_AnchoredPosition: {x: 0, y: 15.4}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1128969940
@@ -1897,7 +1977,8 @@ GameObject:
   - component: {fileID: 1128969944}
   - component: {fileID: 1128969943}
   - component: {fileID: 1128969942}
-  m_Layer: 5
+  - component: {fileID: 1128969945}
+  m_Layer: 0
   m_Name: MissionCanvas1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1988,6 +2069,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1128969945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1128969940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1 &1129377494
 GameObject:
   m_ObjectHideFlags: 0
@@ -6819,8 +6919,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0.012460709, y: 0.059999973, z: -0.07292175}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.73, y: 1.73, z: 1.73}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 951422009}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -6835,7 +6935,7 @@ GameObject:
   - component: {fileID: 1155495195}
   - component: {fileID: 1155495197}
   - component: {fileID: 1155495196}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6910,7 +7010,7 @@ GameObject:
   - component: {fileID: 1228565566}
   - component: {fileID: 1228565568}
   - component: {fileID: 1228565567}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: HandImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6933,7 +7033,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 27.9}
+  m_AnchoredPosition: {x: 0, y: 16.1}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1228565567
@@ -6986,13 +7086,14 @@ GameObject:
   - component: {fileID: 1241409344}
   - component: {fileID: 1241409343}
   - component: {fileID: 1241409342}
-  m_Layer: 5
+  - component: {fileID: 1241409345}
+  m_Layer: 0
   m_Name: MissionCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1241409341
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7001,7 +7102,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1241409340}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.3}
+  m_LocalPosition: {x: 0, y: 0, z: -0.552}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -7011,7 +7112,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 1.98}
+  m_AnchoredPosition: {x: 0, y: 1.554}
   m_SizeDelta: {x: 300, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1241409342
@@ -7077,6 +7178,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1241409345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241409340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1 &1256286067
 GameObject:
   m_ObjectHideFlags: 0
@@ -7271,7 +7391,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1408618881}
   - component: {fileID: 1408618880}
-  - component: {fileID: 1408618879}
+  - component: {fileID: 1408618882}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -7279,37 +7399,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1408618879
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1408618878}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
-  m_SendPointerHoverToParent: 1
-  m_MoveRepeatDelay: 0.5
-  m_MoveRepeatRate: 0.1
-  m_XRTrackingOrigin: {fileID: 0}
-  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_DeselectOnBackgroundClick: 1
-  m_PointerBehavior: 0
-  m_CursorLockBehavior: 0
-  m_ScrollDeltaPerTick: 6
 --- !u!114 &1408618880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7340,6 +7429,45 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1408618882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1408618878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab68ce6587aab0146b8dabefbd806791, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.XRUIInputModule
+  m_SendPointerHoverToParent: 1
+  m_ClickSpeed: 0.3
+  m_MoveDeadzone: 0.6
+  m_RepeatDelay: 0.5
+  m_RepeatRate: 0.1
+  m_TrackedDeviceDragThresholdMultiplier: 2
+  m_TrackedScrollDeltaMultiplier: 5
+  m_BypassUIToolkitEvents: 0
+  m_ActiveInputMode: 0
+  m_EnableXRInput: 1
+  m_EnableMouseInput: 1
+  m_EnableTouchInput: 1
+  m_EnableGamepadInput: 1
+  m_EnableJoystickInput: 1
+  m_PointAction: {fileID: 0}
+  m_LeftClickAction: {fileID: 0}
+  m_MiddleClickAction: {fileID: 0}
+  m_RightClickAction: {fileID: 0}
+  m_ScrollWheelAction: {fileID: 0}
+  m_NavigateAction: {fileID: 0}
+  m_SubmitAction: {fileID: 0}
+  m_CancelAction: {fileID: 0}
+  m_EnableBuiltinActionsAsFallback: 1
+  m_HorizontalAxis: Horizontal
+  m_VerticalAxis: Vertical
+  m_SubmitButton: Submit
+  m_CancelButton: Cancel
 --- !u!1 &1418609898
 GameObject:
   m_ObjectHideFlags: 0
@@ -7350,7 +7478,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1418609899}
   - component: {fileID: 1418609900}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: MissionPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7560,7 +7688,7 @@ GameObject:
   - component: {fileID: 1483037318}
   - component: {fileID: 1483037320}
   - component: {fileID: 1483037319}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7636,7 +7764,8 @@ GameObject:
   - component: {fileID: 1490508871}
   - component: {fileID: 1490508870}
   - component: {fileID: 1490508869}
-  m_Layer: 5
+  - component: {fileID: 1490508872}
+  m_Layer: 0
   m_Name: StartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7745,6 +7874,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1490508867}
   m_CullTransparentMesh: 1
+--- !u!114 &1490508872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490508867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
+  m_PokeFollowTransform: {fileID: 0}
+  m_SmoothingSpeed: 16
+  m_ReturnToInitialPosition: 1
+  m_ApplyIfChildIsTarget: 1
+  m_ClampToMaxDistance: 0
+  m_MaxDistance: 0
+  m_PokeFilter: {fileID: 0}
 --- !u!1 &1511582846
 GameObject:
   m_ObjectHideFlags: 0
@@ -7917,7 +8065,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: de3528336809c6045b90980491f74b8c, type: 2}
+  - {fileID: 2100000, guid: 35359bdec44dadc47877fab6908dca8f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8316,7 +8464,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -12795,8 +12943,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0.034460068, y: 0.060000002, z: -0.07792091}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.73, y: 1.73, z: 1.73}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 754797346}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -12812,7 +12960,8 @@ GameObject:
   - component: {fileID: 1654980608}
   - component: {fileID: 1654980607}
   - component: {fileID: 1654980606}
-  m_Layer: 5
+  - component: {fileID: 1654980609}
+  m_Layer: 0
   m_Name: StartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12933,6 +13082,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1654980604}
   m_CullTransparentMesh: 1
+--- !u!114 &1654980609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1654980604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
+  m_PokeFollowTransform: {fileID: 0}
+  m_SmoothingSpeed: 16
+  m_ReturnToInitialPosition: 1
+  m_ApplyIfChildIsTarget: 1
+  m_ClampToMaxDistance: 0
+  m_MaxDistance: 0
+  m_PokeFilter: {fileID: 0}
 --- !u!1 &1759810924
 GameObject:
   m_ObjectHideFlags: 0
@@ -12944,7 +13112,7 @@ GameObject:
   - component: {fileID: 1759810925}
   - component: {fileID: 1759810927}
   - component: {fileID: 1759810926}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13081,7 +13249,7 @@ GameObject:
   - component: {fileID: 1830708443}
   - component: {fileID: 1830708445}
   - component: {fileID: 1830708444}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: FirstText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13222,7 +13390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.15146
+      value: 5.54
       objectReference: {fileID: 0}
     - target: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
       propertyPath: m_LocalPosition.y
@@ -13230,7 +13398,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -30.5
+      value: 0.86
       objectReference: {fileID: 0}
     - target: {fileID: 7712624025706478311, guid: 5dfd6cf4265e61a4eb599eccc20dbe6a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -18096,8 +18264,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.36349386, y: -0.60652477, z: 0.60652477, w: 0.36349386}
   m_LocalPosition: {x: -0.005696854, y: 0.04999998, z: -0.031905312}
-  m_LocalScale: {x: 0.8333331, y: 0.83333325, z: 0.83333325}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.73, y: 1.73, z: 1.73}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1459458085}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -18184,13 +18352,13 @@ GameObject:
   m_Component:
   - component: {fileID: 2082506454}
   - component: {fileID: 2082506455}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: MissionPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2082506454
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18199,7 +18367,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2082506453}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 2.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18228,6 +18396,8 @@ MonoBehaviour:
   firstText: {fileID: 876165703}
   handImage: {fileID: 1228565565}
   buttonImage: {fileID: 1112620244}
+  buttonNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  buttonPressedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
   msgRemember: "\uC190\uC744 \uB300\uACE0 \uB290\uAEF4\uC9C0\uB294 \uC9C4\uB3D9 \uB9AC\uB4EC\uC744
     \uAE30\uC5B5\uD558\uC138\uC694!"
   msgListen: "\uB4E3\uAE30"
@@ -18263,7 +18433,7 @@ GameObject:
   - component: {fileID: 2088926211}
   - component: {fileID: 2088926213}
   - component: {fileID: 2088926212}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18400,7 +18570,7 @@ GameObject:
   - component: {fileID: 2129692599}
   - component: {fileID: 2129692601}
   - component: {fileID: 2129692600}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: FirstText
   m_TagString: Untagged
   m_Icon: {fileID: 0}

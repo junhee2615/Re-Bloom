@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.XR;
+using UnityEngine.UI;
 
 /// <summary>
 /// AliveStump 미션 : 뿌리에서 올라오는 진동 패턴을 기억하고,
@@ -17,6 +18,12 @@ public class VibrationTriggerMission : ActivationMission
     [SerializeField] private TextMeshProUGUI firstText;
     [SerializeField] private GameObject handImage;
     [SerializeField] private GameObject buttonImage;
+
+    [Header("플레이 버튼 색 (클릭 피드백)")]
+    [Tooltip("기본 색 (FFFFFF)")]
+    [SerializeField] private Color buttonNormalColor = Color.white;
+    [Tooltip("클릭 시 색 (878787)")]
+    [SerializeField] private Color buttonPressedColor = new Color32(0x87, 0x87, 0x87, 0xFF);
 
     [Header("안내 문구")]
     [SerializeField] private string msgRemember = "손을 대고 느껴지는 진동 리듬을 기억하세요!";
@@ -127,7 +134,11 @@ public void ReportPlayResult(bool success) { playSucceeded = success; }
             yield return new WaitForSeconds(readyDuration);
 
             // (9) ButtonImage 켜고 '플레이'
-            if (buttonImage != null) buttonImage.SetActive(true);
+            if (buttonImage != null)
+            {
+                buttonImage.SetActive(true);
+                SetButtonColor(buttonNormalColor);   // 재시도 시 흰색으로 초기화
+            }
             SetText(msgPlay);
 
             // (10) Grab 박자 판정
@@ -221,12 +232,19 @@ private IEnumerator WaitForPlayResult()
         while (true)
         {
             bool pressed = IsGrabPressed();
-            if (pressed && !prevPressed)           // 누르는 순간(rising edge)
+
+            if (pressed && !prevPressed)
             {
+                // 누르는 순간 → 박자 기록 + 회색(누르고 있는 동안)
                 pressTimes.Add(Time.time);
-                OnPlayerBeat(pressTimes.Count);
+                SetButtonColor(buttonPressedColor);
                 if (pressTimes.Count >= expectedCount)
                     break;
+            }
+            else if (!pressed && prevPressed)
+            {
+                // 손을 뗄 순간 → 흰색
+                SetButtonColor(buttonNormalColor);
             }
             prevPressed = pressed;
 
@@ -241,14 +259,22 @@ private IEnumerator WaitForPlayResult()
             yield return null;
         }
 
+        SetButtonColor(buttonNormalColor);   // 판정 전 흰색으로 복구
         playSucceeded = Judge(expected, pressTimes);
     }
 
 // 플레이어가 박자를 하나 누를 때마다 호출 (count = 지금까지 누른 횟수)
     // TODO(나중에): 여기서 ButtonImage를 회색으로 바꾸는 등 시각 피드백을 준다.
-    private void OnPlayerBeat(int count)
+
+
+// ButtonImage의 Image 색을 바꿈
+    private void SetButtonColor(Color color)
     {
+        if (buttonImage == null) return;
+        Image img = buttonImage.GetComponent<Image>();
+        if (img != null) img.color = color;
     }
+
 
 
 // 너무 빡빡하지 않게 판정: 누른 횟수가 맞고, 간격이 대충 맞으면 성공
