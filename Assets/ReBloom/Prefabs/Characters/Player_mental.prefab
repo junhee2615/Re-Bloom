@@ -324,6 +324,7 @@ GameObject:
   - component: {fileID: 1306487259344567644}
   - component: {fileID: 104267420603040855}
   - component: {fileID: 2244771845460819798}
+  - component: {fileID: 902510863947120114}
   - component: {fileID: 1396085137655265913}
   - component: {fileID: 3300096220577556117}
   m_Layer: 0
@@ -412,6 +413,25 @@ MonoBehaviour:
   rightHandTransform: {fileID: 6485362447277290755}
   baseAvatar: {fileID: 4895060287329297665}
   sourceRoot: {fileID: 1161072700954318278}
+--- !u!114 &902510863947120114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a0b57fa458a49c7b4010762ab3f91cc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CooperativeActivationController
+  minimumForwardDistance: 0.2
+  handContactDistance: 0.16
+  holdDuration: 1.5
+  contactHapticPattern: {fileID: 11400000, guid: 37e6da5f6e4e4ff89fca0c44ed205f76, type: 2}
+  onActivationSucceeded:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!136 &1396085137655265913
 CapsuleCollider:
   m_ObjectHideFlags: 0

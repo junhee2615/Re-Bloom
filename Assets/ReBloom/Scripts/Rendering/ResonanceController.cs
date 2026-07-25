@@ -43,6 +43,7 @@ public sealed class ResonanceController : MonoBehaviour
     private float fogVisibility = 1f; // ON or OFF 이벤트 발생시 Fade 적용 용도
     private bool initialized;
     private bool receivedNetworkState;
+    private bool isConstraintReleased;
 
     private void Awake()
     {
@@ -54,6 +55,8 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void OnEnable()
     {
+        CooperativeActivationController.ActivationSucceeded += ReleaseFogConstraint;
+
         if (!useNetworkedTutorialState) return;
 
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
@@ -62,6 +65,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void OnDisable()
     {
+        CooperativeActivationController.ActivationSucceeded -= ReleaseFogConstraint;
         TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
 
         StopAllCoroutines();
@@ -137,7 +141,7 @@ public sealed class ResonanceController : MonoBehaviour
         if (!initialized)
             return;
 
-        float targetIntensity = CalculateDistanceConstraintIntensity();
+        float targetIntensity = isConstraintReleased ? 0f : CalculateDistanceConstraintIntensity();
 
         targetIntensity *= fogVisibility;
 
@@ -266,6 +270,11 @@ public sealed class ResonanceController : MonoBehaviour
             ActivateFog();
         else if (step == deactivateStep)
             DeactivateFog();
+    }
+
+    private void ReleaseFogConstraint()
+    {
+        isConstraintReleased = true;
     }
 
     // 중간에 참가한 클라이언트가 현재 튜토리얼 상태 받기
