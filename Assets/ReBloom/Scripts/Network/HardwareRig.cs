@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static Unity.Collections.Unicode;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 {
@@ -16,6 +17,9 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     public Transform leftHandTransform;
 
     public Transform rightHandTransform;
+
+    [Header("Teleport Ghost")]
+    public XRRayInteractor teleportInteractor;
 
     private void OnEnable()
     {

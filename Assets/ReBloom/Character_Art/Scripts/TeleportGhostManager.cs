@@ -13,12 +13,9 @@ public class TeleportGhostManager : MonoBehaviour
     [SerializeField]
     private CharacterType characterType = CharacterType.Ear;
 
-    [Header("캐릭터별 플레이어 Root")]
+    [Header("플레이어 Root")]
     [SerializeField]
-    private Transform earSourceRoot;
-
-    [SerializeField]
-    private Transform mentalSourceRoot;
+    private Transform sourceRoot;
 
     [Header("텔레포트 참조")]
     [SerializeField]
@@ -33,20 +30,29 @@ public class TeleportGhostManager : MonoBehaviour
 
     private GameObject currentGhost;
 
-    private void Start()
+    public void Initialize(
+        CharacterType newCharacterType,
+        Transform newSourceRoot,
+        XRRayInteractor newTeleportInteractor)
+    {
+        characterType = newCharacterType;
+        sourceRoot = newSourceRoot;
+        teleportInteractor = newTeleportInteractor;
+
+        CreateGhost();
+    }
+
+    private void CreateGhost()
     {
         GameObject selectedPrefab;
-        Transform selectedSourceRoot;
 
         if (characterType == CharacterType.Ear)
         {
             selectedPrefab = earGhostPrefab;
-            selectedSourceRoot = earSourceRoot;
         }
         else
         {
             selectedPrefab = mentalGhostPrefab;
-            selectedSourceRoot = mentalSourceRoot;
         }
 
         if (selectedPrefab == null)
@@ -57,7 +63,7 @@ public class TeleportGhostManager : MonoBehaviour
             return;
         }
 
-        if (selectedSourceRoot == null)
+        if (sourceRoot == null)
         {
             Debug.LogError(
                 "선택된 캐릭터의 Source Root가 연결되지 않았습니다."
@@ -81,7 +87,7 @@ public class TeleportGhostManager : MonoBehaviour
 
         if (poseCopy != null)
         {
-            poseCopy.Initialize(selectedSourceRoot);
+            poseCopy.Initialize(sourceRoot);
         }
         else
         {
