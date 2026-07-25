@@ -21,7 +21,7 @@ public sealed class ResonanceController : MonoBehaviour
     [Header("Distance-Based Constraint")]
     [SerializeField, Min(0.01f)] private float resonanceDistance = 15f; // Host, Client Spawn 차이
     [SerializeField, Min(0f)] private float minDistance = 2f;
-    [SerializeField, Range(0f, 0.99f)] private float maxConstraintRelief = 0.7f;
+    [SerializeField, Range(0f, 0.99f)] private float maxConstraintRelief = 0.7f; // 완화 최대 비율
     [SerializeField, Min(0f)] private float distanceResponseSpeed = 6f;
     [Tooltip("거리 계산과 Fog 적용값을 매 프레임 출력합니다. 원인 확인 후 끄세요.")]
     [SerializeField] private bool logDistanceCalculation;
