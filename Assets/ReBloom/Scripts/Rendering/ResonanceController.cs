@@ -19,12 +19,14 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     [Header("Distance-Based Constraint")]
-    [SerializeField, Min(0.01f)] private float resonanceDistance = 15f; // Host, Client Spawn 차이
+    [SerializeField] private Transform hostSpawnPoint;
+    [SerializeField] private Transform clientSpawnPoint;
     [SerializeField, Min(0f)] private float minDistance = 2f;
     [SerializeField, Range(0f, 0.99f)] private float maxConstraintRelief = 0.7f; // 완화 최대 비율
     [SerializeField, Min(0f)] private float distanceResponseSpeed = 6f;
     [Tooltip("거리 계산과 Fog 적용값을 매 프레임 출력합니다. 원인 확인 후 끄세요.")]
     [SerializeField] private bool logDistanceCalculation;
+    private float resonanceDistance = 15f;
 
     [Header("Networked Resonance Trigger")]
     [Tooltip("Networked Tutorial state가 각 클라이언트에 도착할 때 로컬 Fog를 전환합니다.")]
@@ -44,6 +46,7 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void Awake()
     {
+        InitializeResonanceDistance();
         InitializeFog();
 
         ApplyIntensity(startIntensity);
@@ -118,6 +121,15 @@ public sealed class ResonanceController : MonoBehaviour
         configuredHeightIntensity = fogSettings.heightFogIntensity;
         currentIntensity = startIntensity;
         initialized = true;
+    }
+
+    private void InitializeResonanceDistance()
+    {
+        Transform hostPoint = hostSpawnPoint;
+        Transform clientPoint = clientSpawnPoint;
+
+        resonanceDistance = Vector3.Distance(hostPoint.position, clientPoint.position);
+        Debug.Log($"[Resonance Fog] Spawn-point resonance distance initialized: {resonanceDistance:F2}", this);
     }
 
     private void Update()
