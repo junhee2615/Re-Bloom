@@ -6,7 +6,7 @@ public class NetworkPlayer : NetworkBehaviour
     // 내 플레이어인지 확인
     public bool IsLocalNetworkRig => Object.HasInputAuthority;
     public HardwareRig HardwareRig => hardwareRig;
-    public Transform PlayerTransform => playerTransform.transform;
+    public Transform PlayerTransform => playerTransform != null ? playerTransform.transform : null;
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
