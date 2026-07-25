@@ -22,6 +22,12 @@ public abstract class ActivationMission : MonoBehaviour
     /// </summary>
     public virtual void StopMission() { }
 
+/// <summary>
+    /// 컨트롤러 접촉을 이 미션에 알릴 때 호출한다 (접촉 감지가 필요한 미션만 override).
+    /// </summary>
+    public virtual void NotifyHandDetected() { }
+
+
     /// <summary>
     /// 각 미션이 성공 시점(클리어 텍스트를 보여준 뒤 등)에 호출한다.
     /// RootActivation에 완료를 알려 다음 단계로 넘어간다.
