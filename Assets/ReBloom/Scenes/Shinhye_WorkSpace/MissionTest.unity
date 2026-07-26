@@ -268,7 +268,7 @@ GameObject:
   - component: {fileID: 214596089}
   - component: {fileID: 214596088}
   - component: {fileID: 214596087}
-  - component: {fileID: 214596086}
+  - component: {fileID: 214596090}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -295,25 +295,6 @@ RectTransform:
   m_AnchoredPosition: {x: -37.2, y: -2.2}
   m_SizeDelta: {x: 118.9, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &214596086
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 214596084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &214596087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,6 +377,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 214596084}
   m_CullTransparentMesh: 1
+--- !u!114 &214596090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214596084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &222568939
 GameObject:
   m_ObjectHideFlags: 0
@@ -408,7 +401,7 @@ GameObject:
   - component: {fileID: 222568944}
   - component: {fileID: 222568943}
   - component: {fileID: 222568942}
-  - component: {fileID: 222568941}
+  - component: {fileID: 222568945}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -435,25 +428,6 @@ RectTransform:
   m_AnchoredPosition: {x: -12.7, y: 74.5}
   m_SizeDelta: {x: 114.9, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &222568941
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 222568939}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &222568942
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,6 +510,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 222568939}
   m_CullTransparentMesh: 1
+--- !u!114 &222568945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 222568939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &252204388
 GameObject:
   m_ObjectHideFlags: 0
@@ -630,7 +616,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &294652569
 RectTransform:
   m_ObjectHideFlags: 0
@@ -639,7 +625,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 294652568}
   m_LocalRotation: {x: -0, y: -0.85775554, z: -0, w: 0.51405793}
-  m_LocalPosition: {x: 0, y: 0, z: 0.152}
+  m_LocalPosition: {x: 0, y: 0, z: 0.083}
   m_LocalScale: {x: 0.008333331, y: 0.008660833, z: 0.008333331}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -649,7 +635,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.399, y: 0.915}
+  m_AnchoredPosition: {x: 0.272, y: 0.915}
   m_SizeDelta: {x: 300, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &294652570
@@ -1622,6 +1608,7 @@ MonoBehaviour:
   - {fileID: 754797350}
   - {fileID: 1459458087}
   - {fileID: 951422011}
+  activationDelay: 3
 --- !u!1 &770290315
 GameObject:
   m_ObjectHideFlags: 0
@@ -1656,8 +1643,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 16.9}
-  m_SizeDelta: {x: 50, y: 50}
+  m_AnchoredPosition: {x: 0, y: 18.099997}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &770290317
 MonoBehaviour:
@@ -1809,7 +1796,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -23.7}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &859886970
@@ -1942,7 +1929,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &876165702
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2010,8 +1997,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15
-  m_fontSizeBase: 15
+  m_fontSize: 10
+  m_fontSizeBase: 10
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2393,7 +2380,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -5.1}
+  m_AnchoredPosition: {x: 0, y: 7.5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &998460918
@@ -2444,8 +2431,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15
-  m_fontSizeBase: 15
+  m_fontSize: 10
+  m_fontSizeBase: 10
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2509,7 +2496,7 @@ GameObject:
   - component: {fileID: 1021966936}
   - component: {fileID: 1021966935}
   - component: {fileID: 1021966934}
-  - component: {fileID: 1021966933}
+  - component: {fileID: 1021966937}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -2536,25 +2523,6 @@ RectTransform:
   m_AnchoredPosition: {x: 36.8, y: 54.500004}
   m_SizeDelta: {x: 124, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1021966933
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1021966931}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1021966934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2637,6 +2605,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021966931}
   m_CullTransparentMesh: 1
+--- !u!114 &1021966937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1021966931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &1038303518
 GameObject:
   m_ObjectHideFlags: 0
@@ -2772,7 +2752,7 @@ GameObject:
   - component: {fileID: 1039827708}
   - component: {fileID: 1039827707}
   - component: {fileID: 1039827706}
-  - component: {fileID: 1039827705}
+  - component: {fileID: 1039827709}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -2799,25 +2779,6 @@ RectTransform:
   m_AnchoredPosition: {x: -37.2, y: 93.500015}
   m_SizeDelta: {x: 118.9, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1039827705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1039827703}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1039827706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2900,6 +2861,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1039827703}
   m_CullTransparentMesh: 1
+--- !u!114 &1039827709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039827703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &1056815424
 GameObject:
   m_ObjectHideFlags: 0
@@ -2912,7 +2885,7 @@ GameObject:
   - component: {fileID: 1056815429}
   - component: {fileID: 1056815428}
   - component: {fileID: 1056815427}
-  - component: {fileID: 1056815426}
+  - component: {fileID: 1056815430}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -2939,25 +2912,6 @@ RectTransform:
   m_AnchoredPosition: {x: -37.2, y: 78.9}
   m_SizeDelta: {x: 118.9, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1056815426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1056815424}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1056815427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3040,6 +2994,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056815424}
   m_CullTransparentMesh: 1
+--- !u!114 &1056815430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056815424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &1112620244
 GameObject:
   m_ObjectHideFlags: 0
@@ -3112,8 +3078,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 15.4}
-  m_SizeDelta: {x: 60, y: 60}
+  m_AnchoredPosition: {x: 0, y: 1.900001}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1128969940
 GameObject:
@@ -8086,7 +8052,7 @@ GameObject:
   - component: {fileID: 1131039833}
   - component: {fileID: 1131039832}
   - component: {fileID: 1131039831}
-  - component: {fileID: 1131039830}
+  - component: {fileID: 1131039834}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -8113,25 +8079,6 @@ RectTransform:
   m_AnchoredPosition: {x: 11.5, y: 17.600002}
   m_SizeDelta: {x: 115.7, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1131039830
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1131039828}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1131039831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8214,6 +8161,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1131039828}
   m_CullTransparentMesh: 1
+--- !u!114 &1131039834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1131039828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &1155495194
 GameObject:
   m_ObjectHideFlags: 0
@@ -8304,7 +8263,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1197619454
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8330,7 +8289,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 40.6}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1228565565
@@ -8367,8 +8326,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 16.1}
-  m_SizeDelta: {x: 60, y: 60}
+  m_AnchoredPosition: {x: 0, y: 2.6}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1228565567
 MonoBehaviour:
@@ -8436,7 +8395,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1241409340}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.552}
+  m_LocalPosition: {x: 0, y: 0, z: -0.153}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -8446,7 +8405,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 1.554}
+  m_AnchoredPosition: {x: 0, y: 1.538}
   m_SizeDelta: {x: 300, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1241409342
@@ -8818,7 +8777,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1418609899
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8863,10 +8822,11 @@ MonoBehaviour:
   msgClear: "\uAC8C\uC784 \uD074\uB9AC\uC5B4!"
   msgWrong: "\uD2C0\uB838\uC2B5\uB2C8\uB2E4!"
   introDuration: 2
-  scrollSpeed: 150
+  scrollSpeed: 15
   noteHideDelay: 1
   clearTextDuration: 1.5
   wrongTextDuration: 1.5
+  hitTolerance: 0.2
   touchedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
   sfxSource: {fileID: 1459458088}
   touchClip: {fileID: 8300000, guid: 06d20555efd55e44683cd5eb42746268, type: 3}
@@ -8882,7 +8842,7 @@ GameObject:
   - component: {fileID: 1441609512}
   - component: {fileID: 1441609511}
   - component: {fileID: 1441609510}
-  - component: {fileID: 1441609509}
+  - component: {fileID: 1441609513}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -8909,25 +8869,6 @@ RectTransform:
   m_AnchoredPosition: {x: 36.8, y: 64.5}
   m_SizeDelta: {x: 124, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1441609509
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1441609507}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1441609510
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9010,6 +8951,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1441609507}
   m_CullTransparentMesh: 1
+--- !u!114 &1441609513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441609507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1001 &1459458081
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14634,7 +14587,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1654980605
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14922,7 +14875,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1774835251
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14950,7 +14903,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 17.9}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1774835252
@@ -15348,7 +15301,7 @@ GameObject:
   - component: {fileID: 1871541052}
   - component: {fileID: 1871541051}
   - component: {fileID: 1871541050}
-  - component: {fileID: 1871541049}
+  - component: {fileID: 1871541053}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -15375,25 +15328,6 @@ RectTransform:
   m_AnchoredPosition: {x: 11.49993, y: 37.100002}
   m_SizeDelta: {x: 115.7, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1871541049
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1871541047}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &1871541050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15476,6 +15410,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1871541047}
   m_CullTransparentMesh: 1
+--- !u!114 &1871541053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1871541047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1 &1914662837
 GameObject:
   m_ObjectHideFlags: 0
@@ -20902,7 +20848,7 @@ GameObject:
   - component: {fileID: 2139238202}
   - component: {fileID: 2139238201}
   - component: {fileID: 2139238200}
-  - component: {fileID: 2139238199}
+  - component: {fileID: 2139238203}
   m_Layer: 0
   m_Name: LeafNoteButton
   m_TagString: Untagged
@@ -20929,25 +20875,6 @@ RectTransform:
   m_AnchoredPosition: {x: -12.7, y: 12.9000025}
   m_SizeDelta: {x: 114.9, y: 45.2}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2139238199
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2139238197}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07b3638c2f5db5b479ff24c2859713d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit.Samples.StarterAssets::UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets.XRPokeFollowAffordance
-  m_PokeFollowTransform: {fileID: 0}
-  m_SmoothingSpeed: 16
-  m_ReturnToInitialPosition: 1
-  m_ApplyIfChildIsTarget: 1
-  m_ClampToMaxDistance: 0
-  m_MaxDistance: 0
-  m_PokeFilter: {fileID: 0}
 --- !u!114 &2139238200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21030,6 +20957,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2139238197}
   m_CullTransparentMesh: 1
+--- !u!114 &2139238203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2139238197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137c7ea2fd0373940a0aa55fcc1d7382, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeafNote
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

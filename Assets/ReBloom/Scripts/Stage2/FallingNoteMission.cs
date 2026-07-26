@@ -29,6 +29,10 @@ public class FallingNoteMission : ActivationMission
     [SerializeField] private float clearTextDuration = 1.5f;
     [SerializeField] private float wrongTextDuration = 1.5f;
 
+    [Header("판정 여유")]
+    [Tooltip("ClearRow 위아래로 이만큼(월드 단위)까지 터치 인정. 클수록 관대 (ClearRow 높이가 거의 0이라 필요)")]
+    [SerializeField] private float hitTolerance = 0.1f;
+
     [Header("터치 피드백")]
     [SerializeField] private Color touchedColor = new Color32(0x87, 0x87, 0x87, 0xFF);
     [SerializeField] private AudioSource sfxSource;
@@ -66,12 +70,12 @@ public class FallingNoteMission : ActivationMission
     }
 
     // Notes 하위의 LeafNoteButton들을 한 번만 수집하고 클릭 이벤트를 연결한다.
-    private void GatherNotes()
+private void GatherNotes()
     {
         if (gathered) return;
         gathered = true;
 
-        if (notesRoot == null) return;
+        if (notesRoot == null) { Debug.LogWarning("[FallingNote] notesRoot 미할당"); return; }
         notesStartY = notesRoot.anchoredPosition.y;
 
         foreach (Transform child in notesRoot)
@@ -89,13 +93,19 @@ public class FallingNoteMission : ActivationMission
             n.image = img;
             n.originalColor = (img != null) ? img.color : Color.white;
 
+            // 누르는 순간(PointerDown)에 바로 반응하도록 LeafNote 연결 (움직이는 노트에 유리)
+            LeafNote ln = child.GetComponent<LeafNote>();
+            if (ln == null) ln = child.gameObject.AddComponent<LeafNote>();
             Note captured = n;
-            b.onClick.AddListener(() => OnNoteClicked(captured));
+            ln.onPressed = () => OnNoteClicked(captured);
+
             notes.Add(n);
         }
+
+        Debug.Log($"[FallingNote] 노트 {notes.Count}개 수집 (clearRow 할당={clearRow != null}, gamePanel 할당={gamePanel != null})");
     }
 
-    private IEnumerator RunMission()
+private IEnumerator RunMission()
     {
         // 실패하면 (2)로 돌아오도록 전체 반복
         while (true)
@@ -139,13 +149,26 @@ public class FallingNoteMission : ActivationMission
                     }
                     if (n.missed) continue;
 
-                    float y = n.rect.position.y;
+                    // 노트의 월드 Y 범위
+                    float nMin, nMax;
+                    GetWorldY(n.rect, out nMin, out nMax);
 
-                    // 가시성 : GamePanel 범위 안에서만 보이고 클릭 가능 (밖이면 숨김)
-                    if (n.image != null) n.image.enabled = (y >= panelMin && y <= panelMax);
+                    // 가시성 : 노트가 GamePanel과 겹치면 보임 (밖이면 숨김/클릭불가)
+                    bool vis = (nMax >= panelMin && nMin <= panelMax);
+                    if (n.image != null)
+                    {
+                        if (n.image.enabled != vis)
+                            Debug.Log($"[FallingNote] {n.go.name} 표시={vis} note=[{nMin:F2},{nMax:F2}] panel=[{panelMin:F2},{panelMax:F2}] zone=[{zoneMin:F2},{zoneMax:F2}]");
+                        n.image.enabled = vis;
+                    }
 
-                    // 미스 : ClearRow 아래로 지나가면 실패
-                    if (y < zoneMin) { n.missed = true; failed = true; }
+                    // 미스 : 노트가 ClearRow 아래로 완전히 지나가면 실패
+                    if (nMax < zoneMin - hitTolerance)
+                    {
+                        n.missed = true;
+                        failed = true;
+                        Debug.Log($"[FallingNote] {n.go.name} MISS (nMax={nMax:F2} < zoneMin={zoneMin:F2})");
+                    }
                 }
 
                 if (failed) break;
@@ -205,22 +228,28 @@ public class FallingNoteMission : ActivationMission
     }
 
     // 노트를 터치(클릭)했을 때
-    private void OnNoteClicked(Note n)
+private void OnNoteClicked(Note n)
     {
+        float zMin, zMax, nMin, nMax;
+        GetWorldY(clearRow, out zMin, out zMax);
+        GetWorldY(n.rect, out nMin, out nMax);
+        bool inZone = (nMax >= zMin - hitTolerance && nMin <= zMax + hitTolerance);   // 노트가 ClearRow와 겹치면 유효
+        Debug.Log($"[FallingNote] 누름 감지: {n.go.name} note=[{nMin:F2},{nMax:F2}] zone=[{zMin:F2},{zMax:F2}] inZone={inZone} touched={n.touched} missed={n.missed}");
+
         if (n.touched || n.missed) return;
 
-        // ClearRow 존 안에서만 유효
-        float zoneMin, zoneMax;
-        GetWorldY(clearRow, out zoneMin, out zoneMax);
-        float y = n.rect.position.y;
-        if (y < zoneMin || y > zoneMax) return;   // 존 밖 터치 무시
+        if (!inZone)
+        {
+            Debug.Log($"[FallingNote] {n.go.name} 존 밖이라 무시");
+            return;
+        }
 
         n.touched = true;
         touchedCount++;
+        Debug.Log($"[FallingNote] {n.go.name} 터치 성공! ({touchedCount}/{notes.Count})");
 
         if (sfxSource != null && touchClip != null) sfxSource.PlayOneShot(touchClip);
         if (n.image != null) n.image.color = touchedColor;
-        if (n.button != null) n.button.interactable = false;
         n.hideTime = Time.time + noteHideDelay;
     }
 
