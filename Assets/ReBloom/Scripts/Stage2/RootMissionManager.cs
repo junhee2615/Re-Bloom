@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,10 +14,15 @@ public class RootMissionManager : MonoBehaviour
     // 현재 활성화 미션을 진행 중인 뿌리의 인덱스
     private int currentActivationIndex = -1;
 
+    [Header("전환 딜레이")]
+    [Tooltip("마지막 뿌리를 찾은 뒤 활성화 미션으로 넘어가기까지 대기(초)")]
+    [SerializeField] private float activationDelay = 3f;
+    private bool activationStarted;
+
     public int FoundCount => foundRoots.Count;
 
     // 첫 번째 미션 : 뿌리 찾기
-    public void OnRootFound(LivingRoot root)
+public void OnRootFound(LivingRoot root)
     {
         if (foundRoots.Contains(root))
             return;
@@ -25,22 +31,32 @@ public class RootMissionManager : MonoBehaviour
 
         Debug.Log($"찾은 뿌리 : {FoundCount}/3");
 
-        if (FoundCount >= 3)
+        if (FoundCount >= 3 && !activationStarted)
         {
-            Debug.Log("첫 번째 미션 완료! (뿌리 찾기 완료)");
-
-            // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둠)
-            foreach (LivingRoot found in foundRoots)
-            {
-                if (found != null)
-                    found.enabled = false;
-            }
-
-            // 두 번째 미션(활성화) 시작
-            currentState = RootMissionState.ActivateRoots;
-            StartActivationSequence();
+            activationStarted = true;
+            Debug.Log($"첫 번째 미션 완료! {activationDelay}초 뒤 활성화 미션으로 전환");
+            StartCoroutine(DelayedActivation());
         }
     }
+
+// 마지막 뿌리를 찾은 뒤 잠시 진동을 더 느끼게 두었다가 활성화 미션으로 전환
+    private IEnumerator DelayedActivation()
+    {
+        // 대기 동안 LivingRoot는 켜져 있어 마지막 뿌리 진동을 계속 느낄 수 있다.
+        yield return new WaitForSeconds(activationDelay);
+
+        // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둠)
+        foreach (LivingRoot found in foundRoots)
+        {
+            if (found != null)
+                found.enabled = false;
+        }
+
+        // 두 번째 미션(활성화) 시작
+        currentState = RootMissionState.ActivateRoots;
+        StartActivationSequence();
+    }
+
 
     // 두 번째 미션 : 뿌리 활성화 (순차 진행)
     private void StartActivationSequence()

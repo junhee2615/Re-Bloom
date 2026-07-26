@@ -337,8 +337,12 @@ private IEnumerator WaitForPlayResult()
     }
 
 
-    private void SetText(string msg)
+private void SetText(string msg)
     {
-        if (firstText != null) firstText.text = msg;
+        if (firstText == null) return;
+        // 텍스트를 보여줄 때 FirstText가 꺼져 있으면 켜준다.
+        if (!firstText.gameObject.activeSelf)
+            firstText.gameObject.SetActive(true);
+        firstText.text = msg;
     }
 }
