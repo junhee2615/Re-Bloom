@@ -65,11 +65,8 @@ public class NetworkPlayer : NetworkBehaviour
             hardwareRig.teleportInteractor
         );
 
-            // 내 몸 숨기기
-            if (baseAvatar != null)
-            {
-                baseAvatar.SetActive(false);
-            }
+            // 내 몸의 렌더러만 숨기기
+            SetAvatarVisible(false);
         }
     }
 
@@ -119,5 +116,18 @@ public class NetworkPlayer : NetworkBehaviour
         rightHandTransform.transform.SetPositionAndRotation(
             hardwareRig.rightHandTransform.position,
             hardwareRig.rightHandTransform.rotation);
+    }
+
+    private void SetAvatarVisible(bool visible)
+    {
+        if (baseAvatar == null)
+            return;
+
+        Renderer[] renderers = baseAvatar.GetComponentsInChildren<Renderer>(true);
+
+        foreach (Renderer avatarRenderer in renderers)
+        {
+            avatarRenderer.enabled = visible;
+        }
     }
 }
