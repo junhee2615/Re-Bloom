@@ -2602,6 +2602,17 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
                     ""action"": ""Snap Turn"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a84283d8-a087-4421-b675-1c07c7bc7746"",
+                    ""path"": ""<XRController>{RightHand}/{PrimaryButton}"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },

@@ -11,7 +11,10 @@ public class RightRayModeToggle : MonoBehaviour
     [SerializeField] private bool startWithUIMode = false;
 
     private InputDevice rightController;
-    private bool previousAButtonState;
+
+    // A 버튼 상태 → B 버튼 상태로 변경
+    private bool previousBButtonState;
+
     private bool isUIMode;
 
     private void Start()
@@ -30,21 +33,22 @@ public class RightRayModeToggle : MonoBehaviour
             return;
         }
 
+        // primaryButton(A) → secondaryButton(B)
         if (!rightController.TryGetFeatureValue(
-                CommonUsages.primaryButton,
-                out bool currentAButtonState))
+                CommonUsages.secondaryButton,
+                out bool currentBButtonState))
         {
             return;
         }
 
-        // A 버튼을 처음 누른 순간에만 한 번 토글
-        if (currentAButtonState && !previousAButtonState)
+        // B 버튼을 처음 누른 순간에만 한 번 토글
+        if (currentBButtonState && !previousBButtonState)
         {
             isUIMode = !isUIMode;
             ApplyMode();
         }
 
-        previousAButtonState = currentAButtonState;
+        previousBButtonState = currentBButtonState;
     }
 
     private void FindRightController()
