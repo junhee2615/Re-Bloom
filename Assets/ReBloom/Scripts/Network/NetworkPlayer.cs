@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
@@ -7,6 +8,18 @@ public class NetworkPlayer : NetworkBehaviour
     public bool IsLocalNetworkRig => Object.HasInputAuthority;
     public HardwareRig HardwareRig => hardwareRig;
     public Transform PlayerTransform => playerTransform != null ? playerTransform.transform : null;
+
+    // PlayerRef → NetworkPlayer 레지스트리.
+    // 호스트가 "어떤 플레이어가 잡았는지"만 알아도 그 플레이어의 손 트랜스폼을
+    // 직접 참조할 수 있도록 모든 인스턴스를 등록해 둔다. (WaterMissionObstacle 등에서 사용)
+    private static readonly Dictionary<PlayerRef, NetworkPlayer> _players =
+        new Dictionary<PlayerRef, NetworkPlayer>();
+
+    public static bool TryGet(PlayerRef player, out NetworkPlayer networkPlayer)
+        => _players.TryGetValue(player, out networkPlayer);
+
+    public Transform LeftHand => leftHandTransform != null ? leftHandTransform.transform : null;
+    public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
@@ -40,6 +53,9 @@ public class NetworkPlayer : NetworkBehaviour
     {
         base.Spawned();
 
+        // 모든 클라이언트에서 등록(호스트는 원격 플레이어의 손도 참조해야 한다).
+        _players[Object.InputAuthority] = this;
+
         if (IsLocalNetworkRig)
         {
             hardwareRig = FindFirstObjectByType<HardwareRig>();
@@ -68,6 +84,14 @@ public class NetworkPlayer : NetworkBehaviour
             // 내 몸의 렌더러만 숨기기
             SetAvatarVisible(false);
         }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        base.Despawned(runner, hasState);
+
+        if (_players.TryGetValue(Object.InputAuthority, out var np) && np == this)
+            _players.Remove(Object.InputAuthority);
     }
 
     public override void FixedUpdateNetwork()
