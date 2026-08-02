@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR;
@@ -15,12 +14,11 @@ public sealed class CooperativeActivationController : MonoBehaviour
     public static event Action ActivationSucceeded;
 
     [Header("Activation Motion")]
-    [SerializeField, Min(0f)] private float minimumForwardDistance = 0.2f;
     [SerializeField, Min(0.01f)] private float handContactDistance = 0.16f;
     [SerializeField, Min(0f)] private float holdDuration = 1.5f;
 
     [Header("Debug")]
-    [Tooltip("활성화 판정 상태를 주기적으로 출력합니다. 검증 후 끄세요.")]
+    [Tooltip("활성화 판정 상태를 주기적으로 출력합니다.")]
     [SerializeField] private bool logActivationDebug = true;
     [SerializeField, Min(0.05f)] private float debugLogInterval = 0.25f;
 
@@ -29,6 +27,8 @@ public sealed class CooperativeActivationController : MonoBehaviour
     [SerializeField] private UnityEvent onActivationSucceeded;
 
     private NetworkPlayer owner;
+    private NetworkPlayer cachedHost;
+    private NetworkPlayer cachedClient;
     private float holdElapsed;
     private bool previousContact;
     private bool previousSuccess;
@@ -44,20 +44,17 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (owner == null || !owner.HasNetworkStateAuthority || owner.HasCooperativeActivationSucceeded)
             return;
 
-        NetworkPlayer[] players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
-        if (!TryGetPair(players, out NetworkPlayer hostPlayer, out NetworkPlayer clientPlayer) ||
+        if (!TryResolvePair(out NetworkPlayer hostPlayer, out NetworkPlayer clientPlayer) ||
             owner != hostPlayer)
             return;
-
-        float hostForwardDistance = GetForwardDistance(hostPlayer);
-        float clientForwardDistance = GetForwardDistance(clientPlayer);
-        bool hostReady = IsActivationReady(hostPlayer, hostForwardDistance);
-        bool clientReady = IsActivationReady(clientPlayer, clientForwardDistance);
+        
+        bool hostReady = IsActivationReady(hostPlayer);
+        bool clientReady = IsActivationReady(clientPlayer);
         float handDistance = GetHandDistance(hostPlayer, clientPlayer);
         bool handsContacted = handDistance <= handContactDistance;
-        bool bothReady = IsActivationReady(hostPlayer, hostForwardDistance) && clientReady;
+        bool bothReady = hostReady && clientReady;
         bool holding = handsContacted && bothReady;
-
+        
         hostPlayer.SetCooperativeHandsContacted(handsContacted);
         clientPlayer.SetCooperativeHandsContacted(handsContacted);
 
@@ -65,18 +62,16 @@ public sealed class CooperativeActivationController : MonoBehaviour
         {
             holdElapsed = 0f;
             LogActivationState(
-                hostPlayer, clientPlayer, hostForwardDistance, clientForwardDistance,
-                handDistance, hostReady, clientReady, handsContacted, holding);
+                hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
             return;
         }
 
         holdElapsed += Time.fixedDeltaTime;
         LogActivationState(
-            hostPlayer, clientPlayer, hostForwardDistance, clientForwardDistance,
-            handDistance, hostReady, clientReady, handsContacted, holding);
+            hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
         if (holdElapsed < holdDuration)
             return;
-
+        
         hostPlayer.SetCooperativeActivationSucceeded();
         clientPlayer.SetCooperativeActivationSucceeded();
     }
@@ -101,20 +96,9 @@ public sealed class CooperativeActivationController : MonoBehaviour
         previousSuccess = succeeded;
     }
 
-    private bool IsActivationReady(NetworkPlayer player, float forwardDistance)
+    private bool IsActivationReady(NetworkPlayer player)
     {
-        return player.IsActivationTriggerHeld && forwardDistance >= minimumForwardDistance;
-    }
-
-    private static float GetForwardDistance(NetworkPlayer player)
-    {
-        if (player.PlayerTransform == null || player.RightHandTransform == null)
-            return float.NegativeInfinity;
-
-        // playerTransform은 월드 -축을 정면으로 보고 있어 손을 앞으로 뻗으면 월드 좌표는
-        // 감소하지만, InverseTransformPoint가 회전을 반영하므로 로컬 +Z(정면)는 증가한다.
-        // 따라서 부호 반전 없이 로컬 z가 곧 "정면으로 뻗은 거리"다.
-        return player.PlayerTransform.InverseTransformPoint(player.RightHandTransform.position).z;
+        return player.IsActivationTriggerHeld;
     }
 
     private static float GetHandDistance(NetworkPlayer first, NetworkPlayer second)
@@ -125,19 +109,9 @@ public sealed class CooperativeActivationController : MonoBehaviour
         return Vector3.Distance(first.RightHandTransform.position, second.RightHandTransform.position);
     }
 
-    private static Vector3 GetLocalHandOffset(NetworkPlayer player)
-    {
-        if (player.PlayerTransform == null || player.RightHandTransform == null)
-            return Vector3.zero;
-
-        return player.PlayerTransform.InverseTransformPoint(player.RightHandTransform.position);
-    }
-
     private void LogActivationState(
         NetworkPlayer hostPlayer,
         NetworkPlayer clientPlayer,
-        float hostForwardDistance,
-        float clientForwardDistance,
         float handDistance,
         bool hostReady,
         bool clientReady,
@@ -148,13 +122,42 @@ public sealed class CooperativeActivationController : MonoBehaviour
             return;
 
         nextDebugLogTime = Time.unscaledTime + debugLogInterval;
-        Vector3 hostLocal = GetLocalHandOffset(hostPlayer);
-        Vector3 clientLocal = GetLocalHandOffset(clientPlayer);
         Debug.Log(
-            $"[Cooperative Activation] host(trigger={hostPlayer.IsActivationTriggerHeld}, forward={hostForwardDistance:F2}, ready={hostReady}, local=({hostLocal.x:F2},{hostLocal.y:F2},{hostLocal.z:F2})) " +
-            $"client(trigger={clientPlayer.IsActivationTriggerHeld}, forward={clientForwardDistance:F2}, ready={clientReady}, local=({clientLocal.x:F2},{clientLocal.y:F2},{clientLocal.z:F2})) " +
+            $"[Cooperative Activation] host(trigger={hostPlayer.IsActivationTriggerHeld}, ready={hostReady}) " +
+            $"client(trigger={clientPlayer.IsActivationTriggerHeld}, ready={clientReady}) " +
             $"hands(distance={handDistance:F2}/{handContactDistance:F2}, contact={handsContacted}) " +
             $"holding={holding}, hold={holdElapsed:F2}/{holdDuration:F2}, success={hostPlayer.HasCooperativeActivationSucceeded}", this);
+    }
+
+    /// <summary>
+    /// 캐시된 페어가 유효하면 스캔 없이 재사용하고, 무효일 때만 씬을 한 번 스캔한다.
+    /// (상대가 아직 스폰 전이거나 접속이 끊긴 경우에만 다시 탐색)
+    /// </summary>
+    private bool TryResolvePair(out NetworkPlayer hostPlayer, out NetworkPlayer clientPlayer)
+    {
+        if (IsValidPlayer(cachedHost) && IsValidPlayer(cachedClient))
+        {
+            hostPlayer = cachedHost;
+            clientPlayer = cachedClient;
+            return true;
+        }
+
+        NetworkPlayer[] players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
+        if (TryGetPair(players, out hostPlayer, out clientPlayer))
+        {
+            cachedHost = hostPlayer;
+            cachedClient = clientPlayer;
+            return true;
+        }
+
+        cachedHost = null;
+        cachedClient = null;
+        return false;
+    }
+
+    private static bool IsValidPlayer(NetworkPlayer player)
+    {
+        return player != null && player.Object != null && player.Object.IsValid;
     }
 
     private static bool TryGetPair(
