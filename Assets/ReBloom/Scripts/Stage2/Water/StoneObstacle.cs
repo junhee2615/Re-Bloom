@@ -8,13 +8,13 @@ using UnityEngine;
 /// </summary>
 public class StoneObstacle : WaterMissionObstacle
 {
-    [Header("돌(2인 협동) 설정")]
-    [Tooltip("원래 위치에서 이만큼(m) 옮기면 '치웠다'고 판정")]
+    [Header("돌 설정")]
+    [Tooltip("원래 위치에서 이만큼(m) 옮겨야 한다.")]
     [SerializeField] private float clearDistance = 0.6f;
 
     private Vector3 offsetPos;
 
-    // 서로 "다른" 두 플레이어가 잡아야만 움직인다.
+    // 서로 다른 두 플레이어가 잡아야만 움직인다.
     protected override bool HasEnoughGrabbers(int count)
         => GrabberPlayerA != PlayerRef.None
         && GrabberPlayerB != PlayerRef.None
@@ -29,7 +29,7 @@ public class StoneObstacle : WaterMissionObstacle
     protected override void ComputeHeldPose(Hands h, ref Vector3 pos, ref Quaternion rot)
     {
         pos = h.Midpoint + offsetPos;
-        rot = originRotation; // 협동 운반은 자세 고정(단순화)
+        rot = originRotation; // 협동 운반은 회전 고정
     }
 
     protected override void TryClearWhileHeld(Vector3 pos, Quaternion rot)

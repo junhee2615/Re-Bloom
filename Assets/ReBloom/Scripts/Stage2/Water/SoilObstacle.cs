@@ -16,7 +16,8 @@ public class SoilObstacle : WaterMissionObstacle
     protected override void OnHeldBegin(Hands h)
     {
         if (!h.hasA) return;
-        // 잡은 순간의 손 기준 상대 포즈를 유지(손에 붙은 것처럼)
+        // 잡은 순간의 손 기준 상대 포즈를 유지
+        // 손이 어디를 보든 상관없는 손 자신의 방향 기준 값으로 바꿔 저장
         offsetPos = Quaternion.Inverse(h.rotA) * (transform.position - h.posA);
         offsetRot = Quaternion.Inverse(h.rotA) * transform.rotation;
     }
