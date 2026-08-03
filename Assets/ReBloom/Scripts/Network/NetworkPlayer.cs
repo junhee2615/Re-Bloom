@@ -5,7 +5,7 @@ using UnityEngine;
 public class NetworkPlayer : NetworkBehaviour
 {
     // 내 플레이어인지 확인
-    public bool IsLocalNetworkRig => Object.HasInputAuthority;
+    public bool IsLocalNetworkRig => Object != null && Object.HasInputAuthority;
     public HardwareRig HardwareRig => hardwareRig;
     public Transform PlayerTransform => playerTransform != null ? playerTransform.transform : null;
 
@@ -20,6 +20,12 @@ public class NetworkPlayer : NetworkBehaviour
 
     public Transform LeftHand => leftHandTransform != null ? leftHandTransform.transform : null;
     public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
+    public Transform RightHandTransform => rightHandTransform != null ? rightHandTransform.transform : null;
+    public bool HasNetworkStateAuthority => Object != null && Object.IsValid && Object.HasStateAuthority;
+
+    [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
+    [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
+    [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
@@ -100,6 +106,9 @@ public class NetworkPlayer : NetworkBehaviour
 
         if (GetInput<RigState>(out var input))
         {
+            if (HasNetworkStateAuthority)
+                IsActivationTriggerHeld = input.RightTriggerPressed;
+
             playerTransform.transform.SetPositionAndRotation(
                 input.PlayerPosition,
                 input.PlayerRotation);
@@ -116,6 +125,18 @@ public class NetworkPlayer : NetworkBehaviour
                 input.RightHandPosition,
                 input.RightHandRotation);
         }
+    }
+
+    public void SetCooperativeHandsContacted(bool contacted)
+    {
+        if (HasNetworkStateAuthority)
+            AreCooperativeHandsContacted = contacted;
+    }
+
+    public void SetCooperativeActivationSucceeded()
+    {
+        if (HasNetworkStateAuthority)
+            HasCooperativeActivationSucceeded = true;
     }
 
     public override void Render()
