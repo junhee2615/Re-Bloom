@@ -25,6 +25,7 @@ public class NetworkPlayer : NetworkBehaviour
     [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
     [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
     [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
+    [Networked] public float CooperativeHoldProgress { get; private set; }
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
@@ -136,6 +137,12 @@ public class NetworkPlayer : NetworkBehaviour
     {
         if (HasNetworkStateAuthority)
             HasCooperativeActivationSucceeded = true;
+    }
+
+    public void SetCooperativeHoldProgress(float progress)
+    {
+        if (HasNetworkStateAuthority)
+            CooperativeHoldProgress = progress;
     }
 
     public override void Render()
