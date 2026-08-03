@@ -195,7 +195,8 @@ public sealed class CooperativeActivationController : MonoBehaviour
         for (int pulseIndex = 0; pulseIndex < pulseCount; pulseIndex++)
         {
             float normalizedPulse = pulseCount == 1 ? 1f : (float)pulseIndex / (pulseCount - 1);
-            float curveMultiplier = contactHapticPattern.amplitudeCurve == null
+            float curveMultiplier = contactHapticPattern.amplitudeCurve == null ||
+                                    contactHapticPattern.amplitudeCurve.length == 0
                 ? 1f
                 : contactHapticPattern.amplitudeCurve.Evaluate(normalizedPulse);
             float amplitude = Mathf.Clamp01(contactHapticPattern.amplitude * curveMultiplier);
