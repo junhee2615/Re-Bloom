@@ -20,7 +20,6 @@ public class NetworkPlayer : NetworkBehaviour
 
     public Transform LeftHand => leftHandTransform != null ? leftHandTransform.transform : null;
     public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
-    public Transform RightHandTransform => rightHandTransform != null ? rightHandTransform.transform : null;
     public bool HasNetworkStateAuthority => Object != null && Object.IsValid && Object.HasStateAuthority;
 
     [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }

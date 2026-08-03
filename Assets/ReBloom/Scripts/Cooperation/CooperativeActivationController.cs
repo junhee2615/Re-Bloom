@@ -103,10 +103,10 @@ public sealed class CooperativeActivationController : MonoBehaviour
 
     private static float GetHandDistance(NetworkPlayer first, NetworkPlayer second)
     {
-        if (first.RightHandTransform == null || second.RightHandTransform == null)
+        if (first.RightHand == null || second.RightHand == null)
             return float.PositiveInfinity;
 
-        return Vector3.Distance(first.RightHandTransform.position, second.RightHandTransform.position);
+        return Vector3.Distance(first.RightHand.position, second.RightHand.position);
     }
 
     private void LogActivationState(
