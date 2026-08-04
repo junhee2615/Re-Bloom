@@ -26,7 +26,7 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField, Min(0f)] private float distanceResponseSpeed = 6f;
     [Tooltip("거리 계산과 Fog 적용값을 매 프레임 출력합니다. 원인 확인 후 끄세요.")]
     [SerializeField] private bool logDistanceCalculation;
-    private float resonanceDistance = 15f;
+    private float resonanceDistance = 15f; // 스폰 포인트간 거리
 
     [Header("Networked Resonance Trigger")]
     [Tooltip("Networked Tutorial state가 각 클라이언트에 도착할 때 로컬 Fog를 전환합니다.")]
@@ -84,7 +84,7 @@ public sealed class ResonanceController : MonoBehaviour
         RestoreMaterialValues();
     }
 
-    public void SetFogActive(bool active)
+    private void SetFogActive(bool active)
     {
         if (!initialized)
             return;
@@ -141,7 +141,14 @@ public sealed class ResonanceController : MonoBehaviour
         if (!initialized)
             return;
 
-        float targetIntensity = isConstraintReleased ? 0f : CalculateDistanceConstraintIntensity();
+        bool hasDistance = TryGetOtherPlayerDistance(out float playerDistance);
+        
+        // 제약 해제 상태를 되돌리고 네트워크 공명 성공 상태도 리셋
+        if (isConstraintReleased && hasDistance && playerDistance >= resonanceDistance)
+            ReengageConstraint();
+
+        float targetIntensity = isConstraintReleased ? 0f
+            : CalculateDistanceConstraintIntensity(hasDistance, playerDistance);
 
         targetIntensity *= fogVisibility;
 
@@ -158,10 +165,10 @@ public sealed class ResonanceController : MonoBehaviour
         }
     }
 
-    private float CalculateDistanceConstraintIntensity()
+    private float CalculateDistanceConstraintIntensity(bool hasDistance, float playerDistance)
     {
         float relief = 0f; // 제약이 얼마나 완화되는지
-        if (TryGetOtherPlayerDistance(out float playerDistance))
+        if (hasDistance)
         {
             float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
             float proximity = Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
@@ -179,7 +186,7 @@ public sealed class ResonanceController : MonoBehaviour
 
         NetworkPlayer localPlayer = null;
         NetworkPlayer remotePlayer = null;
-        foreach (NetworkPlayer player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+        foreach (NetworkPlayer player in NetworkPlayer.All)
         {
             if (player == null || player.Object == null || !player.Object.IsValid)
                 continue;
@@ -275,6 +282,20 @@ public sealed class ResonanceController : MonoBehaviour
     private void ReleaseFogConstraint()
     {
         isConstraintReleased = true;
+    }
+
+    /// <summary>
+    /// 거리 이탈로 제약을 다시 적용한다.
+    /// </summary>
+    private void ReengageConstraint()
+    {
+        isConstraintReleased = false;
+
+        foreach (NetworkPlayer player in NetworkPlayer.All)
+        {
+            if (player != null && player.Object != null && player.Object.IsValid)
+                player.ClearCooperativeActivation();
+        }
     }
 
     // 중간에 참가한 클라이언트가 현재 튜토리얼 상태 받기

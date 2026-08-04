@@ -12,11 +12,13 @@ public class NetworkPlayer : NetworkBehaviour
     // PlayerRef → NetworkPlayer 레지스트리.
     // 호스트가 "어떤 플레이어가 잡았는지"만 알아도 그 플레이어의 손 트랜스폼을
     // 직접 참조할 수 있도록 모든 인스턴스를 등록해 둔다. (WaterMissionObstacle 등에서 사용)
-    private static readonly Dictionary<PlayerRef, NetworkPlayer> _players =
-        new Dictionary<PlayerRef, NetworkPlayer>();
+    private static readonly Dictionary<PlayerRef, NetworkPlayer> Players = new Dictionary<PlayerRef, NetworkPlayer>();
 
     public static bool TryGet(PlayerRef player, out NetworkPlayer networkPlayer)
-        => _players.TryGetValue(player, out networkPlayer);
+        => Players.TryGetValue(player, out networkPlayer);
+
+    // 등록된 인스턴스만 순회하기 위한 접근자
+    public static Dictionary<PlayerRef, NetworkPlayer>.ValueCollection All => Players.Values;
 
     public Transform LeftHand => leftHandTransform != null ? leftHandTransform.transform : null;
     public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
@@ -60,7 +62,7 @@ public class NetworkPlayer : NetworkBehaviour
         base.Spawned();
 
         // 모든 클라이언트에서 등록(호스트는 원격 플레이어의 손도 참조해야 한다).
-        _players[Object.InputAuthority] = this;
+        Players[Object.InputAuthority] = this;
 
         if (IsLocalNetworkRig)
         {
@@ -96,8 +98,8 @@ public class NetworkPlayer : NetworkBehaviour
     {
         base.Despawned(runner, hasState);
 
-        if (_players.TryGetValue(Object.InputAuthority, out var np) && np == this)
-            _players.Remove(Object.InputAuthority);
+        if (Players.TryGetValue(Object.InputAuthority, out var np) && np == this)
+            Players.Remove(Object.InputAuthority);
     }
 
     public override void FixedUpdateNetwork()
@@ -143,6 +145,19 @@ public class NetworkPlayer : NetworkBehaviour
     {
         if (HasNetworkStateAuthority)
             CooperativeHoldProgress = progress;
+    }
+
+    /// <summary>
+    /// 공명 성공 상태를 되돌린다(거리 이탈로 제약 복귀 시).
+    /// </summary>
+    public void ClearCooperativeActivation()
+    {
+        if (!HasNetworkStateAuthority)
+            return;
+
+        HasCooperativeActivationSucceeded = false;
+        AreCooperativeHandsContacted = false;
+        CooperativeHoldProgress = 0f;
     }
 
     public override void Render()
