@@ -23,7 +23,14 @@ public sealed class CooperativeActivationController : MonoBehaviour
     [SerializeField, Min(0.05f)] private float debugLogInterval = 0.25f;
 
     [Header("Feedback")]
-    [SerializeField] private HapticPattern contactHapticPattern;
+    [Tooltip("닿는 순간의 펄스.")]
+    [SerializeField] private HapticPattern contactSnapPattern;
+    [Tooltip("홀드 진동.")]
+    [SerializeField] private HapticPattern holdPattern;
+    [Tooltip("성공 순간의 릴리즈 펄스.")]
+    [SerializeField] private HapticPattern successPattern;
+
+    [Header("Events")]
     [SerializeField] private UnityEvent onActivationSucceeded;
 
     private NetworkPlayer owner;
@@ -33,6 +40,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
     private bool previousContact;
     private bool previousSuccess;
     private float nextDebugLogTime;
+    private float nextHoldPulseTime;
 
     private void Awake()
     {
@@ -61,12 +69,17 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (!holding)
         {
             holdElapsed = 0f;
+            hostPlayer.SetCooperativeHoldProgress(0f);
+            clientPlayer.SetCooperativeHoldProgress(0f);
             LogActivationState(
                 hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
             return;
         }
 
         holdElapsed += Time.fixedDeltaTime;
+        float holdProgress = holdDuration <= 0f ? 1f : Mathf.Clamp01(holdElapsed / holdDuration);
+        hostPlayer.SetCooperativeHoldProgress(holdProgress);
+        clientPlayer.SetCooperativeHoldProgress(holdProgress);
         LogActivationState(
             hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
         if (holdElapsed < holdDuration)
@@ -81,13 +94,34 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (owner == null || !owner.IsLocalNetworkRig)
             return;
 
-        bool handsContacted = owner.AreCooperativeHandsContacted;
-        if (handsContacted && !previousContact)
-            StartCoroutine(PlayContactHaptic());
-
         bool succeeded = owner.HasCooperativeActivationSucceeded;
+        bool handsContacted = owner.AreCooperativeHandsContacted;
+        float holdProgress = owner.CooperativeHoldProgress;
+
+        // 1) 닿는 순간 — 스냅 펄스
+        if (handsContacted && !previousContact && !succeeded)
+            StartCoroutine(PlayPattern(contactSnapPattern));
+
+        // 2) 유지 구간 — 하나의 패턴이 진행도(progress)에 따라 세기·간격을 변화
+        bool charging = !succeeded && holdProgress > 0f && holdPattern != null;
+        if (charging)
+        {
+            if (Time.unscaledTime >= nextHoldPulseTime)
+            {
+                SendHapticPulse(holdPattern.AmplitudeAtProgress(holdProgress), holdPattern.duration);
+                nextHoldPulseTime = Time.unscaledTime + holdPattern.IntervalAtProgress(holdProgress);
+            }
+        }
+        else
+        {
+            // 다음 충전이 시작되면 즉시 첫 펄스가 울리도록 리셋
+            nextHoldPulseTime = 0f;
+        }
+
+        // 3) 성공 순간 — 릴리즈 펄스
         if (succeeded && !previousSuccess)
         {
+            StartCoroutine(PlayPattern(successPattern));
             onActivationSucceeded?.Invoke();
             ActivationSucceeded?.Invoke();
         }
@@ -182,29 +216,38 @@ public sealed class CooperativeActivationController : MonoBehaviour
         return hostPlayer != null && clientPlayer != null;
     }
 
-    private IEnumerator PlayContactHaptic()
+    /// <summary>
+    /// HapticPattern을 재생한다.
+    /// </summary>
+    private IEnumerator PlayPattern(HapticPattern pattern)
     {
-        if (contactHapticPattern == null)
+        if (pattern == null)
             yield break;
 
-        InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        if (!device.TryGetHapticCapabilities(out HapticCapabilities capabilities) || !capabilities.supportsImpulse)
-            yield break;
-
-        int pulseCount = Mathf.Max(1, contactHapticPattern.pulseCount);
+        int pulseCount = Mathf.Max(1, pattern.pulseCount);
         for (int pulseIndex = 0; pulseIndex < pulseCount; pulseIndex++)
         {
             float normalizedPulse = pulseCount == 1 ? 1f : (float)pulseIndex / (pulseCount - 1);
-            float curveMultiplier = contactHapticPattern.amplitudeCurve == null ||
-                                    contactHapticPattern.amplitudeCurve.length == 0
+            float curveMultiplier = pattern.amplitudeCurve == null || pattern.amplitudeCurve.length == 0
                 ? 1f
-                : contactHapticPattern.amplitudeCurve.Evaluate(normalizedPulse);
-            float amplitude = Mathf.Clamp01(contactHapticPattern.amplitude * curveMultiplier);
-            device.SendHapticImpulse(0, amplitude, contactHapticPattern.duration);
+                : pattern.amplitudeCurve.Evaluate(normalizedPulse);
+
+            SendHapticPulse(pattern.amplitude * curveMultiplier, pattern.duration);
 
             if (pulseIndex < pulseCount - 1)
-                yield return new WaitForSeconds(contactHapticPattern.interval);
+                yield return new WaitForSeconds(pattern.interval);
         }
+    }
+
+    private static void SendHapticPulse(float amplitude, float duration)
+    {
+        amplitude = Mathf.Clamp01(amplitude);
+        if (amplitude <= 0f || duration <= 0f)
+            return;
+
+        InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand); // 닿은 손 기준으로 수정 예정
+        if (device.TryGetHapticCapabilities(out HapticCapabilities capabilities) && capabilities.supportsImpulse)
+            device.SendHapticImpulse(0, amplitude, duration);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

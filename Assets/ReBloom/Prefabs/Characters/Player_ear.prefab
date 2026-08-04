@@ -463,6 +463,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a9591752ca03db4a8401e223e89add2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayer
+  _IsActivationTriggerHeld:
+    _value: 0
+  _AreCooperativeHandsContacted:
+    _value: 0
+  _HasCooperativeActivationSucceeded:
+    _value: 0
+  _CooperativeHoldProgress: 0
   playerTransform: {fileID: 104267420603040855}
   headTransform: {fileID: 7874007534624037014}
   leftHandTransform: {fileID: 497737410415720117}
@@ -479,14 +486,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a0b57fa458a49c7b4010762ab3f91cc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CooperativeActivationController
-  minimumForwardDistance: 0.2
   handContactDistance: 0.16
   holdDuration: 1.5
   logActivationDebug: 1
   debugLogInterval: 0.25
-  contactHapticPattern: {fileID: 11400000, guid: 37e6da5f6e4e4ff89fca0c44ed205f76, type: 2}
+  contactSnapPattern: {fileID: 11400000, guid: 37e6da5f6e4e4ff89fca0c44ed205f76, type: 2}
+  holdPattern: {fileID: 11400000, guid: 4252d4dee5f54e8a8d0db31fb1f8564f, type: 2}
+  successPattern: {fileID: 11400000, guid: 5f74350f7c3d47acbefe915bd5e2d065, type: 2}
   onActivationSucceeded:
     m_PersistentCalls:
       m_Calls: []
@@ -1874,6 +1882,13 @@ MonoBehaviour:
   leftFootTarget: {fileID: 3021828339523983471}
   rightFootTarget: {fileID: 6543673317495205216}
   crouchSpeed: 8
+  crouchStrength: 0.7
+  isRunning: 0
+  standingHeadHeight: 0
+  currentHeadHeight: 0
+  crouchAmount: 0
+  bodyLocalYBefore: 0
+  bodyLocalYAfter: 0
 --- !u!114 &8603129927404359901
 MonoBehaviour:
   m_ObjectHideFlags: 0
