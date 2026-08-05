@@ -2374,6 +2374,16 @@ Transform:
   - {fileID: 1176247257}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1613679488 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 439626098720105623, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1718984749}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1613679489 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5668725156439095513, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1718984749}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1630067607
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2642,16 +2652,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: NestedObjects.Array.size
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[0]'
       value: 
-      objectReference: {fileID: 1749290827}
+      objectReference: {fileID: 1718984757}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[1]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1718984755}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[2]'
       value: 
@@ -2714,11 +2724,33 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 405923377073556104, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1749290823}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9042644026165534642, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1718984757}
+    - targetCorrespondingSourceObject: {fileID: 9042644026165534642, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1718984756}
+    - targetCorrespondingSourceObject: {fileID: 1712339114526660444, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1718984755}
+    - targetCorrespondingSourceObject: {fileID: 1712339114526660444, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1718984754}
   m_SourcePrefab: {fileID: 100100000, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
 --- !u!82 &1718984750 stripped
 AudioSource:
   m_CorrespondingSourceObject: {fileID: 6048490511224281864, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1718984749}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1718984751 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1712339114526660444, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 1718984749}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1718984752 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9042644026165534642, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
   m_PrefabInstance: {fileID: 1718984749}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1718984753 stripped
@@ -2726,6 +2758,78 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5219718100652919404, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
   m_PrefabInstance: {fileID: 1718984749}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1718984754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718984751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
+--- !u!114 &1718984755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718984751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3605118161
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1718984754}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &1718984756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718984752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
+--- !u!114 &1718984757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718984752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 2584049807
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1718984756}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &1749290818
 GameObject:
   m_ObjectHideFlags: 0
@@ -3012,8 +3116,8 @@ MonoBehaviour:
   verticalTolerance: 2
   audioSource: {fileID: 1718984750}
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
-  doorRight: {fileID: 0}
-  doorLeft: {fileID: 0}
+  doorRight: {fileID: 1613679489}
+  doorLeft: {fileID: 1613679488}
 --- !u!114 &1749290829
 MonoBehaviour:
   m_ObjectHideFlags: 0
