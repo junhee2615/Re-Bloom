@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4707482793995829975}
   - component: {fileID: 5280167357857246595}
+  - component: {fileID: 7163456312420979299}
+  - component: {fileID: 4904654992390023555}
   m_Layer: 0
   m_Name: InteractablePlant2
   m_TagString: Untagged
@@ -913,6 +915,48 @@ MonoBehaviour:
     - {x: 0.0031105655, y: -0.9999937, z: 0.001714622}
     - {x: -0.0032167558, y: -0.9999949, z: -0.00019436124}
     - {x: -0.003208314, y: -0.99999464, z: 0.00070607563}
+--- !u!65 &7163456312420979299
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.54, y: 0.94, z: 0.73}
+  m_Center: {x: 0, y: 0.69, z: 0}
+--- !u!114 &4904654992390023555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23ed4345106c14046993d850c116a3bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractablePlantVibration
+  vibrationPattern: "\u25CF \u25CF \u25CF\u25CF\u25CF"
+  amplitude: 0.5
+  pulseDuration: 0.12
+  shortGap: 0.12
+  longGap: 0.4
+  loopWhileTouching: 1
+  loopGap: 0.6
+  pulseAudioSource: {fileID: 0}
+  pulseClip: {fileID: 0}
 --- !u!1001 &3650888893590665829
 PrefabInstance:
   m_ObjectHideFlags: 0
