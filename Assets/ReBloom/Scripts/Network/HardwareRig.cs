@@ -77,6 +77,10 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
         rightController.TryGetFeatureValue(CommonUsages.triggerButton, out bool rightTriggerPressed);
         xrRigState.RightTriggerPressed = rightTriggerPressed;
 
+        InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        leftController.TryGetFeatureValue(CommonUsages.triggerButton, out bool leftTriggerPressed);
+        xrRigState.LeftTriggerPressed = leftTriggerPressed;
+
         input.Set(xrRigState);
     }
     #endregion
@@ -224,6 +228,7 @@ public struct RigState : INetworkInput
     public Vector3 RightHandPosition;
     public Quaternion RightHandRotation;
     public NetworkBool RightTriggerPressed;
+    public NetworkBool LeftTriggerPressed;
 }
 
 

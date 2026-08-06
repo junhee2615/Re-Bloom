@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
+/// <summary>공명 접촉에 쓰는 손 구분(닿은 손 기준).</summary>
+public enum Hand : byte { None, Left, Right }
+
 public class NetworkPlayer : NetworkBehaviour
 {
     // 내 플레이어인지 확인
@@ -24,10 +27,19 @@ public class NetworkPlayer : NetworkBehaviour
     public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
     public bool HasNetworkStateAuthority => Object != null && Object.IsValid && Object.HasStateAuthority;
 
-    [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
-    [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
+    [Networked] public NetworkBool IsRightTriggerHeld { get; private set; }
+    [Networked] public NetworkBool IsLeftTriggerHeld { get; private set; }
+    [Networked] public Hand CooperativeContactHand { get; private set; }
     [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
     [Networked] public float CooperativeHoldProgress { get; private set; }
+
+    public bool IsTriggerHeld(Hand hand) =>
+        hand == Hand.Right ? (bool)IsRightTriggerHeld :
+        hand == Hand.Left ? (bool)IsLeftTriggerHeld : false;
+
+    public Transform GetHand(Hand hand) =>
+        hand == Hand.Right ? RightHand :
+        hand == Hand.Left ? LeftHand : null;
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
@@ -109,7 +121,10 @@ public class NetworkPlayer : NetworkBehaviour
         if (GetInput<RigState>(out var input))
         {
             if (HasNetworkStateAuthority)
-                IsActivationTriggerHeld = input.RightTriggerPressed;
+            {
+                IsRightTriggerHeld = input.RightTriggerPressed;
+                IsLeftTriggerHeld = input.LeftTriggerPressed;
+            }
 
             playerTransform.transform.SetPositionAndRotation(
                 input.PlayerPosition,
@@ -129,10 +144,10 @@ public class NetworkPlayer : NetworkBehaviour
         }
     }
 
-    public void SetCooperativeHandsContacted(bool contacted)
+    public void SetCooperativeContactHand(Hand hand)
     {
         if (HasNetworkStateAuthority)
-            AreCooperativeHandsContacted = contacted;
+            CooperativeContactHand = hand;
     }
 
     public void SetCooperativeActivationSucceeded()
@@ -156,7 +171,7 @@ public class NetworkPlayer : NetworkBehaviour
             return;
 
         HasCooperativeActivationSucceeded = false;
-        AreCooperativeHandsContacted = false;
+        CooperativeContactHand = Hand.None;
         CooperativeHoldProgress = 0f;
     }
 
