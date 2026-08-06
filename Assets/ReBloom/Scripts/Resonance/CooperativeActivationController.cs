@@ -56,15 +56,15 @@ public sealed class CooperativeActivationController : MonoBehaviour
             owner != hostPlayer)
             return;
         
-        bool hostReady = IsActivationReady(hostPlayer);
-        bool clientReady = IsActivationReady(clientPlayer);
-        float handDistance = GetHandDistance(hostPlayer, clientPlayer);
+        float handDistance = GetClosestHandPair(hostPlayer, clientPlayer, out Hand hostHand, out Hand clientHand);
         bool handsContacted = handDistance <= handContactDistance;
+        bool hostReady = hostPlayer.IsTriggerHeld(hostHand);
+        bool clientReady = clientPlayer.IsTriggerHeld(clientHand);
         bool bothReady = hostReady && clientReady;
         bool holding = handsContacted && bothReady;
         
-        hostPlayer.SetCooperativeHandsContacted(handsContacted);
-        clientPlayer.SetCooperativeHandsContacted(handsContacted);
+        hostPlayer.SetCooperativeContactHand(handsContacted ? hostHand : Hand.None);
+        clientPlayer.SetCooperativeContactHand(handsContacted ? clientHand : Hand.None);
 
         if (!holding)
         {
@@ -72,7 +72,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
             hostPlayer.SetCooperativeHoldProgress(0f);
             clientPlayer.SetCooperativeHoldProgress(0f);
             LogActivationState(
-                hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
+                hostPlayer, handDistance, hostHand, clientHand, hostReady, clientReady, handsContacted, holding);
             return;
         }
 
@@ -81,7 +81,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         hostPlayer.SetCooperativeHoldProgress(holdProgress);
         clientPlayer.SetCooperativeHoldProgress(holdProgress);
         LogActivationState(
-            hostPlayer, clientPlayer, handDistance, hostReady, clientReady, handsContacted, holding);
+            hostPlayer, handDistance, hostHand, clientHand, hostReady, clientReady, handsContacted, holding);
         if (holdElapsed < holdDuration)
             return;
         
@@ -95,12 +95,14 @@ public sealed class CooperativeActivationController : MonoBehaviour
             return;
 
         bool succeeded = owner.HasCooperativeActivationSucceeded;
-        bool handsContacted = owner.AreCooperativeHandsContacted;
+        Hand contactHand = owner.CooperativeContactHand;
+        bool handsContacted = contactHand != Hand.None;
         float holdProgress = owner.CooperativeHoldProgress;
+        XRNode hapticNode = contactHand == Hand.Left ? XRNode.LeftHand : XRNode.RightHand;
 
         // 1) 닿는 순간 — 스냅 펄스
         if (handsContacted && !previousContact && !succeeded)
-            StartCoroutine(PlayPattern(contactSnapPattern));
+            StartCoroutine(PlayPattern(contactSnapPattern, hapticNode));
 
         // 2) 유지 구간 — 하나의 패턴이 진행도(progress)에 따라 세기·간격을 변화
         bool charging = !succeeded && holdProgress > 0f && holdPattern != null;
@@ -108,7 +110,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         {
             if (Time.unscaledTime >= nextHoldPulseTime)
             {
-                SendHapticPulse(holdPattern.AmplitudeAtProgress(holdProgress), holdPattern.duration);
+                SendHapticPulse(holdPattern.AmplitudeAtProgress(holdProgress), holdPattern.duration, hapticNode);
                 nextHoldPulseTime = Time.unscaledTime + holdPattern.IntervalAtProgress(holdProgress);
             }
         }
@@ -121,7 +123,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         // 3) 성공 순간 — 릴리즈 펄스
         if (succeeded && !previousSuccess)
         {
-            StartCoroutine(PlayPattern(successPattern));
+            StartCoroutine(PlayPattern(successPattern, hapticNode));
             onActivationSucceeded?.Invoke();
             ActivationSucceeded?.Invoke();
         }
@@ -130,23 +132,47 @@ public sealed class CooperativeActivationController : MonoBehaviour
         previousSuccess = succeeded;
     }
 
-    private bool IsActivationReady(NetworkPlayer player)
+    // 두 플레이어의 손 중 가장 가까운 쌍과 그 거리.
+    private static float GetClosestHandPair(
+        NetworkPlayer first, NetworkPlayer second, out Hand firstHand, out Hand secondHand)
     {
-        return player.IsActivationTriggerHeld;
+        firstHand = Hand.None;
+        secondHand = Hand.None;
+        float closest = float.PositiveInfinity;
+
+        closest = ConsiderPair(closest, first, Hand.Right, second, Hand.Right, ref firstHand, ref secondHand);
+        closest = ConsiderPair(closest, first, Hand.Right, second, Hand.Left, ref firstHand, ref secondHand);
+        closest = ConsiderPair(closest, first, Hand.Left, second, Hand.Right, ref firstHand, ref secondHand);
+        closest = ConsiderPair(closest, first, Hand.Left, second, Hand.Left, ref firstHand, ref secondHand);
+
+        return closest;
     }
 
-    private static float GetHandDistance(NetworkPlayer first, NetworkPlayer second)
+    private static float ConsiderPair(
+        float current,
+        NetworkPlayer first, Hand firstCandidate,
+        NetworkPlayer second, Hand secondCandidate,
+        ref Hand firstHand, ref Hand secondHand)
     {
-        if (first.RightHand == null || second.RightHand == null)
-            return float.PositiveInfinity;
+        Transform a = first.GetHand(firstCandidate);
+        Transform b = second.GetHand(secondCandidate);
+        if (a == null || b == null)
+            return current;
 
-        return Vector3.Distance(first.RightHand.position, second.RightHand.position);
+        float distance = Vector3.Distance(a.position, b.position);
+        if (distance >= current)
+            return current;
+
+        firstHand = firstCandidate;
+        secondHand = secondCandidate;
+        return distance;
     }
 
     private void LogActivationState(
         NetworkPlayer hostPlayer,
-        NetworkPlayer clientPlayer,
         float handDistance,
+        Hand hostHand,
+        Hand clientHand,
         bool hostReady,
         bool clientReady,
         bool handsContacted,
@@ -157,8 +183,8 @@ public sealed class CooperativeActivationController : MonoBehaviour
 
         nextDebugLogTime = Time.unscaledTime + debugLogInterval;
         Debug.Log(
-            $"[Cooperative Activation] host(trigger={hostPlayer.IsActivationTriggerHeld}, ready={hostReady}) " +
-            $"client(trigger={clientPlayer.IsActivationTriggerHeld}, ready={clientReady}) " +
+            $"[Cooperative Activation] host(hand={hostHand}, ready={hostReady}) " +
+            $"client(hand={clientHand}, ready={clientReady}) " +
             $"hands(distance={handDistance:F2}/{handContactDistance:F2}, contact={handsContacted}) " +
             $"holding={holding}, hold={holdElapsed:F2}/{holdDuration:F2}, success={hostPlayer.HasCooperativeActivationSucceeded}", this);
     }
@@ -219,7 +245,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
     /// <summary>
     /// HapticPattern을 재생한다.
     /// </summary>
-    private IEnumerator PlayPattern(HapticPattern pattern)
+    private IEnumerator PlayPattern(HapticPattern pattern, XRNode node)
     {
         if (pattern == null)
             yield break;
@@ -232,20 +258,20 @@ public sealed class CooperativeActivationController : MonoBehaviour
                 ? 1f
                 : pattern.amplitudeCurve.Evaluate(normalizedPulse);
 
-            SendHapticPulse(pattern.amplitude * curveMultiplier, pattern.duration);
+            SendHapticPulse(pattern.amplitude * curveMultiplier, pattern.duration, node);
 
             if (pulseIndex < pulseCount - 1)
                 yield return new WaitForSeconds(pattern.interval);
         }
     }
 
-    private static void SendHapticPulse(float amplitude, float duration)
+    private static void SendHapticPulse(float amplitude, float duration, XRNode node)
     {
         amplitude = Mathf.Clamp01(amplitude);
         if (amplitude <= 0f || duration <= 0f)
             return;
 
-        InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand); // 닿은 손 기준으로 수정 예정
+        InputDevice device = InputDevices.GetDeviceAtXRNode(node);
         if (device.TryGetHapticCapabilities(out HapticCapabilities capabilities) && capabilities.supportsImpulse)
             device.SendHapticImpulse(0, amplitude, duration);
     }
