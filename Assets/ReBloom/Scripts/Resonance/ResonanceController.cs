@@ -1,6 +1,8 @@
 using System.Collections;
 using FlatKit;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// Drives the local player's FlatKit fog without synchronizing renderer or material state.
@@ -35,6 +37,14 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField] private TutorialStep deactivateStep = TutorialStep.ValveComplete; // 활성화 모션
     [SerializeField, Min(0f)] private float lateJoinStateWaitSeconds = 10f;
 
+    [Header("Constraint Post-Processing")]
+    [Tooltip("Resonance Global Volume.")]
+    [SerializeField] private Volume resonanceVolume;
+    [Tooltip("공명 활성화 상태의 Volume weight.")]
+    [SerializeField, Range(0f, 1f)] private float releasedVolumeWeight = 0.6f;
+    [Tooltip("완전 제약 상태의 Volume weight.")]
+    [SerializeField, Range(0f, 1f)] private float constrainedVolumeWeight = 1f;
+
     private Material fogMaterial;
     private Coroutine transitionCoroutine;
     private float configuredDistanceIntensity;
@@ -45,10 +55,17 @@ public sealed class ResonanceController : MonoBehaviour
     private bool receivedNetworkState;
     private bool isConstraintReleased;
 
+    private Bloom bloomOverride;
+    private Vignette vignetteOverride;
+    private float configuredBloomIntensity;
+    private float configuredVignetteIntensity;
+    private bool volumeInitialized;
+
     private void Awake()
     {
         InitializeResonanceDistance();
         InitializeFog();
+        InitializeVolume();
 
         ApplyIntensity(startIntensity);
     }
@@ -71,7 +88,10 @@ public sealed class ResonanceController : MonoBehaviour
         StopAllCoroutines();
 
         if (Application.isPlaying)
+        {
             ApplyIntensity(0f);
+            ApplyVolumeConstraint(0f);
+        }
     }
 
     private void OnDestroy()
@@ -127,6 +147,62 @@ public sealed class ResonanceController : MonoBehaviour
         initialized = true;
     }
 
+    private void InitializeVolume()
+    {
+        if (volumeInitialized) return;
+
+        if (resonanceVolume == null)
+        {
+            Debug.LogWarning("ResonanceController에 Resonance Global Volume이 지정되지 않았습니다. 제약 포스트 프로세싱 연출을 건너뜁니다.", this);
+            return;
+        }
+
+        // Volume.profile은 공유 에셋 대신 런타임 인스턴스 복제본을 반환한다.
+        // 여기서 Bloom/Vignette 값을 바꿔도 원본 프로파일 에셋은 보존된다.
+        VolumeProfile runtimeProfile = resonanceVolume.profile;
+
+        if (runtimeProfile.TryGet(out bloomOverride))
+        {
+            configuredBloomIntensity = bloomOverride.intensity.value;
+            bloomOverride.active = true;
+            bloomOverride.intensity.overrideState = true;
+        }
+        
+        if (runtimeProfile.TryGet(out vignetteOverride))
+        {
+            configuredVignetteIntensity = vignetteOverride.intensity.value;
+            vignetteOverride.active = true;
+            vignetteOverride.intensity.overrideState = true;
+        }
+
+        // 시작은 제약 상태: weight 1, Bloom/Vignette. - TODO
+        resonanceVolume.weight = releasedVolumeWeight;
+        if (bloomOverride != null) bloomOverride.intensity.value = 0f;
+        if (vignetteOverride != null) vignetteOverride.intensity.value = 0f;
+
+        volumeInitialized = true;
+    }
+
+    /// <summary>
+    /// 제약량에 맞춰 Volume weight와 Bloom/Vignette 세기를 보간한다.
+    /// 0 = 공명 활성화(weight 0.6, Bloom/Vignette 없음),
+    /// 1 = 완전 제약(weight 1, Bloom/Vignette). 안개와 같은 곡선으로 전환된다.
+    /// </summary>
+    private void ApplyVolumeConstraint(float constraintAmount)
+    {
+        if (!volumeInitialized) return;
+
+        resonanceVolume.weight = Mathf.Lerp(releasedVolumeWeight, constrainedVolumeWeight, constraintAmount);
+
+        if (bloomOverride != null)
+            // bloomOverride.intensity.value = configuredBloomIntensity * constraintAmount;
+            bloomOverride.intensity.value = configuredBloomIntensity;
+        
+        if (vignetteOverride != null)
+            // vignetteOverride.intensity.value = configuredVignetteIntensity * constraintAmount;
+            vignetteOverride.intensity.value = configuredVignetteIntensity;
+    }
+
     private void InitializeResonanceDistance()
     {
         Transform hostPoint = hostSpawnPoint;
@@ -156,6 +232,13 @@ public sealed class ResonanceController : MonoBehaviour
             ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
 
         ApplyIntensity(Mathf.Lerp(currentIntensity, targetIntensity, interpolation));
+
+        // 안개 강도(currentIntensity)를 제약량으로 정규화해 Volume 연출을
+        // 안개와 동일한 타이밍으로 구동한다. (거리 완화·활성 페이드 모두 반영)
+        float constraintAmount = activeIntensity > 0.0001f
+            ? Mathf.Clamp01(currentIntensity / activeIntensity)
+            : (currentIntensity > 0f ? 1f : 0f);
+        ApplyVolumeConstraint(constraintAmount);
 
         if (logDistanceCalculation)
         {
