@@ -16,7 +16,6 @@ public sealed class ResonanceController : MonoBehaviour
 
     [Header("Fog")]
     [SerializeField] private FogSettings fogSettings;
-    [SerializeField, Range(0f, 1f)] private float startIntensity = 1f;
     [SerializeField, Range(0f, 1f)] private float activeIntensity = 1f;
     [SerializeField, Min(0f)] private float transitionDuration = 1.5f;
     [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -47,6 +46,10 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float relievedVolumeWeight = 0.9f;
     private const float constrainedVolumeWeight = 1f;
 
+    [Header("Debug")]
+    [Tooltip("테스트용: 끄면 안개·Volume 제약 연출을 모두 비활성화한다. 플레이 중 실시간 토글 가능.")]
+    [SerializeField] private bool constraintEnabled = true;
+
     private Material fogMaterial;
     private Coroutine transitionCoroutine;
     private float configuredDistanceIntensity;
@@ -64,13 +67,16 @@ public sealed class ResonanceController : MonoBehaviour
     private float smoothedVolumeWeight;
     private bool volumeInitialized;
 
+    // 제약 연출이 꺼진 상태
+    private bool IsConstraintInactive => !constraintEnabled || isConstraintReleased;
+
     private void Awake()
     {
         InitializeResonanceDistance();
         InitializeFog();
         InitializeVolume();
 
-        ApplyIntensity(startIntensity);
+        ApplyIntensity(constraintEnabled ? activeIntensity : 0f);
     }
 
     private void OnEnable()
@@ -105,6 +111,22 @@ public sealed class ResonanceController : MonoBehaviour
     {
         RestoreMaterialValues();
     }
+
+#if UNITY_EDITOR
+    // 플레이 중 인스펙터 토글 즉시 반영.
+    private void OnValidate()
+    {
+        if (!Application.isPlaying || !volumeInitialized) return;
+
+        if (!constraintEnabled)
+        {
+            ApplyIntensity(0f);
+            smoothedVolumeWeight = releasedVolumeWeight;
+            resonanceVolume.weight = releasedVolumeWeight;
+        }
+        ApplyPostFx();
+    }
+#endif
 
     private void SetFogActive(bool active)
     {
@@ -145,7 +167,6 @@ public sealed class ResonanceController : MonoBehaviour
         fogMaterial = fogSettings.effectMaterial;
         configuredDistanceIntensity = fogSettings.distanceFogIntensity;
         configuredHeightIntensity = fogSettings.heightFogIntensity;
-        currentIntensity = startIntensity;
         initialized = true;
     }
 
@@ -177,9 +198,10 @@ public sealed class ResonanceController : MonoBehaviour
             vignetteOverride.intensity.overrideState = true;
         }
 
-        // 시작은 제약 상태: weight 1, Bloom/Vignette ON.
-        resonanceVolume.weight = constrainedVolumeWeight;
-        smoothedVolumeWeight = constrainedVolumeWeight;
+        // 시작 weight
+        float startWeight = constraintEnabled ? constrainedVolumeWeight : releasedVolumeWeight;
+        resonanceVolume.weight = startWeight;
+        smoothedVolumeWeight = startWeight;
         volumeInitialized = true;
 
         ApplyPostFx();
@@ -194,9 +216,8 @@ public sealed class ResonanceController : MonoBehaviour
     {
         if (!volumeInitialized) return;
 
-        float targetWeight = isConstraintReleased ? releasedVolumeWeight
-            : Mathf.Lerp(constrainedVolumeWeight, relievedVolumeWeight,
-                CalculateProximity(hasDistance, playerDistance));
+        float targetWeight = IsConstraintInactive ? releasedVolumeWeight
+            : Mathf.Lerp(constrainedVolumeWeight, relievedVolumeWeight, CalculateProximity(hasDistance, playerDistance));
 
         smoothedVolumeWeight = Mathf.Lerp(smoothedVolumeWeight, targetWeight, DistanceInterpolation());
         resonanceVolume.weight = smoothedVolumeWeight;
@@ -210,7 +231,7 @@ public sealed class ResonanceController : MonoBehaviour
     {
         if (!volumeInitialized) return;
 
-        float postFx = isConstraintReleased ? 0f : 1f;
+        float postFx = IsConstraintInactive ? 0f : 1f;
         if (bloomOverride != null)
             bloomOverride.intensity.value = configuredBloomIntensity * postFx;
         if (vignetteOverride != null)
@@ -231,11 +252,15 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void Update()
     {
-        if (!initialized)
+        if (!initialized || !constraintEnabled)
             return;
 
+        // 테스트 토글 OFF: Update 전체를 쉰다. OFF 스냅은 Awake/OnValidate에서 처리.
+        // if (!constraintEnabled)
+        //     return;
+
         bool hasDistance = TryGetOtherPlayerDistance(out float playerDistance);
-        
+
         // 제약 해제 상태를 되돌리고 네트워크 공명 성공 상태도 리셋
         if (isConstraintReleased && hasDistance && playerDistance >= resonanceDistance)
             ReengageConstraint();
