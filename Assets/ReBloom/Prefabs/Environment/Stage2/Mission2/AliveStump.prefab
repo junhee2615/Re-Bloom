@@ -592,11 +592,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VibrationTriggerMission
   firstText: {fileID: 3111722314615326011}
-  handImage: {fileID: 5561447765271710724}
+  earImage: {fileID: 5561447765271710724}
   buttonImage: {fileID: 4873221692389686379}
   buttonNormalColor: {r: 1, g: 1, b: 1, a: 1}
   buttonPressedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
-  msgRemember: "\uC190\uC744 \uB300\uACE0 \uB290\uAEF4\uC9C0\uB294 \uC9C4\uB3D9 \uB9AC\uB4EC\uC744
+  msgRemember: "\uC9C0\uAE08 \uB4E4\uB9AC\uB294 \uC18C\uB9AC\uC758 \uB9AC\uB4EC\uC744
     \uAE30\uC5B5\uD558\uC138\uC694!"
   msgListen: "\uB4E3\uAE30"
   msgReady: "\uC900\uBE44"
@@ -610,7 +610,6 @@ MonoBehaviour:
   wrongTextDuration: 1.5
   vibrationPattern: "\u25CF \u25CF \u25CF\u25CF\u25CF \u25CF\u25CF\u25CF\u25CF \u25CF\u25CF"
   pulseDuration: 0.12
-  amplitude: 0.6
   shortGap: 0.12
   longGap: 0.4
   pulseAudioSource: {fileID: 3442806837466513306}
@@ -723,7 +722,6 @@ GameObject:
   - component: {fileID: 1967413920077656722}
   - component: {fileID: 5078927363150288240}
   - component: {fileID: 9145259480590329830}
-  - component: {fileID: 2770371600957598176}
   - component: {fileID: 3442806837466513306}
   m_Layer: 8
   m_Name: AliveStump
@@ -1689,20 +1687,6 @@ MonoBehaviour:
   startButton: {fileID: 352483452362302155}
   missionPanel: {fileID: 2992632880332895518}
   mission: {fileID: 6827273082900974590}
---- !u!114 &2770371600957598176
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4263403639615409876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6490cafa82331f749826d765c525385a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RootContactForwarder
-  mission: {fileID: 6827273082900974590}
-  rightControllerTag: Right Controller
 --- !u!82 &3442806837466513306
 AudioSource:
   m_ObjectHideFlags: 0
@@ -6723,7 +6707,7 @@ GameObject:
   - component: {fileID: 3765061017761258668}
   - component: {fileID: 4062392911938736329}
   m_Layer: 0
-  m_Name: HandImage
+  m_Name: EarImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6776,7 +6760,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: bccf54c2320a1cc42b8873c32312f56d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7e03a8c0fb72fd34e89fa351d45cb325, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
