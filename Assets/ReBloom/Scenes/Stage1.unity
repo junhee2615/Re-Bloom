@@ -4094,38 +4094,9 @@ MonoBehaviour:
   minDistance: 2
   distanceResponseSpeed: 6
   logDistanceCalculation: 0
-  useNetworkedTutorialState: 1
-  activateStep: 3
-  deactivateStep: 2
-  lateJoinStateWaitSeconds: 10
   fog:
     fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
     activeIntensity: 1
-    transitionDuration: 1.5
-    transitionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
     maxConstraintRelief: 0.4
   volume:
     resonanceVolume: {fileID: 2138010514}
@@ -4138,6 +4109,8 @@ MonoBehaviour:
     - {fileID: 1718984750}
     resonanceGroup: {fileID: 3158594053033413330, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
     normalGroup: {fileID: 24300002, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    constrainedSnapshot: {fileID: 24500006, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    relievedSnapshot: {fileID: 24500007, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
   constraintEnabled: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:

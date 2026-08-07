@@ -101,6 +101,7 @@ public sealed class ResonanceController : MonoBehaviour
 
         fog.Tick(proximity, IsConstraintInactive, interpolation);
         volume.UpdateWeight(proximity, IsConstraintInactive, interpolation);
+        audioConstraint.UpdateRelief(proximity);
 
         if (logDistanceCalculation)
         {
