@@ -4122,6 +4122,9 @@ MonoBehaviour:
   activateStep: 3
   deactivateStep: 2
   lateJoinStateWaitSeconds: 10
+  resonanceVolume: {fileID: 0}
+  releasedVolumeWeight: 0.6
+  constrainedVolumeWeight: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4504,6 +4507,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1599178304}
     m_Modifications:
+    - target: {fileID: 2822293804662883638, guid: c4c6dcb4bd4df674bb7ea46f9e55ec69, type: 3}
+      propertyPath: soundStartAngle
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2822293804662883638, guid: c4c6dcb4bd4df674bb7ea46f9e55ec69, type: 3}
+      propertyPath: soundAngleThreshold
+      value: 0.05
+      objectReference: {fileID: 0}
     - target: {fileID: 3147471266167666014, guid: c4c6dcb4bd4df674bb7ea46f9e55ec69, type: 3}
       propertyPath: Flags
       value: 262145
