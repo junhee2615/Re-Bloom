@@ -12,6 +12,7 @@ public class SocketTrigger : MonoBehaviour
     [Header("Socket Sound")]
     [SerializeField] private AudioSource socketAudioSource;
     [SerializeField] private AudioClip socketSuccessClip;
+    [SerializeField] private AudioClip additionalClip;
 
     private const int RequiredSocketCount = 2;
     private static readonly HashSet<SocketTrigger> OccupiedSockets = new();
@@ -42,9 +43,13 @@ public class SocketTrigger : MonoBehaviour
         Debug.Log($"[SocketTrigger] Socketed: {name}");
         Debug.Log($"[SocketTrigger] Occupied Count: {OccupiedSockets.Count}");
 
-        if (socketAudioSource != null && socketSuccessClip != null)
+        if (socketAudioSource != null)
         {
-            socketAudioSource.PlayOneShot(socketSuccessClip);
+            if (socketSuccessClip != null)
+                socketAudioSource.PlayOneShot(socketSuccessClip);
+
+            if (additionalClip != null)
+                socketAudioSource.PlayOneShot(additionalClip);
         }
 
         if (OccupiedSockets.Count == RequiredSocketCount)
