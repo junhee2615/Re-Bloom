@@ -1,6 +1,7 @@
 using System.Collections;
 using FlatKit;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -46,6 +47,14 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float relievedVolumeWeight = 0.9f;
     private const float constrainedVolumeWeight = 1f;
 
+    [Header("Constraint Audio")]
+    [Tooltip("제약 시 Resonance 그룹, 해제 시 Normal(Master) 그룹으로 출력을 전환할 AudioSource들.")]
+    [SerializeField] private AudioSource[] constrainedAudioSources;
+    [Tooltip("제약 상태의 믹서 그룹 (Resonance).")]
+    [SerializeField] private AudioMixerGroup resonanceGroup;
+    [Tooltip("제약 해제 상태의 믹서 그룹 (Master).")]
+    [SerializeField] private AudioMixerGroup normalGroup;
+
     [Header("Debug")]
     [Tooltip("테스트용: 끄면 안개·Volume 제약 연출을 모두 비활성화한다. 플레이 중 실시간 토글 가능.")]
     [SerializeField] private bool constraintEnabled = true;
@@ -76,6 +85,7 @@ public sealed class ResonanceController : MonoBehaviour
         InitializeFog();
         InitializeVolume();
 
+        ApplyConstraintEffects(); // Bloom/Vignette + 청각 초기 상태
         ApplyIntensity(constraintEnabled ? activeIntensity : 0f);
     }
 
@@ -124,7 +134,7 @@ public sealed class ResonanceController : MonoBehaviour
             smoothedVolumeWeight = releasedVolumeWeight;
             resonanceVolume.weight = releasedVolumeWeight;
         }
-        ApplyPostFx();
+        ApplyConstraintEffects();
     }
 #endif
 
@@ -203,8 +213,6 @@ public sealed class ResonanceController : MonoBehaviour
         resonanceVolume.weight = startWeight;
         smoothedVolumeWeight = startWeight;
         volumeInitialized = true;
-
-        ApplyPostFx();
     }
 
     /// <summary>
@@ -236,6 +244,27 @@ public sealed class ResonanceController : MonoBehaviour
             bloomOverride.intensity.value = configuredBloomIntensity * postFx;
         if (vignetteOverride != null)
             vignetteOverride.intensity.value = configuredVignetteIntensity * postFx;
+    }
+
+    /// <summary>
+    /// 공명 on/off에 따라 지정 AudioSource의 출력 믹서 그룹을 전환한다.
+    /// 제약 = resonanceGroup, 해제 = Master.
+    /// </summary>
+    private void ApplyAudioConstraint()
+    {
+        if (constrainedAudioSources == null) return;
+
+        AudioMixerGroup target = IsConstraintInactive ? normalGroup : resonanceGroup;
+        foreach (AudioSource source in constrainedAudioSources)
+            if (source != null)
+                source.outputAudioMixerGroup = target;
+    }
+
+    // 공명 on/off에 따른 효과(Bloom/Vignette + 청각)를 반영.
+    private void ApplyConstraintEffects()
+    {
+        ApplyPostFx();
+        ApplyAudioConstraint();
     }
 
     private void InitializeResonanceDistance()
@@ -411,7 +440,7 @@ public sealed class ResonanceController : MonoBehaviour
     private void ReleaseFogConstraint()
     {
         isConstraintReleased = true;
-        ApplyPostFx(); // 공명 해제 → Bloom/Vignette OFF
+        ApplyConstraintEffects(); // 공명 해제 → Bloom/Vignette OFF, 청각 정상
     }
 
     /// <summary>
@@ -420,7 +449,7 @@ public sealed class ResonanceController : MonoBehaviour
     private void ReengageConstraint()
     {
         isConstraintReleased = false;
-        ApplyPostFx(); // 다시 제약 → Bloom/Vignette ON
+        ApplyConstraintEffects(); // 다시 제약 → Bloom/Vignette ON, 청각 제약
 
         foreach (NetworkPlayer player in NetworkPlayer.All)
         {

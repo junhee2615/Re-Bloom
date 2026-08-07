@@ -3444,6 +3444,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 49e6affca4d27fc4190b9ca97549d6e2, type: 3}
+--- !u!82 &1808106307 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 8061603716341931957, guid: 49e6affca4d27fc4190b9ca97549d6e2, type: 3}
+  m_PrefabInstance: {fileID: 1808106306}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1887335079
 GameObject:
   m_ObjectHideFlags: 0
@@ -4085,7 +4090,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResonanceController
   fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
-  startIntensity: 1
   activeIntensity: 1
   transitionDuration: 1.5
   transitionCurve:
@@ -4125,6 +4129,12 @@ MonoBehaviour:
   resonanceVolume: {fileID: 2138010514}
   releasedVolumeWeight: 0.6
   relievedVolumeWeight: 0.9
+  constrainedAudioSources:
+  - {fileID: 1808106307}
+  - {fileID: 208765481}
+  - {fileID: 1718984750}
+  resonanceGroup: {fileID: 3158594053033413330, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+  normalGroup: {fileID: 24300002, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
   constraintEnabled: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:
