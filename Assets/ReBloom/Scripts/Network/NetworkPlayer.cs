@@ -121,9 +121,6 @@ public class NetworkPlayer : NetworkBehaviour
     {
         base.Despawned(runner, hasState);
 
-        if (_players.TryGetValue(Object.InputAuthority, out var np) && np == this)
-            _players.Remove(Object.InputAuthority);
-
         if (LocalInstance == this)
             LocalInstance = null;
 
