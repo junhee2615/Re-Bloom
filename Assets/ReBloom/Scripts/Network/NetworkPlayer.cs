@@ -1,12 +1,45 @@
+using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
+
+/// <summary>공명 접촉에 쓰는 손 구분(닿은 손 기준).</summary>
+public enum Hand : byte { None, Left, Right }
 
 public class NetworkPlayer : NetworkBehaviour
 {
     // 내 플레이어인지 확인
-    public bool IsLocalNetworkRig => Object.HasInputAuthority;
+    public bool IsLocalNetworkRig => Object != null && Object.HasInputAuthority;
     public HardwareRig HardwareRig => hardwareRig;
     public Transform PlayerTransform => playerTransform != null ? playerTransform.transform : null;
+
+    // PlayerRef → NetworkPlayer 레지스트리.
+    // 호스트가 "어떤 플레이어가 잡았는지"만 알아도 그 플레이어의 손 트랜스폼을
+    // 직접 참조할 수 있도록 모든 인스턴스를 등록해 둔다. (WaterMissionObstacle 등에서 사용)
+    private static readonly Dictionary<PlayerRef, NetworkPlayer> Players = new Dictionary<PlayerRef, NetworkPlayer>();
+
+    public static bool TryGet(PlayerRef player, out NetworkPlayer networkPlayer)
+        => Players.TryGetValue(player, out networkPlayer);
+
+    // 등록된 인스턴스만 순회하기 위한 접근자
+    public static Dictionary<PlayerRef, NetworkPlayer>.ValueCollection All => Players.Values;
+
+    public Transform LeftHand => leftHandTransform != null ? leftHandTransform.transform : null;
+    public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
+    public bool HasNetworkStateAuthority => Object != null && Object.IsValid && Object.HasStateAuthority;
+
+    [Networked] public NetworkBool IsRightTriggerHeld { get; private set; }
+    [Networked] public NetworkBool IsLeftTriggerHeld { get; private set; }
+    [Networked] public Hand CooperativeContactHand { get; private set; }
+    [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
+    [Networked] public float CooperativeHoldProgress { get; private set; }
+
+    public bool IsTriggerHeld(Hand hand) =>
+        hand == Hand.Right ? (bool)IsRightTriggerHeld :
+        hand == Hand.Left ? (bool)IsLeftTriggerHeld : false;
+
+    public Transform GetHand(Hand hand) =>
+        hand == Hand.Right ? RightHand :
+        hand == Hand.Left ? LeftHand : null;
 
     private TeleportGhostManager.CharacterType LocalCharacterType
     {
@@ -40,6 +73,9 @@ public class NetworkPlayer : NetworkBehaviour
     {
         base.Spawned();
 
+        // 모든 클라이언트에서 등록(호스트는 원격 플레이어의 손도 참조해야 한다).
+        Players[Object.InputAuthority] = this;
+
         if (IsLocalNetworkRig)
         {
             hardwareRig = FindFirstObjectByType<HardwareRig>();
@@ -70,12 +106,26 @@ public class NetworkPlayer : NetworkBehaviour
         }
     }
 
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        base.Despawned(runner, hasState);
+
+        if (Players.TryGetValue(Object.InputAuthority, out var np) && np == this)
+            Players.Remove(Object.InputAuthority);
+    }
+
     public override void FixedUpdateNetwork()
     {
         base.FixedUpdateNetwork();
 
         if (GetInput<RigState>(out var input))
         {
+            if (HasNetworkStateAuthority)
+            {
+                IsRightTriggerHeld = input.RightTriggerPressed;
+                IsLeftTriggerHeld = input.LeftTriggerPressed;
+            }
+
             playerTransform.transform.SetPositionAndRotation(
                 input.PlayerPosition,
                 input.PlayerRotation);
@@ -92,6 +142,37 @@ public class NetworkPlayer : NetworkBehaviour
                 input.RightHandPosition,
                 input.RightHandRotation);
         }
+    }
+
+    public void SetCooperativeContactHand(Hand hand)
+    {
+        if (HasNetworkStateAuthority)
+            CooperativeContactHand = hand;
+    }
+
+    public void SetCooperativeActivationSucceeded()
+    {
+        if (HasNetworkStateAuthority)
+            HasCooperativeActivationSucceeded = true;
+    }
+
+    public void SetCooperativeHoldProgress(float progress)
+    {
+        if (HasNetworkStateAuthority)
+            CooperativeHoldProgress = progress;
+    }
+
+    /// <summary>
+    /// 공명 성공 상태를 되돌린다(거리 이탈로 제약 복귀 시).
+    /// </summary>
+    public void ClearCooperativeActivation()
+    {
+        if (!HasNetworkStateAuthority)
+            return;
+
+        HasCooperativeActivationSucceeded = false;
+        CooperativeContactHand = Hand.None;
+        CooperativeHoldProgress = 0f;
     }
 
     public override void Render()

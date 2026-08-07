@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR;
 using static Unity.Collections.Unicode;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -71,6 +72,14 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
         xrRigState.RightHandPosition = rightHandTransform.position;
         xrRigState.RightHandRotation = rightHandTransform.rotation;
+
+        InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        rightController.TryGetFeatureValue(CommonUsages.triggerButton, out bool rightTriggerPressed);
+        xrRigState.RightTriggerPressed = rightTriggerPressed;
+
+        InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        leftController.TryGetFeatureValue(CommonUsages.triggerButton, out bool leftTriggerPressed);
+        xrRigState.LeftTriggerPressed = leftTriggerPressed;
 
         input.Set(xrRigState);
     }
@@ -218,6 +227,8 @@ public struct RigState : INetworkInput
 
     public Vector3 RightHandPosition;
     public Quaternion RightHandRotation;
+    public NetworkBool RightTriggerPressed;
+    public NetworkBool LeftTriggerPressed;
 }
 
 

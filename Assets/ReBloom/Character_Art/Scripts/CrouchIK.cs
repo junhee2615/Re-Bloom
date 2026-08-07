@@ -2,51 +2,112 @@ using UnityEngine;
 
 public class CrouchIK : MonoBehaviour
 {
+    [Header("References")]
     public Transform headTarget;
     public Transform body;
     public Transform leftFootTarget;
     public Transform rightFootTarget;
-    public float crouchSpeed = 8f;
 
-    private float standingHeadHeight;
+    [Header("Settings")]
+    public float crouchSpeed = 8f;
+    [Range(0f, 1f)] public float crouchStrength = 0.7f;
+
+    [Header("Debug - Play ì¤‘ í™•ì¸")]
+    [SerializeField] private bool isRunning;
+    [SerializeField] private float standingHeadHeight;
+    [SerializeField] private float currentHeadHeight;
+    [SerializeField] private float crouchAmount;
+    [SerializeField] private float bodyLocalYBefore;
+    [SerializeField] private float bodyLocalYAfter;
+
+    private float initialBodyLocalY;
     private float leftFootY;
     private float rightFootY;
-    private bool initialized = false;
+    private bool initialized;
 
-    void Start()
+    private void Start()
     {
-        leftFootY = leftFootTarget.position.y;
-        rightFootY = rightFootTarget.position.y;
+        if (body != null)
+        {
+            initialBodyLocalY = body.localPosition.y;
+        }
+
+        if (leftFootTarget != null)
+        {
+            leftFootY = leftFootTarget.position.y;
+        }
+
+        if (rightFootTarget != null)
+        {
+            rightFootY = rightFootTarget.position.y;
+        }
     }
 
-    void LateUpdate()
+    private void LateUpdate()
     {
-        if (headTarget == null || body == null) return;
+        isRunning = true;
 
-        if (!initialized)
+        if (headTarget == null || body == null)
         {
-            standingHeadHeight = headTarget.position.y;
-            initialized = true;
             return;
         }
 
-        // YÃà¸¸ °íÁ¤, XZ¿Í È¸ÀüÀº ÀÚÀ¯·Ó°Ô
-        leftFootTarget.position = new Vector3(
-            leftFootTarget.position.x,
-            leftFootY,
-            leftFootTarget.position.z);
+        currentHeadHeight = headTarget.position.y;
 
-        rightFootTarget.position = new Vector3(
-            rightFootTarget.position.x,
-            rightFootY,
-            rightFootTarget.position.z);
+        if (!initialized)
+{
+        // HeadTargetì´ ì•„ì§ ì›ì ì— ìˆë‹¤ë©´ HMD ì¶”ì ì´ ì¤€ë¹„ë˜ì§€ ì•Šì€ ìƒíƒœ
+        if (currentHeadHeight < 0.5f)
+        {
+            return;
+        }
 
-        // ¹ß È¸ÀüÀº °Çµå¸®Áö ¾ÊÀ½ (HMD È¸Àü µû¶ó°¡°Ô)
+        standingHeadHeight = currentHeadHeight;
+        initialBodyLocalY = body.localPosition.y;
+        initialized = true;
 
-        // ¸öÅë ³ôÀÌ Á¶Á¤
-        float crouchAmount = Mathf.Max(0f, standingHeadHeight - headTarget.position.y);
-        body.localPosition = Vector3.Lerp(body.localPosition,
-            new Vector3(body.localPosition.x, -crouchAmount, body.localPosition.z),
-            Time.deltaTime * crouchSpeed);
+        Debug.Log(
+            $"CrouchIK initialized: standingHeight={standingHeadHeight}, " +
+            $"bodyLocalY={initialBodyLocalY}"
+        );
+
+        return;
+    }
+
+        if (leftFootTarget != null)
+        {
+            leftFootTarget.position = new Vector3(
+                leftFootTarget.position.x,
+                leftFootY,
+                leftFootTarget.position.z
+            );
+        }
+
+        if (rightFootTarget != null)
+        {
+            rightFootTarget.position = new Vector3(
+                rightFootTarget.position.x,
+                rightFootY,
+                rightFootTarget.position.z
+            );
+        }
+
+        crouchAmount = Mathf.Max(
+        0f,
+        standingHeadHeight - currentHeadHeight
+    ) * crouchStrength;
+
+        bodyLocalYBefore = body.localPosition.y;
+
+        Vector3 targetPosition = body.localPosition;
+        targetPosition.y = initialBodyLocalY - crouchAmount;
+
+        body.localPosition = Vector3.Lerp(
+            body.localPosition,
+            targetPosition,
+            Time.deltaTime * crouchSpeed
+        );
+
+        bodyLocalYAfter = body.localPosition.y;
     }
 }

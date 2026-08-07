@@ -380,6 +380,9 @@ GameObject:
   - component: {fileID: 1306487259344567644}
   - component: {fileID: 104267420603040855}
   - component: {fileID: 2244771845460819798}
+  - component: {fileID: 902510863947120114}
+  - component: {fileID: 6061580104749584584}
+  - component: {fileID: 7517917496160518278}
   m_Layer: 0
   m_Name: Player_ear
   m_TagString: Untagged
@@ -460,12 +463,91 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a9591752ca03db4a8401e223e89add2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayer
+  _IsActivationTriggerHeld:
+    _value: 0
+  _AreCooperativeHandsContacted:
+    _value: 0
+  _HasCooperativeActivationSucceeded:
+    _value: 0
+  _CooperativeHoldProgress: 0
   playerTransform: {fileID: 104267420603040855}
   headTransform: {fileID: 7874007534624037014}
   leftHandTransform: {fileID: 497737410415720117}
   rightHandTransform: {fileID: 6485362447277290755}
   baseAvatar: {fileID: 4895060287329297665}
   sourceRoot: {fileID: 1161072700954318278}
+--- !u!114 &902510863947120114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a0b57fa458a49c7b4010762ab3f91cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CooperativeActivationController
+  handContactDistance: 0.16
+  holdDuration: 1.5
+  logActivationDebug: 1
+  debugLogInterval: 0.25
+  contactSnapPattern: {fileID: 11400000, guid: 37e6da5f6e4e4ff89fca0c44ed205f76, type: 2}
+  holdPattern: {fileID: 11400000, guid: 2a1955cbed00433fbcba3d00ea157741, type: 2}
+  successPattern: {fileID: 11400000, guid: 5f74350f7c3d47acbefe915bd5e2d065, type: 2}
+  onActivationSucceeded:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!136 &6061580104749584584
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 0.65
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.27, z: 0}
+--- !u!54 &7517917496160518278
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1165481144042902569
 GameObject:
   m_ObjectHideFlags: 0
@@ -1800,6 +1882,13 @@ MonoBehaviour:
   leftFootTarget: {fileID: 3021828339523983471}
   rightFootTarget: {fileID: 6543673317495205216}
   crouchSpeed: 8
+  crouchStrength: 0.7
+  isRunning: 0
+  standingHeadHeight: 0
+  currentHeadHeight: 0
+  crouchAmount: 0
+  bodyLocalYBefore: 0
+  bodyLocalYAfter: 0
 --- !u!114 &8603129927404359901
 MonoBehaviour:
   m_ObjectHideFlags: 0
