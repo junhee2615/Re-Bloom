@@ -5,8 +5,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// Drives the local player's FlatKit fog without synchronizing renderer or material state.
-/// The networked tutorial state is only used as a local trigger on each peer.
+/// Drives the local player's FlatKit fog and the Resonance post-processing Volume
+/// (weight + Bloom/Vignette) from the co-op constraint state, without synchronizing
+/// renderer or material state. The networked tutorial state is only a local trigger.
 /// </summary>
 public sealed class ResonanceController : MonoBehaviour
 {
@@ -40,11 +41,11 @@ public sealed class ResonanceController : MonoBehaviour
     [Header("Constraint Post-Processing")]
     [Tooltip("Resonance Global Volume.")]
     [SerializeField] private Volume resonanceVolume;
-    [Tooltip("공명 해제 상태의 Volume weight.")]
+    [Tooltip("공명 활성화 상태의 Volume weight.")]
     [SerializeField, Range(0f, 1f)] private float releasedVolumeWeight = 0.6f;
     [Tooltip("가까워져 제약이 완화됐을 때의 Volume weight.")]
     [SerializeField, Range(0f, 1f)] private float relievedVolumeWeight = 0.9f;
-    private float constrainedVolumeWeight = 1f;
+    private const float constrainedVolumeWeight = 1f;
 
     private Material fogMaterial;
     private Coroutine transitionCoroutine;
@@ -185,33 +186,19 @@ public sealed class ResonanceController : MonoBehaviour
     }
 
     /// <summary>
-    /// Volume weight를 거리(proximity)로 직접 구동한다. Fog의 maxConstraintRelief와 무관.
+    /// Volume weight를 거리(proximity)로 구동한다.
     /// 멀리 = constrainedVolumeWeight(1), 가까움 = relievedVolumeWeight(0.9),
-    /// 공명 해제 = releasedVolumeWeight(0.6). distanceResponseSpeed로 부드럽게 전환.
+    /// 공명 해제 = releasedVolumeWeight(0.6).
     /// </summary>
     private void UpdateVolumeWeight(bool hasDistance, float playerDistance)
     {
         if (!volumeInitialized) return;
 
-        float targetWeight;
-        if (isConstraintReleased)
-        {
-            targetWeight = releasedVolumeWeight;
-        }
-        else
-        {
-            float proximity = 0f; // 0 = 멀리(완전 제약), 1 = 가장 가까움(최대 완화)
-            if (hasDistance)
-            {
-                float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
-                proximity = Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
-            }
-            targetWeight = Mathf.Lerp(constrainedVolumeWeight, relievedVolumeWeight, proximity);
-        }
+        float targetWeight = isConstraintReleased ? releasedVolumeWeight
+            : Mathf.Lerp(constrainedVolumeWeight, relievedVolumeWeight,
+                CalculateProximity(hasDistance, playerDistance));
 
-        float interpolation = distanceResponseSpeed <= 0f
-            ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
-        smoothedVolumeWeight = Mathf.Lerp(smoothedVolumeWeight, targetWeight, interpolation);
+        smoothedVolumeWeight = Mathf.Lerp(smoothedVolumeWeight, targetWeight, DistanceInterpolation());
         resonanceVolume.weight = smoothedVolumeWeight;
     }
 
@@ -232,10 +219,13 @@ public sealed class ResonanceController : MonoBehaviour
 
     private void InitializeResonanceDistance()
     {
-        Transform hostPoint = hostSpawnPoint;
-        Transform clientPoint = clientSpawnPoint;
+        if (hostSpawnPoint == null || clientSpawnPoint == null)
+        {
+            Debug.LogWarning($"[Resonance] Spawn point가 지정되지 않아 기본 거리({resonanceDistance})를 사용합니다.", this);
+            return;
+        }
 
-        resonanceDistance = Vector3.Distance(hostPoint.position, clientPoint.position);
+        resonanceDistance = Vector3.Distance(hostSpawnPoint.position, clientSpawnPoint.position);
         Debug.Log($"[Resonance Fog] Spawn-point resonance distance initialized: {resonanceDistance:F2}", this);
     }
 
@@ -255,12 +245,8 @@ public sealed class ResonanceController : MonoBehaviour
 
         targetIntensity *= fogVisibility;
 
-        float interpolation = distanceResponseSpeed <= 0f
-            ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
+        ApplyIntensity(Mathf.Lerp(currentIntensity, targetIntensity, DistanceInterpolation()));
 
-        ApplyIntensity(Mathf.Lerp(currentIntensity, targetIntensity, interpolation));
-
-        // Volume weight는 거리로 직접 구동 (Fog 신호와 분리)
         UpdateVolumeWeight(hasDistance, playerDistance);
 
         if (logDistanceCalculation)
@@ -271,18 +257,30 @@ public sealed class ResonanceController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 두 플레이어 거리로 근접도[0..1]를 구한다.
+    /// 0 = 공명 거리(멀리), 1 = minDistance 이내(가장 가까움).
+    /// </summary>
+    private float CalculateProximity(bool hasDistance, float playerDistance)
+    {
+        if (!hasDistance) return 0f;
+
+        float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
+        return Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
+    }
+
+    // distanceResponseSpeed 기반 프레임 독립 보간 계수.
+    private float DistanceInterpolation()
+    {
+        return distanceResponseSpeed <= 0f
+            ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
+    }
+
     private float CalculateDistanceConstraintIntensity(bool hasDistance, float playerDistance)
     {
-        float relief = 0f; // 제약이 얼마나 완화되는지
-        if (hasDistance)
-        {
-            float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
-            float proximity = Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
-            relief = Mathf.Lerp(0f, maxConstraintRelief, proximity);
-        }
-
         // maxConstraintRelief is capped below 1 in the Inspector, so the fog
         // constraint can never be fully removed merely by getting closer.
+        float relief = maxConstraintRelief * CalculateProximity(hasDistance, playerDistance);
         return activeIntensity * (1f - relief);
     }
 
