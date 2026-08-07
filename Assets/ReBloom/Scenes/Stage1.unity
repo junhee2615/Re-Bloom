@@ -4055,7 +4055,7 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 0
   blendDistance: 0
-  weight: 0.6
+  weight: 1
   sharedProfile: {fileID: 11400000, guid: fd8824d99fd770c439ba19e6eaa76fe9, type: 2}
 --- !u!4 &2138010515
 Transform:
@@ -4122,6 +4122,9 @@ MonoBehaviour:
   activateStep: 3
   deactivateStep: 2
   lateJoinStateWaitSeconds: 10
+  resonanceVolume: {fileID: 2138010514}
+  releasedVolumeWeight: 0.6
+  constrainedVolumeWeight: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:
   m_ObjectHideFlags: 0

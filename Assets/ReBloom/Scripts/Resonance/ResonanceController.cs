@@ -40,10 +40,11 @@ public sealed class ResonanceController : MonoBehaviour
     [Header("Constraint Post-Processing")]
     [Tooltip("Resonance Global Volume.")]
     [SerializeField] private Volume resonanceVolume;
-    [Tooltip("공명 활성화 상태의 Volume weight.")]
+    [Tooltip("공명 해제 상태의 Volume weight.")]
     [SerializeField, Range(0f, 1f)] private float releasedVolumeWeight = 0.6f;
-    [Tooltip("완전 제약 상태의 Volume weight.")]
-    [SerializeField, Range(0f, 1f)] private float constrainedVolumeWeight = 1f;
+    [Tooltip("가까워져 제약이 완화됐을 때의 Volume weight.")]
+    [SerializeField, Range(0f, 1f)] private float relievedVolumeWeight = 0.9f;
+    private float constrainedVolumeWeight = 1f;
 
     private Material fogMaterial;
     private Coroutine transitionCoroutine;
@@ -59,6 +60,7 @@ public sealed class ResonanceController : MonoBehaviour
     private Vignette vignetteOverride;
     private float configuredBloomIntensity;
     private float configuredVignetteIntensity;
+    private float smoothedVolumeWeight;
     private bool volumeInitialized;
 
     private void Awake()
@@ -90,7 +92,6 @@ public sealed class ResonanceController : MonoBehaviour
         if (Application.isPlaying)
         {
             ApplyIntensity(0f);
-            ApplyVolumeConstraint(0f);
         }
     }
 
@@ -175,32 +176,58 @@ public sealed class ResonanceController : MonoBehaviour
             vignetteOverride.intensity.overrideState = true;
         }
 
-        // 시작은 제약 상태: weight 1, Bloom/Vignette. - TODO
-        resonanceVolume.weight = releasedVolumeWeight;
-        if (bloomOverride != null) bloomOverride.intensity.value = 0f;
-        if (vignetteOverride != null) vignetteOverride.intensity.value = 0f;
-
+        // 시작은 제약 상태: weight 1, Bloom/Vignette ON.
+        resonanceVolume.weight = constrainedVolumeWeight;
+        smoothedVolumeWeight = constrainedVolumeWeight;
         volumeInitialized = true;
+
+        ApplyPostFx();
     }
 
     /// <summary>
-    /// 제약량에 맞춰 Volume weight와 Bloom/Vignette 세기를 보간한다.
-    /// 0 = 공명 활성화(weight 0.6, Bloom/Vignette 없음),
-    /// 1 = 완전 제약(weight 1, Bloom/Vignette). 안개와 같은 곡선으로 전환된다.
+    /// Volume weight를 거리(proximity)로 직접 구동한다. Fog의 maxConstraintRelief와 무관.
+    /// 멀리 = constrainedVolumeWeight(1), 가까움 = relievedVolumeWeight(0.9),
+    /// 공명 해제 = releasedVolumeWeight(0.6). distanceResponseSpeed로 부드럽게 전환.
     /// </summary>
-    private void ApplyVolumeConstraint(float constraintAmount)
+    private void UpdateVolumeWeight(bool hasDistance, float playerDistance)
     {
         if (!volumeInitialized) return;
 
-        resonanceVolume.weight = Mathf.Lerp(releasedVolumeWeight, constrainedVolumeWeight, constraintAmount);
+        float targetWeight;
+        if (isConstraintReleased)
+        {
+            targetWeight = releasedVolumeWeight;
+        }
+        else
+        {
+            float proximity = 0f; // 0 = 멀리(완전 제약), 1 = 가장 가까움(최대 완화)
+            if (hasDistance)
+            {
+                float clampedMinDistance = Mathf.Min(minDistance, resonanceDistance - 0.001f);
+                proximity = Mathf.InverseLerp(resonanceDistance, clampedMinDistance, playerDistance);
+            }
+            targetWeight = Mathf.Lerp(constrainedVolumeWeight, relievedVolumeWeight, proximity);
+        }
 
+        float interpolation = distanceResponseSpeed <= 0f
+            ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
+        smoothedVolumeWeight = Mathf.Lerp(smoothedVolumeWeight, targetWeight, interpolation);
+        resonanceVolume.weight = smoothedVolumeWeight;
+    }
+
+    /// <summary>
+    /// 공명 on/off에 따라 Bloom/Vignette를 껐다 켠다. 상태가 바뀔 때만 호출한다.
+    /// (weight와 곱해 이중으로 옅어지지 않도록 0 <-> 설정값 이진 전환)
+    /// </summary>
+    private void ApplyPostFx()
+    {
+        if (!volumeInitialized) return;
+
+        float postFx = isConstraintReleased ? 0f : 1f;
         if (bloomOverride != null)
-            // bloomOverride.intensity.value = configuredBloomIntensity * constraintAmount;
-            bloomOverride.intensity.value = configuredBloomIntensity;
-        
+            bloomOverride.intensity.value = configuredBloomIntensity * postFx;
         if (vignetteOverride != null)
-            // vignetteOverride.intensity.value = configuredVignetteIntensity * constraintAmount;
-            vignetteOverride.intensity.value = configuredVignetteIntensity;
+            vignetteOverride.intensity.value = configuredVignetteIntensity * postFx;
     }
 
     private void InitializeResonanceDistance()
@@ -233,12 +260,8 @@ public sealed class ResonanceController : MonoBehaviour
 
         ApplyIntensity(Mathf.Lerp(currentIntensity, targetIntensity, interpolation));
 
-        // 안개 강도(currentIntensity)를 제약량으로 정규화해 Volume 연출을
-        // 안개와 동일한 타이밍으로 구동한다. (거리 완화·활성 페이드 모두 반영)
-        float constraintAmount = activeIntensity > 0.0001f
-            ? Mathf.Clamp01(currentIntensity / activeIntensity)
-            : (currentIntensity > 0f ? 1f : 0f);
-        ApplyVolumeConstraint(constraintAmount);
+        // Volume weight는 거리로 직접 구동 (Fog 신호와 분리)
+        UpdateVolumeWeight(hasDistance, playerDistance);
 
         if (logDistanceCalculation)
         {
@@ -365,6 +388,7 @@ public sealed class ResonanceController : MonoBehaviour
     private void ReleaseFogConstraint()
     {
         isConstraintReleased = true;
+        ApplyPostFx(); // 공명 해제 → Bloom/Vignette OFF
     }
 
     /// <summary>
@@ -373,6 +397,7 @@ public sealed class ResonanceController : MonoBehaviour
     private void ReengageConstraint()
     {
         isConstraintReleased = false;
+        ApplyPostFx(); // 다시 제약 → Bloom/Vignette ON
 
         foreach (NetworkPlayer player in NetworkPlayer.All)
         {
