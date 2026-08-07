@@ -15,7 +15,7 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.06642276, g: 0.21005492, b: 0.30997294, a: 1}
+  m_FogColor: {r: 0.06666667, g: 0.21176471, b: 0.30980393, a: 1}
   m_FogMode: 2
   m_FogDensity: 0.015
   m_LinearFogStart: 0
@@ -401,8 +401,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrainFloor_stage2
   audioSource: {fileID: 1979704987}
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
-  doorRight: {fileID: 1979704985}
-  doorLeft: {fileID: 1979704984}
+  doorRight: {fileID: 0}
+  doorLeft: {fileID: 0}
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
@@ -792,16 +792,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
---- !u!4 &1979704984 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3593106853151214169, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
-  m_PrefabInstance: {fileID: 1979704983}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1979704985 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8837069044129766697, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
-  m_PrefabInstance: {fileID: 1979704983}
-  m_PrefabAsset: {fileID: 0}
 --- !u!82 &1979704987 stripped
 AudioSource:
   m_CorrespondingSourceObject: {fileID: 6048490511224281864, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
