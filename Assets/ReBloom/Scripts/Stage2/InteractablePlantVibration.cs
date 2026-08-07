@@ -2,15 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.XR;
 
-/// <summary>
-/// InteractablePlant1/2/3 용 진동 스크립트.
-/// 오른손 컨트롤러가 닿아 있는 동안, 인스펙터에서 입력한 리듬(vibrationPattern)대로
-/// 오른손에 햅틱 진동을 반복 재생한다. 딸린 UI/Canvas 는 없다.
-///
-/// - 접촉 감지 방식은 LivingRoot 를 그대로 따른다("Right Controller" 태그 필터).
-/// - 리듬/펄스 재생 방식은 VibrationTriggerMission.PlayVibrationPattern 을 그대로 따른다.
-/// - 이 오브젝트의 Collider 는 isTrigger = true 여야 트리거가 감지된다.
-/// </summary>
 [RequireComponent(typeof(Collider))]
 public class InteractablePlantVibration : MonoBehaviour
 {
@@ -35,22 +26,25 @@ public class InteractablePlantVibration : MonoBehaviour
     [Tooltip("리듬 한 번이 끝나고 다음 반복까지의 쉼(초)")]
     [SerializeField] private float loopGap = 0.6f;
 
-    [Header("효과음 (선택)")]
-    [Tooltip("각 펄스마다 재생할 효과음 (없으면 진동만)")]
-    [SerializeField] private AudioSource pulseAudioSource;
-    [SerializeField] private AudioClip pulseClip;
+    [Header("역할 제한")]
+    [Tooltip("체크 시 Client(PlayerId != 1)만 진동을 느낀다. 솔로 테스트 시 해제.")]
+    [SerializeField] private bool clientOnly = true;
 
     private Coroutine runningRoutine;
     private bool isTouching;
 
     private void OnTriggerEnter(Collider other)
     {
-        // 미션 등에서 비활성화되면 진동을 시작하지 않는다.
+        // 미션에서 비활성화되면 미션 시작하지 않음
         if (!enabled)
             return;
 
-        // 오른손 컨트롤러만 반응 (LivingRoot 와 동일한 태그 필터)
+        // 오른손 컨트롤러만 반응
         if (!other.CompareTag("Right Controller"))
+            return;
+
+        // Client(PlayerId != 1)만 진동 느낌
+        if (clientOnly && !PlayerRole.LocalIsClient())
             return;
 
         isTouching = true;
@@ -63,13 +57,13 @@ public class InteractablePlantVibration : MonoBehaviour
         if (!other.CompareTag("Right Controller"))
             return;
 
-        // 진행 중인 리듬은 끝까지 재생한 뒤 멈춘다.
+        // 진행 중인 리듬은 끝까지 재생한 뒤 멈춤
         isTouching = false;
     }
 
     private void OnDisable()
     {
-        // 비활성화되면 즉시 정지
+        // 비활성화되면 진동 즉시 정지
         isTouching = false;
         if (runningRoutine != null)
         {
@@ -92,10 +86,7 @@ public class InteractablePlantVibration : MonoBehaviour
         runningRoutine = null;
     }
 
-    // VibrationTriggerMission.PlayVibrationPattern 과 동일한 규칙으로 패턴을 재생한다.
-    //  ●        → 진동 펄스 1회
-    //  ●● (붙음) → 짧은 쉼(shortGap) 뒤 다음 펄스
-    //  공백      → 다음 펄스는 긴 쉼(longGap) 뒤에
+    // 진동 인스펙터에서 입력 
     private IEnumerator PlayVibrationPattern()
     {
         bool first = true;
@@ -121,14 +112,48 @@ public class InteractablePlantVibration : MonoBehaviour
         }
     }
 
-    // 오른손 컨트롤러에 진동 펄스 1회 + (선택) 효과음 재생. (LivingRoot / VibrationTriggerMission 와 동일)
+    // 오른손 컨트롤러에 진동 펄스 
     private void SendPulse()
     {
-        if (pulseAudioSource != null && pulseClip != null)
-            pulseAudioSource.PlayOneShot(pulseClip);
-
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
         if (device.TryGetHapticCapabilities(out HapticCapabilities caps) && caps.supportsImpulse)
             device.SendHapticImpulse(0u, amplitude, pulseDuration);
+    }
+
+
+    // PetalRhythmMission 판정용 리듬 접근자
+    public string Pattern => vibrationPattern;
+
+    public int ExpectedPulseCount
+    {
+        get
+        {
+            int n = 0;
+            foreach (char c in vibrationPattern)
+                if (c == '●') n++;
+            return n;
+        }
+    }
+
+    public System.Collections.Generic.List<float> BuildExpectedIntervals()
+    {
+        var intervals = new System.Collections.Generic.List<float>();
+        bool first = true;
+        bool pendingLongGap = false;
+        foreach (char c in vibrationPattern)
+        {
+            if (c == '●')
+            {
+                if (!first)
+                    intervals.Add(pulseDuration + (pendingLongGap ? longGap : shortGap));
+                first = false;
+                pendingLongGap = false;
+            }
+            else if (c == ' ')
+            {
+                pendingLongGap = true;
+            }
+        }
+        return intervals;
     }
 }

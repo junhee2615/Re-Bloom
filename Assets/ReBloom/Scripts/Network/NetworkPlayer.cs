@@ -22,6 +22,10 @@ public class NetworkPlayer : NetworkBehaviour
     public Transform RightHand => rightHandTransform != null ? rightHandTransform.transform : null;
     public bool HasNetworkStateAuthority => Object != null && Object.IsValid && Object.HasStateAuthority;
 
+    /// <summary>이 기기의 로컬(입력 권한 보유) 플레이어 인스턴스. 없으면 null.</summary>
+    public static NetworkPlayer LocalInstance { get; private set; }
+
+
     [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
     [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
     [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
@@ -62,6 +66,11 @@ public class NetworkPlayer : NetworkBehaviour
         // 모든 클라이언트에서 등록(호스트는 원격 플레이어의 손도 참조해야 한다).
         _players[Object.InputAuthority] = this;
 
+        // 로컬(내) 플레이어 캐시 — 미션 결과를 Host 권한으로 브로드캐스트할 때 사용
+        if (IsLocalNetworkRig)
+            LocalInstance = this;
+
+
         if (IsLocalNetworkRig)
         {
             hardwareRig = FindFirstObjectByType<HardwareRig>();
@@ -98,6 +107,10 @@ public class NetworkPlayer : NetworkBehaviour
 
         if (_players.TryGetValue(Object.InputAuthority, out var np) && np == this)
             _players.Remove(Object.InputAuthority);
+
+        if (LocalInstance == this)
+            LocalInstance = null;
+
     }
 
     public override void FixedUpdateNetwork()
@@ -180,5 +193,24 @@ public class NetworkPlayer : NetworkBehaviour
         {
             avatarRenderer.enabled = visible;
         }
+    }
+
+
+    /// <summary>
+    /// (Host 전용) 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스트한다.
+    /// Host 는 상태 권한을 가지므로 RPC 를 보낼 수 있고, InvokeLocal 로 자기 자신도 실행된다.
+    /// </summary>
+    public void RequestRevivePlant(int plantId)
+    {
+        if (HasNetworkStateAuthority)
+            Rpc_RevivePlant(plantId);
+        else
+            PetalRhythmMission.ReviveById(plantId);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_RevivePlant(int plantId)
+    {
+        PetalRhythmMission.ReviveById(plantId);
     }
 }

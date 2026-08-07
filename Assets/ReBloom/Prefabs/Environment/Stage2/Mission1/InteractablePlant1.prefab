@@ -1,5 +1,141 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3428584868311502231
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4775296350121534851}
+  - component: {fileID: 6887686562169242687}
+  - component: {fileID: 7380440867029724206}
+  m_Layer: 8
+  m_Name: Petal_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4775296350121534851
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3428584868311502231}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4817419746029583752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &6887686562169242687
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3428584868311502231}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: -0.23, y: 0.82, z: -0.1}
+--- !u!114 &7380440867029724206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3428584868311502231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 4807239683461660793}
+  rightControllerTag: Right Controller
+--- !u!1 &3720839196414062048
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 147833357607188837}
+  - component: {fileID: 7328839231687595528}
+  - component: {fileID: 7450126099830918575}
+  m_Layer: 8
+  m_Name: Petal_D
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &147833357607188837
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3720839196414062048}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4817419746029583752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &7328839231687595528
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3720839196414062048}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.13
+  m_Center: {x: -0.16, y: 0.64, z: 0.15}
+--- !u!114 &7450126099830918575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3720839196414062048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 4807239683461660793}
+  rightControllerTag: Right Controller
 --- !u!1 &4740138137658813256
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,8 +146,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4817419746029583752}
   - component: {fileID: 8513399162968519099}
-  - component: {fileID: 8508032066269163490}
+  - component: {fileID: 6562141169194486854}
   - component: {fileID: 353192350563253623}
+  - component: {fileID: 4807239683461660793}
+  - component: {fileID: 9166609492012503148}
   m_Layer: 8
   m_Name: InteractablePlant1
   m_TagString: Untagged
@@ -33,6 +171,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8333824306848039023}
+  - {fileID: 4775296350121534851}
+  - {fileID: 6569232105634708188}
+  - {fileID: 3646239993338708656}
+  - {fileID: 147833357607188837}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8513399162968519099
@@ -915,8 +1057,8 @@ MonoBehaviour:
     - {x: 0.0031105655, y: -0.9999937, z: 0.001714622}
     - {x: -0.0032167558, y: -0.9999949, z: -0.00019436124}
     - {x: -0.003208314, y: -0.99999464, z: 0.00070607563}
---- !u!65 &8508032066269163490
-BoxCollider:
+--- !u!136 &6562141169194486854
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -933,9 +1075,11 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.73, y: 1.08, z: 0.7}
-  m_Center: {x: 0, y: 0.68, z: 0}
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 1.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.51, z: 0}
 --- !u!114 &353192350563253623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -955,8 +1099,264 @@ MonoBehaviour:
   longGap: 0.4
   loopWhileTouching: 1
   loopGap: 1
-  pulseAudioSource: {fileID: 0}
-  pulseClip: {fileID: 0}
+  clientOnly: 1
+--- !u!114 &4807239683461660793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4740138137658813256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf6f5964668042041ac95c84a60bba0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalRhythmMission
+  plantId: 1
+  vibration: {fileID: 353192350563253623}
+  plantRevive: {fileID: 3971768467168913456}
+  hostOnly: 1
+  beatTolerance: 0.35
+  relativeTolerance: 0.6
+  requiredMatchRatio: 0.6
+  betweenInputTimeout: 2.5
+  touchDebounce: 0.08
+  touchClip: {fileID: 8300000, guid: 84ed82c6da3136c43819096187be06ba, type: 3}
+  touchAudioSource: {fileID: 9166609492012503148}
+  touchVolume: 1
+--- !u!82 &9166609492012503148
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4740138137658813256}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!1 &5242704647037108828
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3646239993338708656}
+  - component: {fileID: 6224447120097048607}
+  - component: {fileID: 4517424689425193974}
+  m_Layer: 8
+  m_Name: Petal_C
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3646239993338708656
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5242704647037108828}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4817419746029583752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &6224447120097048607
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5242704647037108828}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.13
+  m_Center: {x: 0.09, y: 0.73, z: 0.13}
+--- !u!114 &4517424689425193974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5242704647037108828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 4807239683461660793}
+  rightControllerTag: Right Controller
+--- !u!1 &8440863225766620998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6569232105634708188}
+  - component: {fileID: 2123628246799001685}
+  - component: {fileID: 1917301925839991332}
+  m_Layer: 8
+  m_Name: Petal_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6569232105634708188
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440863225766620998}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4817419746029583752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &2123628246799001685
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440863225766620998}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: 0.23, y: 0.89, z: -0.13}
+--- !u!114 &1917301925839991332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440863225766620998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 4807239683461660793}
+  rightControllerTag: Right Controller
 --- !u!1001 &7786731212585639025
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -969,16 +1369,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_lotus_04
       objectReference: {fileID: 0}
-    - target: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-      propertyPath: m_LocalScale.z
+    - target: {fileID: 1512197278832314020, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
+      propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
@@ -1021,38 +1413,24 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1512197278832314020, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2804077389383893841}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
---- !u!4 &8333824306848039023 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-  m_PrefabInstance: {fileID: 7786731212585639025}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &8713446727140629205 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1512197278832314020, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
-  m_PrefabInstance: {fileID: 7786731212585639025}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2804077389383893841
+--- !u!114 &3971768467168913456 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 6561331964546020417, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
+  m_PrefabInstance: {fileID: 7786731212585639025}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8713446727140629205}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 25264fcc044a0b24bad7c4c1d293e7d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlantRevive
-  reviveDuration: 5
+--- !u!4 &8333824306848039023 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2285497394154740766, guid: 6ddad08cccf1ec5499b85e26f34d4cb9, type: 3}
+  m_PrefabInstance: {fileID: 7786731212585639025}
+  m_PrefabAsset: {fileID: 0}
