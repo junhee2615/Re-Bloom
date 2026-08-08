@@ -33,7 +33,11 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Tooltip("원위치보다 이만큼(m) 더 아래로 떨어지면 낙하를 멈춘다(무한 낙하 방지).")]
     [SerializeField] private float fallSafetyDepth = 15f;
 
-    [Networked] public NetworkBool IsCleared { get; private set; }
+    [Header("낙하 물리")]
+    [Tooltip("낙하 중력 배수. 1 = 기본, 작을수록 가볍고 둥실 떠서 멀리 간다.")]
+    [SerializeField] private float gravityScale = 1f;
+
+    [Networked] private NetworkBool IsCleared { get; set; }
     [Networked] private NetworkBool Initialized { get; set; }
     [Networked] private Vector3 NetPosition { get; set; }
     [Networked] private Quaternion NetRotation { get; set; }
@@ -265,8 +269,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     {
         if (body == null) return;
         body.isKinematic = false;
-        body.useGravity = true;
-        body.linearVelocity = Vector3.ClampMagnitude(velocity, 12f);
+        // gravityScale 이 1이면 기본 중력, 아니면 아래 FixedUpdate 에서 커스텀 중력을 적용한다.
+        body.useGravity = Mathf.Approximately(gravityScale, 1f);
+        body.linearVelocity = velocity;
         body.WakeUp();
         physicsActive = true;
     }
@@ -275,6 +280,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     {
         physicsActive = false;
         SetKinematic(true);
+    }
+
+    // gravityScale 이 1이 아니면 커스텀 중력을 적용한다
+    private void FixedUpdate()
+    {
+        if (!physicsActive || body == null || body.isKinematic) return;
+        if (!Mathf.Approximately(gravityScale, 1f))
+            body.AddForce(Physics.gravity * gravityScale, ForceMode.Acceleration);
     }
 
     private void SetKinematic(bool kinematic)

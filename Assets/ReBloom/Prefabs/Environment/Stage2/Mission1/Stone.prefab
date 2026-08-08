@@ -1107,9 +1107,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StoneObstacle
   requiredGrabbers: 2
   despawnOnCleared: 1
-  _IsCleared:
-    _value: 0
-  clearDistance: 0.6
+  fallSafetyDepth: 15
+  gravityScale: 1
 --- !u!64 &2115222030117798781
 MeshCollider:
   m_ObjectHideFlags: 0

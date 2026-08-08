@@ -1129,9 +1129,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoilObstacle
   requiredGrabbers: 1
   despawnOnCleared: 1
-  _IsCleared:
-    _value: 0
-  throwSpeed: 1.5
+  fallSafetyDepth: 5
+  gravityScale: 0.6
+  throwVelocityMultiplier: 1.6
+  maxThrowSpeed: 15
 --- !u!1001 &6645588390932908035
 PrefabInstance:
   m_ObjectHideFlags: 0
