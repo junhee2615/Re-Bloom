@@ -96,6 +96,8 @@ public class DoorRotate : NetworkBehaviour
     public override void Render()
     {
         transform.localRotation = Quaternion.Euler(0f, CurrentAngle, 0f);
+
+        UpdateDoorSound();
     }
 
     private void ApplyAngle(float angleDelta)
