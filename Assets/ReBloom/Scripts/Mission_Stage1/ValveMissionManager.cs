@@ -18,6 +18,13 @@ public class ValveMissionManager : NetworkBehaviour
 
     private bool clearEventRaised;
 
+    [Header("Valve Clear Sound")]
+    [SerializeField] private AudioSource valveCompleteAudioSource;
+    [SerializeField] private AudioSource waterLoopAudioSource;
+
+    [SerializeField] private AudioClip valveCompleteClip;
+    [SerializeField] private AudioClip waterLoopClip;
+
     void Update()
     {
         if (Object == null || !Object.IsValid)
@@ -37,6 +44,23 @@ public class ValveMissionManager : NetworkBehaviour
         if (isMissionClear && !clearEventRaised)
         {
             clearEventRaised = true;
+
+            // 완료 효과음 1회
+            if (valveCompleteAudioSource != null &&
+                valveCompleteClip != null)
+            {
+                valveCompleteAudioSource.PlayOneShot(valveCompleteClip);
+            }
+
+            // 물 흐르는 소리 Loop 시작
+            if (waterLoopAudioSource != null &&
+                waterLoopClip != null)
+            {
+                waterLoopAudioSource.clip = waterLoopClip;
+                waterLoopAudioSource.loop = true;
+                waterLoopAudioSource.PlayDelayed(0.2f);
+            }
+
             MissionCleared?.Invoke();
         }
 
