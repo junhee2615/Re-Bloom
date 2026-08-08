@@ -1,15 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// 나무뿌리 : 한 손으로 잡고 당긴다.
-/// 잡은 손을 따라오며, 원래 있던 위치에서 pullDistance 이상 멀어지면 당겨진 것으로 판정한다.
+/// 나무뿌리 : 한 손으로 잡고 당겨 빼낸 뒤 옮긴다.
+/// 놓으면 그 자리에서 중력으로 떨어진다.
 /// </summary>
 public class RootObstacle : WaterMissionObstacle
 {
-    [Header("당기기 설정")]
-    [Tooltip("원래 위치에서 이만큼(m) 당겨야 한다.")]
-    [SerializeField] private float pullDistance = 0.35f;
-
     private Vector3 offsetPos;
     private Quaternion offsetRot;
 
@@ -27,9 +23,6 @@ public class RootObstacle : WaterMissionObstacle
         rot = h.rotA * offsetRot;
     }
 
-    protected override void TryClearWhileHeld(Vector3 pos, Quaternion rot)
-    {
-        if (Vector3.Distance(pos, originPosition) >= pullDistance)
-            ClearObstacle();
-    }
+    // 놓을 때 그 자리에서 중력으로 떨어진다.
+    protected override void OnReleased(Vector3 velocity) => base.OnReleased(Vector3.zero);
 }

@@ -11,13 +11,16 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 ///  - 로컬에서는 <see cref="XRGrabInteractable"/> 을 "잡음 감지 전용"으로만 사용한다
 ///    (trackPosition/trackRotation 을 꺼서 XRI 가 트랜스폼을 직접 움직이지 못하게 한다).
 ///  - 잡음/놓음을 RPC 로 StateAuthority(호스트)에 알린다.
-///  - 호스트가 잡은 플레이어의 손 트랜스폼을 따라 오브젝트를 이동시키고,
-///    최종 포즈를 [Networked] 로 모든 클라이언트에 전파한다.
+///  - 잡은 동안에는 호스트가 잡은 플레이어의 손을 따라 트랜스폼을 직접 이동시킨다.
+///  - 놓으면 호스트에서 실제 물리(Rigidbody)로 떨어뜨린다.
+///  - 트랜스폼은 항상 호스트가 소유하고, 최종 포즈를 [Networked] 로 전파한다.
+///    클라이언트는 그 포즈를 Render() 에서 부드럽게 따라 그리기만 한다.
 ///
-/// 서브클래스가 이동 방식과 치워짐 조건만 구현하면 된다.
+/// 서브클래스는 "어떻게 들리는지(ComputeHeldPose)"와 필요 시 "놓았을 때 동작(OnReleased)"만 구현한다.
 /// (흙=던지기 / 뿌리=당겨뽑기 / 돌=2인 협동)
 /// </summary>
 [RequireComponent(typeof(NetworkObject))]
+[RequireComponent(typeof(Rigidbody))] // 이미 달려있긴 한데
 public abstract class WaterMissionObstacle : NetworkBehaviour
 {
     [Header("공통 설정")]
@@ -26,6 +29,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     [Tooltip("치워지면 오브젝트를 완전히 제거한다. 끄면 콜라이더/렌더만 끈다.")]
     [SerializeField] protected bool despawnOnCleared = true;
+
+    [Tooltip("원위치보다 이만큼(m) 더 아래로 떨어지면 낙하를 멈춘다(무한 낙하 방지).")]
+    [SerializeField] private float fallSafetyDepth = 15f;
 
     [Networked] public NetworkBool IsCleared { get; private set; }
     [Networked] private NetworkBool Initialized { get; set; }
@@ -42,13 +48,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     protected Quaternion originRotation;
 
     private XRGrabInteractable grab;
+    private Rigidbody body;
     private Collider[] colliders;
     private Renderer[] renderers;
 
     private bool wasHeld;
-    private Vector3 prevHandAPos;
-    // 슬롯 A 손 속도
-    protected float lastHandASpeed;
+    private bool physicsActive;          // 놓은 뒤 물리(낙하)로 움직이는 중인지 (호스트만)
+    private Vector3 prevObjectPos;
+    private Vector3 lastObjectVelocity;  // 놓는 순간 넘겨줄 속도(던지기용)
 
     /// <summary>호스트가 수집한, 현재 잡고 있는 손들의 월드 포즈.</summary>
     protected struct Hands
@@ -79,13 +86,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         originPosition = transform.position;
         originRotation = transform.rotation;
 
+        body = GetComponent<Rigidbody>();
         colliders = GetComponentsInChildren<Collider>();
         renderers = GetComponentsInChildren<Renderer>();
 
         grab = GetComponent<XRGrabInteractable>();
         if (grab != null)
         {
-            // 감지 전용: 이동은 XRI 가 직접 움직이지 않게 한다.
+            // 감지 전용: 이동은 XRI 가 직접 하지 않게 한다.
             grab.trackPosition = false;
             grab.trackRotation = false;
             grab.throwOnDetach = false;
@@ -153,33 +161,59 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         if (!HasStateAuthority || IsCleared) return;
 
         int count = GrabberCount;
-        bool enough = count > 0 && HasEnoughGrabbers(count);
+        bool held = count > 0 && HasEnoughGrabbers(count);
 
-        if (enough)
+        if (held)
         {
+            // 잡는 동안에는 물리를 끄고 손을 따라 직접 움직인다.
+            if (physicsActive) EndPhysics();
+            SetKinematic(true);
+
             Hands h = GatherHands();
 
-            if (h.hasA)
+            if (!wasHeld)
             {
-                if (wasHeld) lastHandASpeed = (h.posA - prevHandAPos).magnitude / Runner.DeltaTime;
-                prevHandAPos = h.posA;
+                OnHeldBegin(h);
+                prevObjectPos = transform.position;
+                lastObjectVelocity = Vector3.zero;
+                wasHeld = true;
             }
 
-            if (!wasHeld) { OnHeldBegin(h); wasHeld = true; }
-
-            Vector3 p = NetPosition;
-            Quaternion r = NetRotation;
+            Vector3 p = transform.position;
+            Quaternion r = transform.rotation;
             ComputeHeldPose(h, ref p, ref r);
-            NetPosition = p;
-            NetRotation = r;
+            transform.SetPositionAndRotation(p, r);
+
+            // 놓는 순간 실어줄 속도(던지기)
+            lastObjectVelocity = (p - prevObjectPos) / Runner.DeltaTime;
+            prevObjectPos = p;
 
             TryClearWhileHeld(p, r);
         }
-        else if (wasHeld)
+        else
         {
-            OnHeldEnd();
-            wasHeld = false;
+            if (wasHeld)
+            {
+                wasHeld = false;
+                OnReleased(lastObjectVelocity);
+            }
+
+            if (physicsActive)
+            {
+                // XRI 가 놓는 순간 kinematic 을 되돌려 낙하를 막는 경우 대비: 매 틱 재확인.
+                if (body != null && body.isKinematic) body.isKinematic = false;
+
+                // 바닥에 멈추면 물리 종료
+                if (transform.position.y < originPosition.y - fallSafetyDepth)
+                    EndPhysics();
+                else if (body != null && body.IsSleeping())
+                    EndPhysics();
+            }
         }
+
+        // 호스트의 최종 포즈를 클라이언트에 전파
+        NetPosition = transform.position;
+        NetRotation = transform.rotation;
     }
 
     private Hands GatherHands()
@@ -214,11 +248,40 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
             return;
         }
 
-        // 네트워크 포즈를 부드럽게 따라가기
+        // 호스트: 트랜스폼이 이미 권위값이므로 건드리지 않는다.
+        if (HasStateAuthority) return;
+
+        // 클라이언트: 네트워크 포즈를 부드럽게 따라간다.
         float k = 1f - Mathf.Exp(-18f * Time.deltaTime);
         transform.SetPositionAndRotation(
             Vector3.Lerp(transform.position, NetPosition, k),
             Quaternion.Slerp(transform.rotation, NetRotation, k));
+    }
+
+    // ---------- 물리(낙하/던지기) : 호스트에서만 ----------
+
+    /// <summary>놓았을 때 실제 물리로 떨어지게 한다.</summary>
+    protected void BeginPhysics(Vector3 velocity)
+    {
+        if (body == null) return;
+        body.isKinematic = false;
+        body.useGravity = true;
+        body.linearVelocity = Vector3.ClampMagnitude(velocity, 12f);
+        body.WakeUp();
+        physicsActive = true;
+    }
+
+    private void EndPhysics()
+    {
+        physicsActive = false;
+        SetKinematic(true);
+    }
+
+    private void SetKinematic(bool kinematic)
+    {
+        if (body == null) return;
+        if (body.isKinematic != kinematic) body.isKinematic = kinematic;
+        if (kinematic) body.useGravity = false;
     }
 
     /// <summary>호스트에서 호출: 이 장애물을 치워진 상태로 확정한다.</summary>
@@ -251,8 +314,8 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     /// <summary>이번 프레임에 처음 들리기 시작했을 때.</summary>
     protected virtual void OnHeldBegin(Hands h) { }
 
-    /// <summary>모든 손이 놓여 들림이 끝났을 때(흙 던지기 판정 등).</summary>
-    protected virtual void OnHeldEnd() { }
+    /// <summary>모든 손이 놓였을 때.</summary>
+    protected virtual void OnReleased(Vector3 velocity) => BeginPhysics(velocity);
 
     /// <summary>들린 동안 매 틱 목표 포즈를 계산한다.</summary>
     protected abstract void ComputeHeldPose(Hands h, ref Vector3 pos, ref Quaternion rot);
