@@ -21,6 +21,12 @@ public class LeverSwitch : NetworkBehaviour
 
     public bool isActivated => CurrentAngle <= -160f;
 
+    [Header("Lever Sound")]
+    [SerializeField] private AudioSource leverAudioSource;
+    [SerializeField] private AudioClip leverActivatedClip;
+
+    private bool leverSoundPlayed;
+
 
     public override void Spawned()
     {
@@ -34,6 +40,11 @@ public class LeverSwitch : NetworkBehaviour
             float startAngle = transform.localEulerAngles.x;
             if (startAngle > 180f) startAngle -= 360f;
             CurrentAngle = startAngle;
+        }
+
+        if (leverAudioSource == null)
+        {
+            leverAudioSource = GetComponent<AudioSource>();
         }
     }
 
@@ -66,6 +77,21 @@ public class LeverSwitch : NetworkBehaviour
     public override void Render()
     {
         transform.localRotation = Quaternion.Euler(CurrentAngle, 0f, 0f);
+
+        if (isActivated && !leverSoundPlayed)
+        {
+            leverSoundPlayed = true;
+
+            if (leverAudioSource != null && leverActivatedClip != null)
+            {
+                leverAudioSource.PlayOneShot(leverActivatedClip);
+            }
+        }
+
+        if (!isActivated)
+        {
+            leverSoundPlayed = false;
+        }
     }
 
     private void ApplyAngle(float angleDelta)

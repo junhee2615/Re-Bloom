@@ -22,6 +22,20 @@ public class DoorRotate : NetworkBehaviour
 
     private float grabTime;
 
+    [Header("Door Sound")]
+    [SerializeField] private AudioSource doorMoveAudio;
+
+    [SerializeField] private float soundAngleThreshold = 0.05f;
+    [SerializeField] private float soundStartAngle = 10f;
+    [SerializeField] private float soundStopDelay = 0.08f;
+
+    private float previousSoundAngle;
+    private float lastMovementTime;
+
+    private float grabStartAngle;
+    private bool soundStartedThisGrab;
+    private bool isSoundPaused;
+
 
     public override void Spawned()
     {
@@ -45,6 +59,12 @@ public class DoorRotate : NetworkBehaviour
 
             Debug.Log($"[Door Init] CurrentAngle:{CurrentAngle}");
         }
+
+        if (doorMoveAudio == null)
+            doorMoveAudio = GetComponent<AudioSource>();
+
+        previousSoundAngle = CurrentAngle;
+        lastMovementTime = Time.time;
     }
 
     private void Update()
@@ -111,6 +131,9 @@ public class DoorRotate : NetworkBehaviour
         interactor = args.interactorObject.transform;
         previousZ = interactor.position.z;
 
+        grabStartAngle = CurrentAngle;
+        soundStartedThisGrab = false;
+
         Debug.Log($"[Grab] Time:{Time.time}, Local:{Runner.LocalPlayer}, " +
               $"Interactor:{interactor.name}, IsSelected:{grabInteractable.isSelected}");
     }
@@ -122,5 +145,74 @@ public class DoorRotate : NetworkBehaviour
               $"Interactor:{args.interactorObject.transform.name}, " +
               $"IsSelected:{grabInteractable.isSelected}");
         interactor = null;
+
+        if (doorMoveAudio != null && doorMoveAudio.isPlaying)
+        {
+            doorMoveAudio.Pause();
+            isSoundPaused = true;
+        }
+
+        soundStartedThisGrab = false;
+    }
+
+    private void UpdateDoorSound()
+    {
+        if (doorMoveAudio == null)
+            return;
+
+        float angleDifference = Mathf.Abs(
+            Mathf.DeltaAngle(previousSoundAngle, CurrentAngle)
+        );
+
+        bool isDoorMoving =
+            angleDifference > soundAngleThreshold;
+
+        if (interactor != null && !soundStartedThisGrab)
+        {
+            float movedSinceGrab = Mathf.Abs(
+                Mathf.DeltaAngle(grabStartAngle, CurrentAngle)
+            );
+
+            if (movedSinceGrab >= soundStartAngle)
+            {
+                soundStartedThisGrab = true;
+            }
+        }
+
+        if (soundStartedThisGrab && isDoorMoving)
+        {
+            lastMovementTime = Time.time;
+
+            if (isSoundPaused)
+            {
+                doorMoveAudio.UnPause();
+                isSoundPaused = false;
+            }
+            else if (!doorMoveAudio.isPlaying)
+            {
+                doorMoveAudio.Play();
+            }
+        }
+        else if (
+            doorMoveAudio.isPlaying &&
+            Time.time - lastMovementTime >= soundStopDelay
+        )
+        {
+            doorMoveAudio.Pause();
+            isSoundPaused = true;
+        }
+
+        previousSoundAngle = CurrentAngle;
+    }
+
+    private void OnDisable()
+    {
+        if (doorMoveAudio == null)
+            return;
+
+        doorMoveAudio.Stop();
+
+        isSoundPaused = false;
+        soundStartedThisGrab = false;
     }
 }

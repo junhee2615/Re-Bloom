@@ -47,9 +47,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LeverMissionManager
   leverA: {fileID: 1185344537096728843}
   leverB: {fileID: 8901187961360759130}
-  clearText: {fileID: 7959805434639826962}
+  doorRight: {fileID: 0}
+  doorLeft: {fileID: 0}
+  audioSource: {fileID: 0}
+  doorOpenClip: {fileID: 0}
   _IsMissionClear:
     _value: 0
+  _IsDoorOpen:
+    _value: 0
+  beforebuilding: {fileID: 0}
+  clearBuilding: {fileID: 0}
+  trainLight: {fileID: 0}
+  missionAudioSourceA: {fileID: 3865524253665874563}
+  missionAudioSourceB: {fileID: 6796343114636516050}
+  electricLoopAudioSourceA: {fileID: 1329007938725934680}
+  electricLoopAudioSourceB: {fileID: 8756680427127930377}
+  missionSuccessClip: {fileID: 8300000, guid: 14e3b5617685aa44b91e866696239a90, type: 3}
+  electricLoopClip: {fileID: 8300000, guid: 83022dfa9d7122a40aaa5f19fd5dfff2, type: 3}
 --- !u!114 &1094372999576608179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -474,6 +488,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c60f020b2c8fb24585b48578c527325, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeverSwitch
+--- !u!82 &1329007938725934680 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 2356038037533694706, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 3657980288508619946}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &3865524253665874563 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 533351534218886697, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 3657980288508619946}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4588642822688316470 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 967680067315724444, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
@@ -539,6 +563,16 @@ PrefabInstance:
 --- !u!4 &6078255911628313703 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 967680067315724444, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 6428798758520251643}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &6796343114636516050 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 533351534218886697, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
+  m_PrefabInstance: {fileID: 6428798758520251643}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &8756680427127930377 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 2356038037533694706, guid: 6424643976d4f064f8ff0a37de77ff51, type: 3}
   m_PrefabInstance: {fileID: 6428798758520251643}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &8901187961360759130 stripped
