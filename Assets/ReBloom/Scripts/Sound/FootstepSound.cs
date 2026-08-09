@@ -32,7 +32,7 @@ public class FootstepSound : MonoBehaviour
 
         if (!isWalking)
         {
-            stepTimer = stepInterval;
+            stepTimer = 0f;
             return;
         }
 
