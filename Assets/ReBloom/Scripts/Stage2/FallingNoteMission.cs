@@ -230,10 +230,13 @@ private IEnumerator RunMission()
     // 노트를 터치(클릭)했을 때
 private void OnNoteClicked(Note n)
     {
+        // 역할 제한: 이 미션을 할 수 없는 플레이어의 터치는 카운트하지 않음
+        if (!CanLocalPlayerPlay()) return;
+
         float zMin, zMax, nMin, nMax;
         GetWorldY(clearRow, out zMin, out zMax);
         GetWorldY(n.rect, out nMin, out nMax);
-        bool inZone = (nMax >= zMin - hitTolerance && nMin <= zMax + hitTolerance);   // 노트가 ClearRow와 겹치면 유효
+        bool inZone = (nMax >= zMin - hitTolerance && nMin <= zMax + hitTolerance);
         Debug.Log($"[FallingNote] 누름 감지: {n.go.name} note=[{nMin:F2},{nMax:F2}] zone=[{zMin:F2},{zMax:F2}] inZone={inZone} touched={n.touched} missed={n.missed}");
 
         if (n.touched || n.missed) return;

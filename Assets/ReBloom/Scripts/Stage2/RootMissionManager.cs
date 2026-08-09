@@ -18,6 +18,49 @@ public class RootMissionManager : MonoBehaviour
     [Tooltip("마지막 뿌리를 찾은 뒤 활성화 미션으로 넘어가기까지 대기(초)")]
     [SerializeField] private float activationDelay = 3f;
     private bool activationStarted;
+    // 네트워크: 발견 완료를 이미 Host에 알렸는지 (중복 RPC 방지)
+    private bool findNotified;
+
+
+    // 네트워크 브리지 (연결 시에만 존재). null이면 오프라인 단독 흐름.
+    private RootMissionNet net;
+
+    /// <summary>RootMissionNet이 Spawned에서 호출. 뿌리들에 인덱스를 부여한다.</summary>
+    public void AttachNet(RootMissionNet n)
+    {
+        net = n;
+        for (int i = 0; i < activationRoots.Count; i++)
+            if (activationRoots[i] != null)
+                activationRoots[i].SetContext(this, i);
+    }
+
+    /// <summary>네트워크: ActiveIndex가 바뀔 때 모든 머신에서 호출되어 시퀀스를 갱신.</summary>
+    public void NetApplyIndex(int prev, int cur)
+    {
+        currentState = (cur >= activationRoots.Count)
+            ? RootMissionState.Completed
+            : RootMissionState.ActivateRoots;
+
+        // 직전 뿌리 완료 연출
+        if (prev >= 0 && prev < activationRoots.Count && activationRoots[prev] != null)
+            activationRoots[prev].NetComplete();
+
+        // 현재 뿌리 활성화 안내
+        if (cur >= 0 && cur < activationRoots.Count && activationRoots[cur] != null)
+            activationRoots[cur].BeginActivation();
+
+        if (cur >= activationRoots.Count)
+            Debug.Log("모든 뿌리 활성화 완료! 미션 종료 (네트워크)");
+    }
+
+    /// <summary>네트워크: RPC_StartAll이 모든 머신에서 해당 뿌리 미션을 시작시킬 때.</summary>
+    public void NetStartMission(int index)
+    {
+        if (index < 0 || index >= activationRoots.Count) return;
+        if (activationRoots[index] != null)
+            activationRoots[index].NetStartLocal();
+    }
+
 
     public int FoundCount => foundRoots.Count;
 
@@ -31,30 +74,65 @@ public void OnRootFound(LivingRoot root)
 
         Debug.Log($"찾은 뿌리 : {FoundCount}/3");
 
-        if (FoundCount >= 3 && !activationStarted)
+        if (FoundCount >= 3 && !activationStarted && !findNotified)
         {
-            activationStarted = true;
-            Debug.Log($"첫 번째 미션 완료! {activationDelay}초 뒤 활성화 미션으로 전환");
-            StartCoroutine(DelayedActivation());
+            if (net != null)
+            {
+                // 네트워크: 아무 기기나 먼저 다 찾으면 모두에게 알려 함께 전환 시작
+                findNotified = true;
+                net.NotifyFindComplete();
+            }
+            else
+            {
+                activationStarted = true;
+                Debug.Log($"첫 번째 미션 완료! {activationDelay}초 뒤 활성화 미션으로 전환");
+                StartCoroutine(DelayedActivation());
+            }
         }
     }
 
-// 마지막 뿌리를 찾은 뒤 잠시 진동을 더 느끼게 두었다가 활성화 미션으로 전환
-    private IEnumerator DelayedActivation()
+// 네트워크: 어느 기기든 발견을 완료하면 모든 기기에서 호출되어 전환을 시작한다.
+    public void NetFindComplete()
     {
-        // 대기 동안 LivingRoot는 켜져 있어 마지막 뿌리 진동을 계속 느낄 수 있다.
+        if (activationStarted)
+            return;
+        activationStarted = true;
+        Debug.Log($"첫 번째 미션 완료(네트워크)! {activationDelay}초 뒤 활성화 미션으로 전환");
+        StartCoroutine(DelayedActivation());
+    }
+
+
+// 마지막 뿌리를 찾은 뒤 잠시 진동을 더 느끼게 두었다가 활성화 미션으로 전환
+private IEnumerator DelayedActivation()
+    {
+        // 대기 동안 LivingRoot는 켜져 있어 마지막 뿌리 진동을 계속 느낌 수 있다.
         yield return new WaitForSeconds(activationDelay);
 
-        // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둠)
+        // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둔다)
         foreach (LivingRoot found in foundRoots)
         {
             if (found != null)
                 found.enabled = false;
         }
 
-        // 두 번째 미션(활성화) 시작
+        // 네트워크: 상대가 먼저 찾아 전환된 경우, 내가 아직 못 찾은 뿌리의 LivingRoot도 꺼 둔다.
+        if (net != null)
+        {
+            for (int i = 0; i < activationRoots.Count; i++)
+            {
+                if (activationRoots[i] == null) continue;
+                LivingRoot lr = activationRoots[i].GetComponentInChildren<LivingRoot>(true);
+                if (lr != null) lr.enabled = false;
+            }
+        }
+
         currentState = RootMissionState.ActivateRoots;
-        StartActivationSequence();
+
+        // 네트워크 연결 시: 권한자(Host)가 시퀀스를 시작하고 모든 머신이 ActiveIndex를 따른다.
+        if (net != null)
+            net.AuthorityBeginSequence();
+        else
+            StartActivationSequence();
     }
 
 

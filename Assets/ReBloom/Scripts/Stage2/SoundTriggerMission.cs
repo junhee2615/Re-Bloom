@@ -262,8 +262,11 @@ public class SoundTriggerMission : ActivationMission
     }
 
     // 오른손 컨트롤러 Grab(그립) 버튼을 눌려 있는지
-    private bool IsGrabPressed()
+private bool IsGrabPressed()
     {
+        // 역할 제한: 이 미션을 할 수 없는 플레이어의 그랩 입력은 인정하지 않음
+        if (!CanLocalPlayerPlay()) return false;
+
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
         if (device.TryGetFeatureValue(CommonUsages.gripButton, out bool pressed))
             return pressed;
