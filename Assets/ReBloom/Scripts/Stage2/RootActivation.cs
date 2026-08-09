@@ -88,11 +88,18 @@ public class RootActivation : MonoBehaviour
     /// (UGUI Button이면 Awake에서 자동 연결됨. 그 외에는 인스펙터에서 이 메서드를 버튼 이벤트에 연결.)
     /// StartButton을 끄고 MissionPanel을 켜 뒤 실제 미션을 시작한다.
     /// </summary>
-    public void OnStartButtonPressed()
+public void OnStartButtonPressed()
     {
         // 이 뿌리 차례가 아니거나 이미 시작했으면 무시 (중복 입력 방지)
         if (!IsRunning || missionStarted)
             return;
+
+        // 역할 제한: 이 미션을 할 수 없는 역할의 플레이어가 누르면 무시
+        if (mission != null && !mission.CanLocalPlayerPlay())
+        {
+            Debug.Log($"{name}: 이 미션은 지정된 역할의 플레이어만 시작할 수 있습니다.");
+            return;
+        }
 
         missionStarted = true;
 
@@ -105,7 +112,7 @@ public class RootActivation : MonoBehaviour
 
         if (mission != null)
         {
-            mission.OnCleared = CompleteActivation;   // 미션 성공 시 자동으로 완료 처리
+            mission.OnCleared = CompleteActivation;
             mission.StartMission();
         }
         else
