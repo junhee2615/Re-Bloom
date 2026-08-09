@@ -598,6 +598,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1209978439}
   - component: {fileID: 1209978440}
+  - component: {fileID: 1209978442}
+  - component: {fileID: 1209978441}
   m_Layer: 0
   m_Name: RootMissionManager
   m_TagString: Untagged
@@ -638,6 +640,39 @@ MonoBehaviour:
   - {fileID: 7609589794507034520}
   - {fileID: 7609589794507034519}
   activationDelay: 3
+--- !u!114 &1209978441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209978438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dbf17f4a399623449846362def324e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RootMissionNet
+  manager: {fileID: 1209978440}
+  _ActiveIndex: 0
+--- !u!114 &1209978442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209978438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 2346672644
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1209978441}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &1319006379
 GameObject:
   m_ObjectHideFlags: 0
@@ -1158,6 +1193,10 @@ PrefabInstance:
       value: "\uB178\uD2B8\uAC00 \uBE68\uAC04 \uC120\uC5D0 \uB2FF\uB294 \uC21C\uAC04
         \uD074\uB9AD\uD558\uC138\uC694!"
       objectReference: {fileID: 0}
+    - target: {fileID: 3983198132148130944, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: requiredRole
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4070581411082605638, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1262,6 +1301,10 @@ PrefabInstance:
       propertyPath: msgRemember
       value: "\uC9C0\uAE08 \uB4E4\uB9AC\uB294 \uC18C\uB9AC\uC758 \uB9AC\uB4EC\uC744
         \uAE30\uC5B5\uD558\uC138\uC694!"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679091927603195752, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: requiredRole
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 9031904406521489064, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_Layer

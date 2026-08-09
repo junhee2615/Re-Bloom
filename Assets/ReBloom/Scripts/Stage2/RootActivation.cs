@@ -39,6 +39,17 @@ public class RootActivation : MonoBehaviour
     // StartButton을 눌러 미션이 실제로 시작됐는지
     private bool missionStarted;
 
+    // 네트워크 시퀀스에서 이 뿌리의 순서 인덱스 (RootMissionManager.AttachNet에서 설정)
+    public int MissionIndex { get; private set; }
+
+    /// <summary>네트워크 모드에서 매니저/인덱스를 연결한다.</summary>
+    public void SetContext(RootMissionManager m, int index)
+    {
+        missionManager = m;
+        MissionIndex = index;
+    }
+
+
     private void Awake()
     {
         // 시작 상태 정리: 원/문양/캔버스 모두 꺼 둔다.
@@ -101,24 +112,15 @@ public void OnStartButtonPressed()
             return;
         }
 
-        missionStarted = true;
-
-        if (startButton != null)
-            startButton.SetActive(false);
-        if (missionPanel != null)
-            missionPanel.SetActive(true);
-
-        Debug.Log($"{name} 미션 시작");
-
-        if (mission != null)
+        // 네트워크 연결: 시작을 브로드캐스해 모든 머신이 함께 시작하게 한다.
+        if (RootMissionNet.Instance != null)
         {
-            mission.OnCleared = CompleteActivation;
-            mission.StartMission();
+            RootMissionNet.Instance.RequestStart(MissionIndex);
+            return;
         }
-        else
-        {
-            Debug.LogWarning($"{name} 에 mission이 연결되지 않았습니다.");
-        }
+
+        // 오프라인(단독): 즉시 로컬 시작
+        StartMissionLocal();
     }
 
     /// <summary>
@@ -148,4 +150,74 @@ public void OnStartButtonPressed()
         // 매니저에 알림 → 다음 뿌리로 진행
         missionManager?.OnRootActivated(this);
     }
+
+// 오프라인(단독) 로컬 미션 시작
+    private void StartMissionLocal()
+    {
+        missionStarted = true;
+
+        if (startButton != null) startButton.SetActive(false);
+        if (missionPanel != null) missionPanel.SetActive(true);
+
+        Debug.Log($"{name} 미션 시작");
+
+        if (mission != null)
+        {
+            mission.OnCleared = CompleteActivation;
+            mission.StartMission();
+        }
+        else
+        {
+            Debug.LogWarning($"{name} 에 mission이 연결되지 않았습니다.");
+        }
+    }
+
+    // 네트워크: 모든 머신에서 호출(RPC_StartAll). 수행 가능한 플레이어만 실제 미션 구동, 그 외는 관전.
+    public void NetStartLocal()
+    {
+        if (missionStarted) return;
+        missionStarted = true;
+
+        if (startButton != null) startButton.SetActive(false);
+        if (missionPanel != null) missionPanel.SetActive(true);
+
+        if (mission != null && mission.CanLocalPlayerPlay())
+        {
+            mission.SetMissionIndex(MissionIndex);
+            mission.OnCleared = OnMissionClearedNet;
+            mission.StartMission();
+            Debug.Log($"{name} 미션 시작 (네트워크)");
+        }
+        else
+        {
+            Debug.Log($"{name} 관전 (다른 역할의 플레이어가 수행)");
+        }
+    }
+
+    // 판정을 마친 머신이 시퀀스 전진을 요청. 완료 연출은 ActiveIndex 전파로 모든 머신이 처리.
+    private void OnMissionClearedNet()
+    {
+        if (RootMissionNet.Instance != null)
+            RootMissionNet.Instance.ReportCleared(MissionIndex);
+        else
+            CompleteActivation();
+    }
+
+    // 네트워크: ActiveIndex가 이 뿌리를 지나갈 때 모든 머신에서 호출되는 완료 연출.
+    public void NetComplete()
+    {
+        if (IsActivated) return;
+        IsActivated = true;
+        IsRunning = false;
+        missionStarted = false;
+
+        if (mission != null) mission.StopMission();
+
+        if (activateCircle != null) activateCircle.SetActive(false);
+        if (missionCanvas != null) missionCanvas.SetActive(false);
+        if (aliveDecal != null) aliveDecal.SetActive(true);
+
+        Debug.Log($"{name} 활성화 미션 완료 (네트워크)");
+    }
+
 }

@@ -18,6 +18,12 @@ public abstract class ActivationMission : MonoBehaviour
     [Tooltip("이 미션을 수행할 수 있는 플레이어 역할 (Any=제한없음, HostOnly=호스트만, ClientOnly=클라이언트만)")]
     [SerializeField] protected MissionRole requiredRole = MissionRole.Any;
 
+    // 네트워크 동기화용 뿌리 인덱스 (RootActivation이 설정). 오프라인이면 0.
+    protected int missionIndex;
+    /// <summary>이 미션의 뿌리 인덱스를 설정한다(네트워크 시퀀스 식별용).</summary>
+    public void SetMissionIndex(int index) { missionIndex = index; }
+
+
     /// <summary>
     /// 이 뿌리 차례가 되면 RootActivation이 호출한다.
     /// 패널 UI(안내 텍스트 / 노트 등)를 세팅하고 입력 판정을 시작한다.
