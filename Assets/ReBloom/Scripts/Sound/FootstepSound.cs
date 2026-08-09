@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 
 public class FootstepSound : MonoBehaviour
 {
@@ -18,8 +19,31 @@ public class FootstepSound : MonoBehaviour
 
     private float stepTimer;
 
+    [Header("Landing")]
+    [SerializeField] private GravityProvider gravityProvider;
+
+    private bool wasGrounded = true;
+    private bool wasInAirAfterJump = false;
+
     private void Update()
     {
+        if (gravityProvider != null)
+        {
+            bool isGrounded = gravityProvider.isGrounded;
+
+            if (!isGrounded)
+            {
+                wasInAirAfterJump = true;
+            }
+            else if (!wasGrounded && wasInAirAfterJump)
+            {
+                PlayFootstep();
+                wasInAirAfterJump = false;
+            }
+
+            wasGrounded = isGrounded;
+        }
+
         if (moveInput == null ||
             audioSource == null ||
             footstepClips == null ||
