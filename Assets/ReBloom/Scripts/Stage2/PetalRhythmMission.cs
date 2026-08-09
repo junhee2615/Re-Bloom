@@ -42,6 +42,13 @@ public class PetalRhythmMission : MonoBehaviour
     private float lastTouchTime = -999f;
     private bool cleared;
 
+    // 복원 여부
+    public bool IsCleared => cleared;
+
+    // 연출 트리거
+    public static event System.Action Revived;
+
+
     // plantId → 인스턴스. 네트워크 RPC(NetworkPlayer.Rpc_RevivePlant)가 id 로 찾아 로컬 복원
     private static readonly Dictionary<int, PetalRhythmMission> _registry =
         new Dictionary<int, PetalRhythmMission>();
@@ -141,9 +148,12 @@ public class PetalRhythmMission : MonoBehaviour
         if (plantRevive != null)
             plantRevive.StartRevive();
 
-        // 복원 후에는 줄기 진동을 끔
+        // 복원 후에는 줄기 진동을 끕
         if (vibration != null)
             vibration.enabled = false;
+
+        // 완료 연출 코디네이터(PlantClearSequence)가 3개 클리어를 감지하도록 알림
+        Revived?.Invoke();
     }
 
     // 횟수가 맞고, 간격이 requiredMatchRatio 이상 맞으면 성공.
@@ -165,5 +175,14 @@ public class PetalRhythmMission : MonoBehaviour
         }
 
         return ok >= Mathf.CeilToInt(expected.Count * requiredMatchRatio);
+    }
+
+
+    // 도메인 리로드 비활성화 환경 대비: 재생 세션 시작 전 정적 상태 리셋
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Revived = null;
+        _registry.Clear();
     }
 }
