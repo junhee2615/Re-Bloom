@@ -336,7 +336,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  resonanceDistance: 3.81
+  hostSpawnPoint: {fileID: 0}
+  clientSpawnPoint: {fileID: 0}
   minDistance: 2
   maxConstraintRelief: 0.7
   distanceResponseSpeed: 6
@@ -345,6 +346,9 @@ MonoBehaviour:
   activateStep: 3
   deactivateStep: 2
   lateJoinStateWaitSeconds: 10
+  resonanceVolume: {fileID: 0}
+  releasedVolumeWeight: 0.6
+  constrainedVolumeWeight: 1
 --- !u!1001 &3846063778224516753
 PrefabInstance:
   m_ObjectHideFlags: 0
