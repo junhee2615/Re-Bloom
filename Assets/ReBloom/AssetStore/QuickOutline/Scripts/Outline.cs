@@ -100,7 +100,11 @@ public class Outline : MonoBehaviour {
   }
 
   void OnEnable() {
+    int playerLayer = LayerMask.NameToLayer("Player");
+
     foreach (var renderer in renderers) {
+
+      if (renderer.gameObject.layer == playerLayer) continue;
 
       // Append outline shaders
       var materials = renderer.sharedMaterials.ToList();
@@ -138,7 +142,11 @@ public class Outline : MonoBehaviour {
   }
 
   void OnDisable() {
+    int playerLayer = LayerMask.NameToLayer("Player");
+
     foreach (var renderer in renderers) {
+
+      if (renderer.gameObject.layer == playerLayer) continue;
 
       // Remove outline shaders
       var materials = renderer.sharedMaterials.ToList();
