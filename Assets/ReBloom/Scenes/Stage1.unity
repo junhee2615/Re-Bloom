@@ -696,11 +696,11 @@ PrefabInstance:
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: doorLeft
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1613679488}
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: doorRight
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1613679489}
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: trainFloor
       value: 
@@ -2209,6 +2209,11 @@ MonoBehaviour:
   m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+--- !u!82 &1354758701 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 3127284466424588559, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+  m_PrefabInstance: {fileID: 1777988962}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1390032291
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3689,6 +3694,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 913590143948483118, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: valveCompleteAudioSource
+      value: 
+      objectReference: {fileID: 1354758701}
     - target: {fileID: 2698543506880981567, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 507.15
@@ -3733,6 +3742,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5821363871105322036, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: Flags
+      value: 262145
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821363871105322036, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: SortKey
+      value: 1686818758
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821363871105322036, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: NetworkedBehaviours.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821363871105322036, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+      propertyPath: 'NetworkedBehaviours.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1777988963}
     - target: {fileID: 7931827681442592864, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
       propertyPath: m_IsTrigger
       value: 1
@@ -3752,7 +3777,7 @@ PrefabInstance:
     - target: {fileID: 8771555501001585829, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[0]'
       value: 
-      objectReference: {fileID: 1777988963}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3763,7 +3788,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
 --- !u!114 &1777988963 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1190398603071064185, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
+  m_CorrespondingSourceObject: {fileID: 275255367003807118, guid: 22ab9a05569a2f542a95e0d7381b60f8, type: 3}
   m_PrefabInstance: {fileID: 1777988962}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -3939,6 +3964,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 49e6affca4d27fc4190b9ca97549d6e2, type: 3}
+--- !u!82 &1808106307 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 8061603716341931957, guid: 49e6affca4d27fc4190b9ca97549d6e2, type: 3}
+  m_PrefabInstance: {fileID: 1808106306}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1887335079
 GameObject:
   m_ObjectHideFlags: 0
@@ -4550,7 +4580,7 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 0
   blendDistance: 0
-  weight: 0.6
+  weight: 1
   sharedProfile: {fileID: 11400000, guid: fd8824d99fd770c439ba19e6eaa76fe9, type: 2}
 --- !u!4 &2138010515
 Transform:
@@ -4579,47 +4609,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fb02f0957794c6d93fac4809ae6cd50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResonanceController
-  fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
-  startIntensity: 1
-  activeIntensity: 1
-  transitionDuration: 1.5
-  transitionCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   hostSpawnPoint: {fileID: 429216927}
   clientSpawnPoint: {fileID: 1663898910}
   minDistance: 2
-  maxConstraintRelief: 0.4
   distanceResponseSpeed: 6
   logDistanceCalculation: 0
-  useNetworkedTutorialState: 1
-  activateStep: 3
-  deactivateStep: 2
-  lateJoinStateWaitSeconds: 10
-  resonanceVolume: {fileID: 0}
-  releasedVolumeWeight: 0.6
-  constrainedVolumeWeight: 1
+  fog:
+    fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
+    activeIntensity: 1
+    maxConstraintRelief: 0.4
+  volume:
+    resonanceVolume: {fileID: 2138010514}
+    releasedVolumeWeight: 0.6
+    relievedVolumeWeight: 0.9
+  audioConstraint:
+    constrainedAudioSources:
+    - {fileID: 1808106307}
+    - {fileID: 208765481}
+    - {fileID: 1718984750}
+    resonanceGroup: {fileID: 3158594053033413330, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    normalGroup: {fileID: 24300002, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    constrainedSnapshot: {fileID: 24500006, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    relievedSnapshot: {fileID: 24500007, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+  constraintEnabled: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:
   m_ObjectHideFlags: 0

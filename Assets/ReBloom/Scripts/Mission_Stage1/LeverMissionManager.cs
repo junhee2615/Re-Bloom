@@ -22,6 +22,18 @@ public class LeverMissionManager : NetworkBehaviour
     private bool started = false;
     private bool playedDoorAnimation = false;
 
+    [Header("Mission Sound")]
+    public AudioSource missionAudioSourceA;
+    public AudioSource missionAudioSourceB;
+
+    public AudioSource electricLoopAudioSourceA;
+    public AudioSource electricLoopAudioSourceB;
+
+    public AudioClip missionSuccessClip;
+    public AudioClip electricLoopClip;
+
+    private bool playedMissionSuccessSound = false;
+
     void Update()
     {
         if (Object == null || !Object.IsValid)
@@ -39,6 +51,34 @@ public class LeverMissionManager : NetworkBehaviour
         if (IsMissionClear && !started)
         {
             started = true;
+
+            if (!playedMissionSuccessSound)
+            {
+                playedMissionSuccessSound = true;
+
+                // 두 배전반에서 성공 효과음 재생
+                if (missionAudioSourceA != null && missionSuccessClip != null)
+                    missionAudioSourceA.PlayOneShot(missionSuccessClip);
+
+                if (missionAudioSourceB != null && missionSuccessClip != null)
+                    missionAudioSourceB.PlayOneShot(missionSuccessClip);
+
+                // 두 배전반에서 전기 작동음 Loop 시작
+                if (electricLoopAudioSourceA != null && electricLoopClip != null)
+                {
+                    electricLoopAudioSourceA.clip = electricLoopClip;
+                    electricLoopAudioSourceA.loop = true;
+                    electricLoopAudioSourceA.Play();
+                }
+
+                if (electricLoopAudioSourceB != null && electricLoopClip != null)
+                {
+                    electricLoopAudioSourceB.clip = electricLoopClip;
+                    electricLoopAudioSourceB.loop = true;
+                    electricLoopAudioSourceB.Play();
+                }
+            }
+
             if (HasStateAuthority)
                 StartCoroutine(OpenDoorAfterDelay());
         }

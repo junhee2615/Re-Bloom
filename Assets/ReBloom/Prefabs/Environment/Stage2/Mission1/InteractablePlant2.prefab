@@ -1,5 +1,73 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1763869329696171773
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3997392359255685018}
+  - component: {fileID: 4418876213942571288}
+  - component: {fileID: 7296778296121413990}
+  m_Layer: 0
+  m_Name: Petal_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3997392359255685018
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763869329696171773}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4707482793995829975}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4418876213942571288
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763869329696171773}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: 0.17, y: 0.75, z: -0.13}
+--- !u!114 &7296778296121413990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1763869329696171773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 8877406502094077175}
+  rightControllerTag: Right Controller
 --- !u!1 &2707941476611814809
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,6 +78,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4707482793995829975}
   - component: {fileID: 5280167357857246595}
+  - component: {fileID: 9089191749074514781}
+  - component: {fileID: 4904654992390023555}
+  - component: {fileID: 8877406502094077175}
+  - component: {fileID: 6705208404762609414}
   m_Layer: 0
   m_Name: InteractablePlant2
   m_TagString: Untagged
@@ -31,6 +103,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4504415552790818098}
+  - {fileID: 3133631881945537732}
+  - {fileID: 3997392359255685018}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5280167357857246595
@@ -913,6 +987,238 @@ MonoBehaviour:
     - {x: 0.0031105655, y: -0.9999937, z: 0.001714622}
     - {x: -0.0032167558, y: -0.9999949, z: -0.00019436124}
     - {x: -0.003208314, y: -0.99999464, z: 0.00070607563}
+--- !u!136 &9089191749074514781
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 1.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.51, z: 0}
+--- !u!114 &4904654992390023555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23ed4345106c14046993d850c116a3bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractablePlantVibration
+  vibrationPattern: "\u25CF\u25CF \u25CF \u25CF"
+  amplitude: 0.5
+  pulseDuration: 0.12
+  shortGap: 0.12
+  longGap: 0.4
+  loopWhileTouching: 1
+  loopGap: 1
+  clientOnly: 1
+--- !u!114 &8877406502094077175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf6f5964668042041ac95c84a60bba0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalRhythmMission
+  plantId: 2
+  vibration: {fileID: 4904654992390023555}
+  plantRevive: {fileID: 8336792460079514204}
+  hostOnly: 1
+  beatTolerance: 0.35
+  relativeTolerance: 0.6
+  requiredMatchRatio: 0.6
+  betweenInputTimeout: 2.5
+  touchDebounce: 0.08
+  touchClip: {fileID: 8300000, guid: 84ed82c6da3136c43819096187be06ba, type: 3}
+  touchAudioSource: {fileID: 6705208404762609414}
+  touchVolume: 1
+--- !u!82 &6705208404762609414
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2707941476611814809}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!1 &6932613452203771081
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3133631881945537732}
+  - component: {fileID: 4644168070598485898}
+  - component: {fileID: 5847802692103090828}
+  m_Layer: 0
+  m_Name: Petal_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3133631881945537732
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6932613452203771081}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4707482793995829975}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4644168070598485898
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6932613452203771081}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: -0.16, y: 0.69, z: -0.1}
+--- !u!114 &5847802692103090828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6932613452203771081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26c4118874b69243b0f331d618546fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PetalTouchForwarder
+  mission: {fileID: 8877406502094077175}
+  rightControllerTag: Right Controller
 --- !u!1001 &3650888893590665829
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -924,18 +1230,6 @@ PrefabInstance:
     - target: {fileID: 532452403904302573, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
       propertyPath: m_Name
       value: SM_lotus_11
-      objectReference: {fileID: 0}
-    - target: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -977,38 +1271,24 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 532452403904302573, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1767809348800719868}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
---- !u!1 &3875689122163537800 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 532452403904302573, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
-  m_PrefabInstance: {fileID: 3650888893590665829}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1767809348800719868
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3875689122163537800}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25264fcc044a0b24bad7c4c1d293e7d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlantRevive
-  reviveDuration: 5
 --- !u!4 &4504415552790818098 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 876079936202643287, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
   m_PrefabInstance: {fileID: 3650888893590665829}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8336792460079514204 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4690688718427797561, guid: b7d144aa1bc54e249a592e93ad21492a, type: 3}
+  m_PrefabInstance: {fileID: 3650888893590665829}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25264fcc044a0b24bad7c4c1d293e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlantRevive

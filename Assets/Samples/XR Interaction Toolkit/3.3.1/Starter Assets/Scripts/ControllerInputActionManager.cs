@@ -7,6 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using System.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 {
@@ -99,6 +100,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [SerializeField]
         [Tooltip("Event fired when the active ray interactor changes between interaction and teleport.")]
         UnityEvent<IXRRayProvider> m_RayInteractorChanged;
+
+        [Header("Teleport Sound")]
+        [SerializeField] AudioSource teleportAudioSource;
+        [SerializeField] AudioClip teleportAimClip;
+        [SerializeField] AudioClip teleportMoveClip;
+
+        [Tooltip("실제 텔레포트 여부를 확인할 XR Origin")]
+        [SerializeField] Transform xrOrigin;
+
+        [SerializeField] float teleportCheckTime = 1f;
+        [SerializeField] float teleportMoveThreshold = 0.1f;
+
+        Coroutine teleportCheckCoroutine;
 
         public bool smoothMotionEnabled
         {
@@ -251,6 +265,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             m_PostponedDeactivateTeleport = false;
 
+            // Aim 사운드 시작
+            if (teleportAudioSource != null && teleportAimClip != null)
+            {
+                teleportAudioSource.Stop();
+                teleportAudioSource.clip = teleportAimClip;
+                teleportAudioSource.loop = true;
+                teleportAudioSource.Play();
+            }
+
             if (m_TeleportInteractor != null)
                 m_TeleportInteractor.gameObject.SetActive(true);
 
@@ -269,6 +292,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             // We delay turning off the teleport interactor in this callback so that
             // the teleport interactor has a chance to complete the teleport if needed.
             // OnAfterInteractionEvents will handle deactivating its GameObject.
+
+            // Aim 사운드 종료
+            if (teleportAudioSource != null)
+            {
+                teleportAudioSource.Stop();
+                teleportAudioSource.loop = false;
+            }
+
+            // 실제 텔레포트 성공 여부 확인 시작
+            if (xrOrigin != null)
+            {
+                if (teleportCheckCoroutine != null)
+                    StopCoroutine(teleportCheckCoroutine);
+
+                teleportCheckCoroutine =
+                    StartCoroutine(CheckTeleportSuccess(xrOrigin.position));
+            }
+
             m_PostponedDeactivateTeleport = true;
 
             if (m_RayInteractor != null)
@@ -278,6 +319,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 m_NearFarInteractor.gameObject.SetActive(true);
 
             m_RayInteractorChanged?.Invoke(m_RayInteractor);
+        }
+
+        IEnumerator CheckTeleportSuccess(Vector3 startPosition)
+        {
+            float elapsed = 0f;
+
+            while (elapsed < teleportCheckTime)
+            {
+                yield return null;
+
+                if (xrOrigin == null)
+                    yield break;
+
+                float distance = Vector3.Distance(
+                    startPosition,
+                    xrOrigin.position
+                );
+
+                // XR Origin이 실제로 이동했다면 텔레포트 성공
+                if (distance >= teleportMoveThreshold)
+                {
+                    if (teleportAudioSource != null &&
+                        teleportMoveClip != null)
+                    {
+                        teleportAudioSource.loop = false;
+                        teleportAudioSource.PlayOneShot(teleportMoveClip);
+                    }
+
+                    teleportCheckCoroutine = null;
+                    yield break;
+                }
+
+                elapsed += Time.deltaTime;
+            }
+
+            // 유효하지 않은 위치라 텔레포트하지 않은 경우
+            // Move 효과음은 재생하지 않음
+            teleportCheckCoroutine = null;
         }
 
         void OnStartLocomotion(InputAction.CallbackContext context)

@@ -78,10 +78,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd60647f143d7844badb89f8eda98587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ValveMissionManager
-  valve: {fileID: 1190398603071064185}
+  valve: {fileID: 0}
   stability: 0
-  isMissionClear: 0
-  gameClearText: {fileID: 8036860370252829514}
+  _isMissionClear:
+    _value: 0
+  valveCompleteAudioSource: {fileID: 3127284466424588559}
+  waterLoopAudioSource: {fileID: 1697648792046308628}
+  valveCompleteClip: {fileID: 8300000, guid: 14e3b5617685aa44b91e866696239a90, type: 3}
+  waterLoopClip: {fileID: 8300000, guid: 19af056846371794999b3c65ea4f9c84, type: 3}
 --- !u!1 &3015783441929855748
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,14 +395,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8932843367591340729, guid: ee2a850f23e11b145b7be56b24bca0d7, type: 3}
   m_PrefabInstance: {fileID: 9148187053757710772}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1190398603071064185 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7958360402929273293, guid: ee2a850f23e11b145b7be56b24bca0d7, type: 3}
+--- !u!82 &1697648792046308628 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 7600846036755860640, guid: ee2a850f23e11b145b7be56b24bca0d7, type: 3}
   m_PrefabInstance: {fileID: 9148187053757710772}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66213bfc9ac22b34b874ff9950544a4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ValveRotate
+--- !u!82 &3127284466424588559 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 6166196451901434043, guid: ee2a850f23e11b145b7be56b24bca0d7, type: 3}
+  m_PrefabInstance: {fileID: 9148187053757710772}
+  m_PrefabAsset: {fileID: 0}

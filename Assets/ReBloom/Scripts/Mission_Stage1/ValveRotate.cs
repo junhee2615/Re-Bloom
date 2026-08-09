@@ -20,6 +20,16 @@ public class ValveRotate : NetworkBehaviour
 
     private float grabTime;
 
+    [Header("Valve Sound")]
+    [SerializeField] private AudioSource valveMoveAudio;
+
+    [SerializeField] private float soundAngleThreshold = 0.05f;
+    [SerializeField] private float soundStopDelay = 0.08f;
+
+    private float previousSoundAngle;
+    private float lastMovementTime;
+    private bool isSoundPaused;
+
     public override void Spawned()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
@@ -33,6 +43,12 @@ public class ValveRotate : NetworkBehaviour
             if (startAngle > 180f) startAngle -= 360f;
             CurrentAngle = startAngle;
         }
+
+        if (valveMoveAudio == null)
+            valveMoveAudio = GetComponent<AudioSource>();
+
+        previousSoundAngle = CurrentAngle;
+        lastMovementTime = Time.time;
     }
 
     private void Update()
@@ -63,6 +79,8 @@ public class ValveRotate : NetworkBehaviour
     public override void Render()
     {
         transform.localRotation = Quaternion.Euler(0f, 0f, CurrentAngle);
+
+        UpdateValveSound();
     }
 
     private void ApplyAngle(float angleDelta)
@@ -87,5 +105,49 @@ public class ValveRotate : NetworkBehaviour
     private void OnRelease(SelectExitEventArgs args)
     {
         interactor = null;
+
+        if (valveMoveAudio != null && valveMoveAudio.isPlaying)
+        {
+            valveMoveAudio.Pause();
+            isSoundPaused = true;
+        }
+    }
+
+    private void UpdateValveSound()
+    {
+        if (valveMoveAudio == null)
+            return;
+
+        float angleDifference = Mathf.Abs(
+            Mathf.DeltaAngle(previousSoundAngle, CurrentAngle)
+        );
+
+        bool isValveMoving =
+            angleDifference > soundAngleThreshold;
+
+        if (isValveMoving)
+        {
+            lastMovementTime = Time.time;
+
+            if (isSoundPaused)
+            {
+                valveMoveAudio.UnPause();
+                isSoundPaused = false;
+            }
+            else if (!valveMoveAudio.isPlaying)
+            {
+                valveMoveAudio.Play();
+            }
+        }
+        else if (
+            valveMoveAudio.isPlaying &&
+            Time.time - lastMovementTime >= soundStopDelay
+        )
+        {
+            valveMoveAudio.Pause();
+            isSoundPaused = true;
+        }
+
+        previousSoundAngle = CurrentAngle;
     }
 }
