@@ -97,6 +97,13 @@ public class NetworkPlayer : NetworkBehaviour
                 return;
             }
 
+            // 내 아바타 캡슐 콜라이더와 내 하드웨어 리그의 CharacterController가
+            // 서로 밀어내며 하늘로 떠오르는 자가 충돌을 방지한다.
+            var rigCharacterController = hardwareRig.GetComponent<CharacterController>();
+            var myAvatarCollider = GetComponent<Collider>();
+            if (rigCharacterController != null && myAvatarCollider != null)
+                Physics.IgnoreCollision(myAvatarCollider, rigCharacterController, true);
+
             teleportGhostManager =
                 FindFirstObjectByType<TeleportGhostManager>();
 
