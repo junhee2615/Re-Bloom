@@ -7,7 +7,6 @@ using TMPro;
 
 /// <summary>
 /// AliveStump3 미션 : 두 플레이어가 협동하는 리듬 미션.
-/// SoundTriggerMission과 흐름은 거의 같지만:
 ///  - StartButton은 누구나 누를 수 있고(requiredRole = Any),
 ///  - 리듬 소리는 soundRole(기본 Host)만 들리며,
 ///  - Grab 입력은 grabRole(기본 Client)만 카운트된다.
@@ -46,7 +45,7 @@ public class CombinedMission : ActivationMission
     [SerializeField] private float wrongTextDuration = 1.5f;
 
     [Header("리듬 패턴 (소리)")]
-    [SerializeField] private string vibrationPattern = "● ● ●●●";
+    [SerializeField] private string vibrationPattern = "●●● ● ● ";
     [SerializeField] private float pulseDuration = 0.12f;
     [SerializeField] private float shortGap = 0.12f;
     [SerializeField] private float longGap = 0.4f;
