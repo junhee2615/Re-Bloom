@@ -333,6 +333,10 @@ private void ResetNoteRound()
             {
                 n.image.color = n.originalColor;
                 n.image.enabled = false;
+                // Host 세트는 CanvasGroup alpha=0으로 안 보이게 하는데, cullTransparentMesh가 true면
+                // 투명 메시가 컴링되어 레이캐스트까지 막힌다. 끔어 클릭 가능하게 유지.
+                if (n.image.canvasRenderer != null)
+                    n.image.canvasRenderer.cullTransparentMesh = false;
             }
         }
     }
@@ -507,7 +511,7 @@ private void ResetNoteRound()
             if (leafImage != null) leafImage.SetActive(false);
             if (gameNotes != null) gameNotes.SetActive(false);
             SetText(msgRemember1);
-            yield return new WaitForSeconds(introMsgDuration);
+            yield return new WaitForSeconds(introMsgDuration*2);
             SetText(msgRemember2);
             yield return new WaitForSeconds(introMsgDuration);
             SetText(msgRemember3);
