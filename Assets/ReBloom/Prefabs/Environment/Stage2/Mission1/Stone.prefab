@@ -944,7 +944,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &2117986798445019096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1106,10 +1106,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StoneObstacle
   requiredGrabbers: 2
-  despawnOnCleared: 1
-  _IsCleared:
-    _value: 0
-  clearDistance: 0.6
+  fallSafetyDepth: 15
+  gravityScale: 1
 --- !u!64 &2115222030117798781
 MeshCollider:
   m_ObjectHideFlags: 0

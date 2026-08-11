@@ -110,7 +110,6 @@ Transform:
   - {fileID: 7251948176291951706}
   - {fileID: 4252474158822157647}
   - {fileID: 5084100277841674919}
-  - {fileID: 3034261109399511492}
   - {fileID: 7092021711014478233}
   m_Father: {fileID: 3218652661563215942}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -292,7 +291,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -833,7 +832,6 @@ Transform:
   - {fileID: 3650670410864057665}
   - {fileID: 1424401639743015502}
   - {fileID: 7096062488372890711}
-  - {fileID: 1288620572370966888}
   - {fileID: 498722056299981378}
   - {fileID: 7516577112511495148}
   m_Father: {fileID: 3218652661563215942}
@@ -3076,6 +3074,39 @@ Transform:
   - {fileID: 711921945995471828}
   m_Father: {fileID: 6970648451777087508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3042850558776694019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8522700446257162526}
+  m_Layer: 0
+  m_Name: PhysicsHands
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8522700446257162526
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3042850558776694019}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.44297, y: -3.13027, z: -0.51178}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1288620572370966888}
+  - {fileID: 3034261109399511492}
+  m_Father: {fileID: 3218652661563215942}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3045772062512691328
 GameObject:
   m_ObjectHideFlags: 0
@@ -4878,6 +4909,7 @@ GameObject:
   - component: {fileID: 3107855431867448281}
   - component: {fileID: 6764401666768682296}
   - component: {fileID: 2368398898189221134}
+  - component: {fileID: 3425363316434969951}
   m_Layer: 9
   m_Name: hand_l
   m_TagString: Untagged
@@ -4894,13 +4926,13 @@ Transform:
   m_GameObject: {fileID: 5587643406715352879}
   serializedVersion: 2
   m_LocalRotation: {x: -0.58788913, y: 0.19213001, z: 0.4864484, w: 0.61712277}
-  m_LocalPosition: {x: 0, y: 0, z: -0.13}
-  m_LocalScale: {x: 1.4999998, y: 1.4999998, z: 1.5}
+  m_LocalPosition: {x: 0.44297, y: 3.13027, z: 0.38178003}
+  m_LocalScale: {x: 1.4999996, y: 1.4999998, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7202720314779956299}
   - {fileID: 4687308498025306507}
-  m_Father: {fileID: 4972534313816744801}
+  m_Father: {fileID: 8522700446257162526}
   m_LocalEulerAnglesHint: {x: -65.856, y: 305.05798, z: -246.287}
 --- !u!95 &6706607425720342633
 Animator:
@@ -4973,10 +5005,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
+  m_IsKinematic: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!64 &2368398898189221134
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -4999,6 +5031,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 8851689266102096854, guid: 3d83506032d8c084598d2ecfe6f77968, type: 3}
+--- !u!114 &3425363316434969951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5587643406715352879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 430ca2872164fc940a6ce70fd0eec431, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsHand
+  target: {fileID: 4972534313816744801}
+  snapDistance: 0.5
+  maxFollowSpeed: 15
+  hardSnapDistance: 1.5
 --- !u!1 &5626403988009723939
 GameObject:
   m_ObjectHideFlags: 0
@@ -5494,6 +5542,7 @@ GameObject:
   - component: {fileID: 390001755655718319}
   - component: {fileID: 6020604597224396640}
   - component: {fileID: 5152262677986228473}
+  - component: {fileID: 7203523333456808979}
   m_Layer: 9
   m_Name: hand_r
   m_TagString: Untagged
@@ -5510,13 +5559,13 @@ Transform:
   m_GameObject: {fileID: 6266177462347724942}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5878864, y: -0.19213197, z: -0.48645326, w: 0.61712086}
-  m_LocalPosition: {x: 0, y: 0, z: -0.13}
+  m_LocalPosition: {x: 0.44297, y: 3.13027, z: 0.38178003}
   m_LocalScale: {x: 1.4999999, y: 1.4999998, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4998363486014288313}
   - {fileID: 1081711483164774516}
-  m_Father: {fileID: 1092850076803188865}
+  m_Father: {fileID: 8522700446257162526}
   m_LocalEulerAnglesHint: {x: -65.856, y: -305.058, z: 246.287}
 --- !u!95 &7277703960488935976
 Animator:
@@ -5589,10 +5638,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
+  m_IsKinematic: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!64 &5152262677986228473
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -5615,6 +5664,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 7954577337513133825, guid: fccf983da9aafff449c284bb3b4699ad, type: 3}
+--- !u!114 &7203523333456808979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6266177462347724942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 430ca2872164fc940a6ce70fd0eec431, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhysicsHand
+  target: {fileID: 1092850076803188865}
+  snapDistance: 0.5
+  maxFollowSpeed: 15
+  hardSnapDistance: 1.5
 --- !u!1 &6517594358623027724
 GameObject:
   m_ObjectHideFlags: 0
@@ -5715,6 +5780,7 @@ Transform:
   - {fileID: 692859146368953058}
   - {fileID: 1092850076803188865}
   - {fileID: 4194491368702840475}
+  - {fileID: 8522700446257162526}
   m_Father: {fileID: 7712624025706478311}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6724738369825253316
@@ -10206,6 +10272,10 @@ PrefabInstance:
       propertyPath: m_EnableFarCasting
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2442306273320644280, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
+      propertyPath: m_InteractionLayers.m_Bits
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 4804964734930210078, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
       propertyPath: m_Name
       value: Near-Far Interactor
@@ -10253,6 +10323,10 @@ PrefabInstance:
     - target: {fileID: 5745700813747042508, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7104419533170684624, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
+      propertyPath: m_PhysicsLayerMask.m_Bits
+      value: 257
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
