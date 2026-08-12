@@ -30,6 +30,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Tooltip("원위치보다 이만큼(m) 더 아래로 떨어지면 낙하를 멈춘다(무한 낙하 방지).")]
     [SerializeField] private float fallSafetyDepth = 15f;
 
+    [Tooltip("잡은 손이 물체 표면에서 이 거리(m)보다 멀어지면 그 손을 놓는다.")]
+    [SerializeField] private float releaseDistance = 0.5f;
+
     [Header("낙하 물리")]
     [Tooltip("낙하 중력 배수. 1 = 기본, 작을수록 가볍고 둥실 떠서 멀리 간다.")]
     [SerializeField] private float gravityScale = 1f;
@@ -52,6 +55,7 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     private XRGrabInteractable grab;
     private Rigidbody body;
+    private Collider[] bodyColliders;   // 손↔물체 표면 거리 측정용
 
     private bool wasHeld;
     private bool isTracking;              // 잡고 속도로 따라오는 중
@@ -89,6 +93,7 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         originRotation = transform.rotation;
 
         body = GetComponent<Rigidbody>();
+        bodyColliders = GetComponentsInChildren<Collider>();
 
         grab = GetComponent<XRGrabInteractable>();
         if (grab != null)
@@ -153,11 +158,51 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     private static bool Same(PlayerRef a, NetworkBool aLeft, PlayerRef b, NetworkBool bLeft)
         => a != PlayerRef.None && a == b && aLeft == bLeft;
 
+    // 잡은 손이 물체 표면에서 releaseDistance 를 넘어 멀어지면 그 손 슬롯을 비운다.
+    private void PruneDistantGrabbers()
+    {
+        if (releaseDistance <= 0f || GrabberCount < 2) return;
+
+        if (GrabberA != PlayerRef.None && HandTooFar(GrabberA, GrabberAIsLeft))
+        {
+            GrabberA = PlayerRef.None; GrabberAIsLeft = false;
+        }
+        if (GrabberB != PlayerRef.None && HandTooFar(GrabberB, GrabberBIsLeft))
+        {
+            GrabberB = PlayerRef.None; GrabberBIsLeft = false;
+        }
+    }
+
+    // 손이 물체 표면에서 releaseDistance 보다 멀리 있으면 true.
+    private bool HandTooFar(PlayerRef p, NetworkBool isLeft)
+    {
+        if (!TryHand(p, isLeft, out Vector3 handPos, out _)) return false;
+
+        float best = float.PositiveInfinity;
+        if (bodyColliders != null)
+        {
+            foreach (Collider c in bodyColliders)
+            {
+                if (c == null || c.isTrigger) continue;
+                // ClosestPoint: 콜라이더가 프리미티브/컨벡스면 표면점,
+                // 논컨벡스 MeshCollider면 입력점을 그대로 반환(거리 0)
+                float d = Vector3.Distance(handPos, c.ClosestPoint(handPos));
+                if (d < best) best = d;
+            }
+        }
+        if (float.IsPositiveInfinity(best))
+            best = Vector3.Distance(handPos, transform.position); // 콜라이더가 없으면 중심 거리로 대체
+
+        return best > releaseDistance;
+    }
+
     // ---------- 호스트 시뮬레이션 ----------
 
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
+
+        PruneDistantGrabbers();   // 물체에서 너무 멀어진(닿지 않은) 손은 놓는다
 
         int count = GrabberCount;
         bool held = count > 0 && HasEnoughGrabbers(count);
