@@ -1,6 +1,6 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.XR;
 using Fusion;
 
@@ -9,8 +9,10 @@ public class UIPanel : MonoBehaviour
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
 
-    [Header("Tutorial Image")]
-    [SerializeField] private Image tutorialImage;
+    [Header("Texts")]
+    [SerializeField] private TMP_Text missionText;
+    [SerializeField] private TMP_Text titleText;
+    [SerializeField] private TMP_Text descriptionText;
 
     [Header("Mission Data")]
     [SerializeField] private MissionPanelData initialMessage;
@@ -94,19 +96,21 @@ public class UIPanel : MonoBehaviour
 
     private void ShowTutorial(MissionPanelData message)
     {
-        if (message == null || tutorialImage == null)
+        if (message == null)
             return;
+
+        missionText.text = message.MissionLabel;
+        titleText.text = message.Title;
 
         NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
 
-        // Host와 Client에 따라 서로 다른 이미지 표시
         if (runner != null && runner.LocalPlayer.PlayerId == 1)
         {
-            tutorialImage.sprite = message.HostImage;
+            descriptionText.text = message.HostDescription;
         }
         else
         {
-            tutorialImage.sprite = message.ClientImage;
+            descriptionText.text = message.ClientDescription;
         }
 
         if (audioSource != null && tutorialOpenClip != null)
@@ -114,7 +118,7 @@ public class UIPanel : MonoBehaviour
             audioSource.PlayOneShot(tutorialOpenClip);
         }
 
-        // 새로운 미션이 시작될 때 패널 다시 표시
+        // 새 미션이 시작되면 패널 다시 표시
         panelRoot.SetActive(true);
     }
 

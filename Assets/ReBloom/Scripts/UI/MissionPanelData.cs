@@ -5,10 +5,17 @@ using UnityEngine;
     menuName = "ReBloom/UI/Mission Panel Data")]
 public class MissionPanelData : ScriptableObject
 {
-    [Header("Tutorial Images")]
-    [SerializeField] private Sprite hostImage;
-    [SerializeField] private Sprite clientImage;
+    [SerializeField] private string missionLabel;
+    [SerializeField] private string title;
 
-    public Sprite HostImage => hostImage;
-    public Sprite ClientImage => clientImage;
+    [SerializeField, TextArea]
+    private string hostdescription;
+
+    [SerializeField, TextArea]
+    private string clientdescription;
+
+    public string MissionLabel => missionLabel;
+    public string Title => title;
+    public string HostDescription => hostdescription;
+    public string ClientDescription => clientdescription;
 }
