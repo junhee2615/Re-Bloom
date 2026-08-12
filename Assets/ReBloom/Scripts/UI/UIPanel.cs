@@ -1,22 +1,23 @@
-using System;
 using System.Collections;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR;
 using Fusion;
 
 public class UIPanel : MonoBehaviour
 {
+    [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
 
-    [SerializeField] private TMP_Text missionText;
-    [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text descriptionText;
+    [Header("Tutorial Image")]
+    [SerializeField] private Image tutorialImage;
 
+    [Header("Mission Data")]
     [SerializeField] private MissionPanelData initialMessage;
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
+
+    [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip tutorialOpenClip;
 
@@ -38,11 +39,13 @@ public class UIPanel : MonoBehaviour
 
     private void CheckXButtonToggle()
     {
-        InputDevice leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        InputDevice leftHand =
+            InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
 
-        if (leftHand.TryGetFeatureValue(CommonUsages.primaryButton, out bool xButton))
+        if (leftHand.TryGetFeatureValue(
+                CommonUsages.primaryButton,
+                out bool xButton))
         {
-            // 버튼을 누르는 순간 한 번만 실행
             if (xButton && !previousXButton)
             {
                 panelRoot.SetActive(!panelRoot.activeSelf);
@@ -61,7 +64,9 @@ public class UIPanel : MonoBehaviour
             if (firstTutorialCoroutine != null)
                 StopCoroutine(firstTutorialCoroutine);
 
-            firstTutorialCoroutine = StartCoroutine(ShowFirstTutorialAfterDelay());
+            firstTutorialCoroutine =
+                StartCoroutine(ShowFirstTutorialAfterDelay());
+
             return;
         }
 
@@ -87,31 +92,29 @@ public class UIPanel : MonoBehaviour
         ShowTutorial(initialMessage);
     }
 
-    public void ShowTutorial(MissionPanelData message)
+    private void ShowTutorial(MissionPanelData message)
     {
-        if (message != null)
+        if (message == null || tutorialImage == null)
+            return;
+
+        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
+
+        // Host와 Client에 따라 서로 다른 이미지 표시
+        if (runner != null && runner.LocalPlayer.PlayerId == 1)
         {
-            // 튜토리얼 메시지 구분
-            missionText.text = message.MissionLabel;
-            titleText.text = message.Title;
-
-            NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-
-            if(runner != null && runner.LocalPlayer.PlayerId == 1)
-            {
-                descriptionText.text = message.HostDescription;
-            }
-            else
-            {
-                descriptionText.text = message.ClientDescription;
-            }
-            if (audioSource != null && tutorialOpenClip != null)
-            {
-                audioSource.PlayOneShot(tutorialOpenClip);
-            }
-
+            tutorialImage.sprite = message.HostImage;
         }
-        // 새 튜토리얼이 뜰 때는 이전에 꺼져 있었어도 무조건 다시 켜기
+        else
+        {
+            tutorialImage.sprite = message.ClientImage;
+        }
+
+        if (audioSource != null && tutorialOpenClip != null)
+        {
+            audioSource.PlayOneShot(tutorialOpenClip);
+        }
+
+        // 새로운 미션이 시작될 때 패널 다시 표시
         panelRoot.SetActive(true);
     }
 

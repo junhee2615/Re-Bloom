@@ -1,15 +1,14 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "MissionPanelData", menuName = "ReBloom/UI/Mission Panel Data")]
+[CreateAssetMenu(
+    fileName = "MissionPanelData",
+    menuName = "ReBloom/UI/Mission Panel Data")]
 public class MissionPanelData : ScriptableObject
 {
-    [SerializeField] private string missionLabel;
-    [SerializeField] private string title;
-    [SerializeField, TextArea] private string hostdescription;
-    [SerializeField, TextArea] private string clientdescription;
+    [Header("Tutorial Images")]
+    [SerializeField] private Sprite hostImage;
+    [SerializeField] private Sprite clientImage;
 
-    public string MissionLabel => missionLabel;
-    public string Title => title;
-    public string HostDescription => hostdescription;
-    public string ClientDescription => clientdescription;
+    public Sprite HostImage => hostImage;
+    public Sprite ClientImage => clientImage;
 }
