@@ -57,9 +57,8 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     private Rigidbody body;
     private Collider[] bodyColliders;   // 손↔물체 표면 거리 측정용
 
-    private bool wasHeld;
-    private bool isTracking;              // 잡고 속도로 따라오는 중
-    private bool physicsActive;           // 놓은 뒤 자유 낙하 중
+    private enum State { Idle, Tracking, Falling } // 물체 상태
+    private State state = State.Idle;
     private Vector3 trackTargetPos;       // 이번 틱의 손 추종 목표 위치
     private Quaternion trackTargetRot;    // 이번 틱의 손 추종 목표 회전
 
@@ -159,25 +158,23 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         => a != PlayerRef.None && a == b && aLeft == bLeft;
 
     // 잡은 손이 물체 표면에서 releaseDistance 를 넘어 멀어지면 그 손 슬롯을 비운다.
-    private void PruneDistantGrabbers()
+    private void PruneDistantGrabbers(in Hands h)
     {
         if (releaseDistance <= 0f || GrabberCount < 2) return;
 
-        if (GrabberA != PlayerRef.None && HandTooFar(GrabberA, GrabberAIsLeft))
+        if (GrabberA != PlayerRef.None && h.hasA && HandTooFar(h.posA))
         {
             GrabberA = PlayerRef.None; GrabberAIsLeft = false;
         }
-        if (GrabberB != PlayerRef.None && HandTooFar(GrabberB, GrabberBIsLeft))
+        if (GrabberB != PlayerRef.None && h.hasB && HandTooFar(h.posB))
         {
             GrabberB = PlayerRef.None; GrabberBIsLeft = false;
         }
     }
 
     // 손이 물체 표면에서 releaseDistance 보다 멀리 있으면 true.
-    private bool HandTooFar(PlayerRef p, NetworkBool isLeft)
+    private bool HandTooFar(Vector3 handPos)
     {
-        if (!TryHand(p, isLeft, out Vector3 handPos, out _)) return false;
-
         float best = float.PositiveInfinity;
         if (bodyColliders != null)
         {
@@ -202,18 +199,16 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     {
         if (!HasStateAuthority) return;
 
-        PruneDistantGrabbers();   // 물체에서 너무 멀어진(닿지 않은) 손은 놓는다
+        Hands h = GatherHands();
+        PruneDistantGrabbers(in h);   // 너무 멀어진(닿지 않은) 손은 놓는다
 
         int count = GrabberCount;
-        bool held = count > 0 && HasEnoughGrabbers(count);
+        bool held = HasEnoughGrabbers(count);
 
         if (held)
         {
-            Hands h = GatherHands();
-
-            if (!wasHeld)
+            if (state != State.Tracking)
             {
-                wasHeld = true;
                 StartTracking();      // 속도 추종 시작
                 OnHeldBegin(h);
             }
@@ -227,18 +222,16 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         }
         else
         {
-            if (wasHeld)
+            if (state == State.Tracking)
             {
-                wasHeld = false;
-                isTracking = false;
+                state = State.Idle;   // 추종 종료.
                 // 놓는 순간의 속도를 그대로 넘긴다 → 자연 낙하/던지기.
                 OnReleased(body != null ? body.linearVelocity : Vector3.zero);
             }
 
-            if (physicsActive)
+            if (state == State.Falling)
             {
-                // XRI 가 kinematic 을 되돌리는 경우 대비: 매 틱 재확인.
-                if (body != null && body.isKinematic) body.isKinematic = false;
+                EnsureDynamic();   // XRI 가 kinematic 을 되돌리는 경우 대비
 
                 // 물리 종료.
                 if (transform.position.y < originPosition.y - fallSafetyDepth)
@@ -257,11 +250,11 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     // 커스텀 중력(gravityScale)도 낙하 중에 여기서 적용한다.
     private void FixedUpdate()
     {
-        if (body == null) return;
+        if (body == null || !HasStateAuthority) return;
 
-        if (isTracking)
+        if (state == State.Tracking)
         {
-            if (body.isKinematic) body.isKinematic = false;
+            EnsureDynamic();
 
             float dt = Time.fixedDeltaTime;
 
@@ -269,7 +262,7 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
             Vector3 v = (trackTargetPos - body.position) / dt;
             body.linearVelocity = Vector3.ClampMagnitude(v, TrackMaxSpeed);
 
-            // 각속도: 목표 회전까지의 오차를 각속도로.
+            // 각속도: 목표 회전까지 남은 회전을 각속도로.
             Quaternion delta = trackTargetRot * Quaternion.Inverse(body.rotation); // 남은 회전 구하기
             delta.ToAngleAxis(out float angleDeg, out Vector3 axis); // 회전을 축, 각도로 분해
             if (angleDeg > 180f) angleDeg -= 360f; // 짧은 쪽으로 돌게 보정
@@ -283,7 +276,8 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         }
 
         // 낙하 중 커스텀 중력. gravityScale 이 1이 아닐 때만.
-        if (physicsActive && !body.isKinematic && !Mathf.Approximately(gravityScale, 1f))
+        // 이것도 클라에서 필요없나?
+        if (state == State.Falling && !body.isKinematic && !Mathf.Approximately(gravityScale, 1f))
             body.AddForce(Physics.gravity * gravityScale, ForceMode.Acceleration);
     }
 
@@ -324,14 +318,20 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     // ---------- 물리 상태 전환 : 호스트에서만 ----------
 
+    // 물리 시뮬레이션용 non-kinematic 을 보장한다. XRI 등이 kinematic 으로 되돌릴 수 있어
+    // 진입 시점과 추종/낙하 중 매 틱 이걸로 확인한다.
+    private void EnsureDynamic()
+    {
+        if (body != null && body.isKinematic) body.isKinematic = false;
+    }
+
     // 잡기 시작: non-kinematic + 중력 off 로 두고 속도 추종을 시작한다.
     private void StartTracking()
     {
-        physicsActive = false;
-        isTracking = true;
+        state = State.Tracking;
+        EnsureDynamic();
         if (body != null)
         {
-            body.isKinematic = false;
             body.useGravity = false;
             body.WakeUp();
         }
@@ -341,17 +341,17 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     protected void BeginPhysics(Vector3 velocity)
     {
         if (body == null) return;
-        body.isKinematic = false;
+        EnsureDynamic();
         // gravityScale 이 1이면 기본 중력, 아니면 위 FixedUpdate 에서 커스텀 중력을 적용한다.
         body.useGravity = Mathf.Approximately(gravityScale, 1f);
         body.linearVelocity = velocity;
         body.WakeUp();
-        physicsActive = true;
+        state = State.Falling;
     }
 
     private void EndPhysics()
     {
-        physicsActive = false;
+        state = State.Idle;
         SetKinematic(true);
     }
 
