@@ -21,7 +21,6 @@ public class PhysicsHand : MonoBehaviour
     public float hardSnapDistance = 1.5f;
 
     Rigidbody rb;
-    Collider handCollider; // 손의 콜라이더(루트 1개). IgnoreCollision 처리에 사용.
     bool touching;   // 이 물리 스텝에 무언가와 접촉 중인지
 
     // 컨트롤러(target) 기준 손의 원래 로컬 오프셋. 손이 컨트롤러의 자식이었을 때의
@@ -32,7 +31,6 @@ public class PhysicsHand : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        handCollider = GetComponent<Collider>();
         rb.useGravity = false;
         rb.maxAngularVelocity = 100f; // 최대 각속도(rad/s) 상한
     }
@@ -47,13 +45,6 @@ public class PhysicsHand : MonoBehaviour
         // 컨트롤러 대비 손의 초기 오프셋 캡처 (프리팹 배치 시점의 상대 포즈 = 올바른 손 방향).
         targetPositionOffset = Quaternion.Inverse(target.rotation) * (rb.position - target.position);
         targetRotationOffset = Quaternion.Inverse(target.rotation) * rb.rotation;
-        
-        if (handCollider == null) return;
-        foreach (Collider t in target.GetComponentsInChildren<Collider>())
-        {
-            if (t == null || t == handCollider) continue;
-            Physics.IgnoreCollision(handCollider, t, true);
-        }
     }
 
     void FixedUpdate()
@@ -104,13 +95,5 @@ public class PhysicsHand : MonoBehaviour
     void OnCollisionStay(Collision _)
     {
         touching = true;
-    }
-
-    /// <summary>잡는 동안 손↔잡힌 물체 충돌을 무시 (튐 방지). 놓을 때 복원.</summary>
-    public void IgnoreCollisionWith(Collider other, bool ignore) // 확인 필요
-    {
-        if (other == null || handCollider == null)
-            return;
-        Physics.IgnoreCollision(handCollider, other, ignore);
     }
 }
