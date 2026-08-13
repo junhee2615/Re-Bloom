@@ -15,6 +15,7 @@ public class TutorialMissionManager : NetworkBehaviour
     {
         GeneratorMissionManager.AllGeneratorsRepaired += ShowGeneratorComplete;
         ValveMissionManager.MissionCleared += ShowValveComplete;
+        LeverMissionManager.MissionCleared += ShowAllComplete;
     }
 
     public override void Spawned()
@@ -54,10 +55,18 @@ public class TutorialMissionManager : NetworkBehaviour
         CurrentTutorial = TutorialStep.ValveComplete;
     }
 
+    public void ShowAllComplete()
+    {
+        if (!HasStateAuthority) return;
+
+        CurrentTutorial = TutorialStep.AllComplete;
+    }
+
     private void OnDestroy()
     {
         GeneratorMissionManager.AllGeneratorsRepaired -= ShowGeneratorComplete;
         ValveMissionManager.MissionCleared -= ShowValveComplete;
+        LeverMissionManager.MissionCleared -= ShowAllComplete;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

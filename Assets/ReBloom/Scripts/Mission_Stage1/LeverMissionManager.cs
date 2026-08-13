@@ -3,9 +3,12 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
+using System;
 
 public class LeverMissionManager : NetworkBehaviour
 {
+    public static event Action MissionCleared;
+    
     public LeverSwitch leverA;
     public LeverSwitch leverB;
     public Transform doorRight;
@@ -51,6 +54,7 @@ public class LeverMissionManager : NetworkBehaviour
         if (IsMissionClear && !started)
         {
             started = true;
+            MissionCleared?.Invoke();
 
             if (!playedMissionSuccessSound)
             {
@@ -131,6 +135,12 @@ public class LeverMissionManager : NetworkBehaviour
 
             yield return null;
         }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetEvent()
+    {
+        MissionCleared = null;
     }
 }
 
