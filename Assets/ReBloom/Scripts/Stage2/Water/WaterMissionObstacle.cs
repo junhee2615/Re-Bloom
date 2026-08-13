@@ -157,6 +157,25 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     private static bool Same(PlayerRef a, NetworkBool aLeft, PlayerRef b, NetworkBool bLeft)
         => a != PlayerRef.None && a == b && aLeft == bLeft;
 
+    // ---------- 외부(디스펜서 등)에서 호스트가 직접 손을 배정/해제 ----------
+    // 자기 XRGrabInteractable 없이 스폰된 조각을, 특정 (player, 손) 이 들고 따라오게 만들 때 사용.
+    // 호스트에서만 유효.
+
+    /// <summary>호스트: 이 오브젝트를 지정한 손이 잡은 것으로 배정한다(슬롯 A).</summary>
+    public void HostAssignGrabber(PlayerRef player, bool isLeft)
+    {
+        if (!HasStateAuthority || player == PlayerRef.None) return;
+        GrabberA = player; GrabberAIsLeft = isLeft;
+    }
+
+    /// <summary>호스트: 지정한 손의 잡기를 해제한다(→ OnReleased).</summary>
+    public void HostReleaseGrabber(PlayerRef player, bool isLeft)
+    {
+        if (!HasStateAuthority) return;
+        if (Same(GrabberA, GrabberAIsLeft, player, isLeft)) { GrabberA = PlayerRef.None; GrabberAIsLeft = false; }
+        else if (Same(GrabberB, GrabberBIsLeft, player, isLeft)) { GrabberB = PlayerRef.None; GrabberBIsLeft = false; }
+    }
+
     // 잡은 손이 물체 표면에서 releaseDistance 를 넘어 멀어지면 그 손 슬롯을 비운다.
     private void PruneDistantGrabbers(in Hands h)
     {
@@ -351,6 +370,15 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     private void EndPhysics()
     {
+        state = State.Idle;
+        SetKinematic(true);
+    }
+
+    /// <summary>호스트: 낙하 없이 현재 자리에 kinematic 으로 정지시킨다.
+    /// 예) 뿌리를 다 빼지 못하고 놓았을 때 박힌 자리에 그대로 둔다.</summary>
+    protected void SettleInPlace()
+    {
+        if (!HasStateAuthority) return;
         state = State.Idle;
         SetKinematic(true);
     }

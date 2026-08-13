@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5497596634282421778}
   - component: {fileID: 3503345533649352216}
   - component: {fileID: 6857561381375419646}
-  - component: {fileID: 7371750780949425577}
+  - component: {fileID: 1588209178385028279}
   m_Layer: 8
   m_Name: Soil
   m_TagString: Untagged
@@ -936,7 +936,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 5
   m_Convex: 1
   m_CookingOptions: 30
@@ -958,7 +958,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.57, y: 0.23, z: 0.52}
   m_Center: {x: 0.02, y: 0.07, z: 0}
@@ -1135,9 +1135,9 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 7371750780949425577}
+  - {fileID: 1588209178385028279}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &7371750780949425577
+--- !u!114 &1588209178385028279
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1146,14 +1146,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 5687751473908549085}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0486242da75b8bb44b9048c096c5df26, type: 3}
+  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilObstacle
-  requiredGrabbers: 1
-  fallSafetyDepth: 5
-  gravityScale: 0.6
-  throwVelocityMultiplier: 1
-  maxThrowSpeed: 5
+  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
+  piecePrefab: {fileID: 2908383298777639696, guid: 8b4bd32a541542a4aa1adf793ae1468d, type: 3}
+  pieceCount: 3
+  shrinkWithPieces: 1
 --- !u!1001 &6645588390932908035
 PrefabInstance:
   m_ObjectHideFlags: 0
