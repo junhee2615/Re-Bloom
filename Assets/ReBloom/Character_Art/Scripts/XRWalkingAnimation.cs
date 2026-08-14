@@ -39,7 +39,7 @@ public sealed class XRWalkingAnimation : MonoBehaviour
         }
 
         Vector2 moveValue = moveInput.action.ReadValue<Vector2>();
-        bool isWalking = moveValue.y > inputThreshold;
+        bool isWalking = moveValue.magnitude > inputThreshold;
 
         characterAnimator.SetBool(IsWalkingHash, isWalking);
 
