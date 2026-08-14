@@ -50,6 +50,10 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Networked] private PlayerRef GrabberB { get; set; }
     [Networked] private NetworkBool GrabberBIsLeft { get; set; }
 
+    // "치워짐" 여부. 호스트가 판정해 세팅하고 네트워크로 복제된다.
+    [Networked] private NetworkBool Cleared { get; set; }
+    public bool IsCleared => Cleared;
+
     protected Vector3 originPosition;
     protected Quaternion originRotation;
 
@@ -157,6 +161,31 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     private static bool Same(PlayerRef a, NetworkBool aLeft, PlayerRef b, NetworkBool bLeft)
         => a != PlayerRef.None && a == b && aLeft == bLeft;
 
+    // ---------- 외부(디스펜서 등)에서 호스트가 직접 손을 배정/해제 ----------
+    // 자기 XRGrabInteractable 없이 스폰된 조각을, 특정 (player, 손) 이 들고 따라오게 만들 때 사용.
+    // 호스트에서만 유효.
+
+    /// <summary>호스트: 이 오브젝트를 지정한 손이 잡은 것으로 배정한다(슬롯 A).</summary>
+    public void HostAssignGrabber(PlayerRef player, bool isLeft)
+    {
+        if (!HasStateAuthority || player == PlayerRef.None) return;
+        GrabberA = player; GrabberAIsLeft = isLeft;
+    }
+
+    /// <summary>호스트: 지정한 손의 잡기를 해제한다(→ OnReleased).</summary>
+    public void HostReleaseGrabber(PlayerRef player, bool isLeft)
+    {
+        if (!HasStateAuthority) return;
+        if (Same(GrabberA, GrabberAIsLeft, player, isLeft)) { GrabberA = PlayerRef.None; GrabberAIsLeft = false; }
+        else if (Same(GrabberB, GrabberBIsLeft, player, isLeft)) { GrabberB = PlayerRef.None; GrabberBIsLeft = false; }
+    }
+
+    /// <summary>호스트: 이 장애물을 "치워짐"으로 표시한다.</summary>
+    public void HostMarkCleared()
+    {
+        if (HasStateAuthority) Cleared = true;
+    }
+
     // 잡은 손이 물체 표면에서 releaseDistance 를 넘어 멀어지면 그 손 슬롯을 비운다.
     private void PruneDistantGrabbers(in Hands h)
     {
@@ -254,6 +283,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
         if (state == State.Tracking)
         {
+            if (PoseDirectlyWhileHeld) // 속도 추종 대신 kinematic 으로 직접 포즈.
+            {
+                if (!body.isKinematic) body.isKinematic = true;
+                body.MovePosition(trackTargetPos);
+                body.MoveRotation(trackTargetRot);
+                return;
+            }
+
             EnsureDynamic();
 
             float dt = Time.fixedDeltaTime;
@@ -276,7 +313,6 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         }
 
         // 낙하 중 커스텀 중력. gravityScale 이 1이 아닐 때만.
-        // 이것도 클라에서 필요없나?
         if (state == State.Falling && !body.isKinematic && !Mathf.Approximately(gravityScale, 1f))
             body.AddForce(Physics.gravity * gravityScale, ForceMode.Acceleration);
     }
@@ -355,6 +391,15 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         SetKinematic(true);
     }
 
+    /// <summary>호스트: 낙하 없이 현재 자리에 kinematic 으로 정지시킨다.
+    /// 예) 뿌리를 다 빼지 못하고 놓았을 때 박힌 자리에 그대로 둔다.</summary>
+    protected void SettleInPlace()
+    {
+        if (!HasStateAuthority) return;
+        state = State.Idle;
+        SetKinematic(true);
+    }
+
     private void SetKinematic(bool kinematic)
     {
         if (body == null) return;
@@ -371,6 +416,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     /// <summary>충분한 인원이 잡았는지. 기본: requiredGrabbers 이상. 돌은 "서로 다른 2인"으로 재정의.</summary>
     protected virtual bool HasEnoughGrabbers(int count) => count >= requiredGrabbers;
+
+    /// <summary>true 면 잡은 동안 속도 추종 대신 kinematic 으로 트랜스폼을 직접 세팅한다. </summary>
+    protected virtual bool PoseDirectlyWhileHeld => false;
 
     /// <summary>이번 프레임에 처음 들리기 시작했을 때.</summary>
     protected virtual void OnHeldBegin(Hands h) { }

@@ -14,22 +14,36 @@ public class SoilObstacle : WaterMissionObstacle
     [Tooltip("던지기 최대 속도(m/s) 상한. 클수록 세게 던지면 더 빨리/멀리 간다.")]
     [SerializeField] private float maxThrowSpeed = 24f;
 
-    private Vector3 offsetPos;
+    [Header("들 때 위치")]
+    [Tooltip("들 때 손 기준(로컬) 오프셋. 손을 축으로 조각이 함께 돈다.")]
+    [SerializeField] private Vector3 localHoldOffset = new Vector3(0f, -0.05f, 0f);
+
+    [Header("스폰 자세")]
+    [Tooltip("스폰 시 초기 회전.")]
+    [SerializeField] private Vector3 spawnEuler = Vector3.zero;
+
+    // 스폰 순간의 회전을 고정 캡처. 잡으면 이 값을 기준으로 손을 따라 돈다.
     private Quaternion offsetRot;
+    private Quaternion spawnRotation;
+
+    public override void Spawned()
+    {
+        transform.rotation = Quaternion.Euler(spawnEuler);   // 프리팹 지정 초기 회전
+        base.Spawned();
+        spawnRotation = transform.rotation;
+    }
 
     protected override void OnHeldBegin(Hands h)
     {
         if (!h.hasA) return;
-        // 잡은 순간의 손 기준 상대 포즈를 유지
-        offsetPos = Quaternion.Inverse(h.rotA) * (transform.position - h.posA);
-        offsetRot = Quaternion.Inverse(h.rotA) * transform.rotation;
+        offsetRot = Quaternion.Inverse(h.rotA) * spawnRotation;
     }
 
     protected override void ComputeHeldPose(Hands h, ref Vector3 pos, ref Quaternion rot)
     {
         if (!h.hasA) return;
-        pos = h.posA + h.rotA * offsetPos;
-        rot = h.rotA * offsetRot;
+        pos = h.posA + h.rotA * localHoldOffset;   // 손 기준 오프셋 → 손을 축으로 함께 돎(rigid)
+        rot = h.rotA * offsetRot;                  // 스폰 자세에서 시작해 손을 따라 회전
     }
 
     // 던지기
