@@ -22,6 +22,11 @@ public class HapticTrigger : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Collision Enter");
+
+        // Client(PlayerId != 1)만 진동 느낌
+        if (!PlayerRole.LocalIsClient())
+            return;
+
         TriggerHaptic(1.0f, 0.1f);
     }
 }

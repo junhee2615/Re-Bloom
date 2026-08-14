@@ -10,6 +10,10 @@ public class ValveTank : MonoBehaviour
     {
         ValveHapticVib haptic = other.GetComponent<ValveHapticVib>();
 
+        // Client(PlayerId != 1)¸¸ Áøµ¿ ´À³¦
+        if (!PlayerRole.LocalIsClient())
+            return;
+
         if (haptic != null)
         {
             timer -= Time.deltaTime;
