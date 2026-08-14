@@ -153,6 +153,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         Debug.Log("<<<<<<< Runner Shutdown >>>>>>>>");
 
+        // 세션이 끝난 뒤에 직전 Role이 남아 오판하지 않도록 초기화한다.
+        RoleManager.ClearLocalRole();
     }
     #endregion
 
