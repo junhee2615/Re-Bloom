@@ -8,9 +8,9 @@ using System.Collections.Generic;
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField]
-    private NetworkPrefabRef playerEarPrefab; // û�� ���� ĳ����
+    private NetworkPrefabRef playerEarPrefab; // û�� ���� ĳ����
     [SerializeField]
-    private NetworkPrefabRef playerMentalPrefab; // ���� ���� ĳ����
+    private NetworkPrefabRef playerMentalPrefab; // ���� ���� ĳ����
 
     // Dictionary of spawned user prefabs, to destroy them on disconnection
     private Dictionary<PlayerRef, NetworkObject> _spawnedUsers = new Dictionary<PlayerRef, NetworkObject>();
@@ -44,11 +44,28 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (_spawnedUsers.ContainsKey(player))
             return;
 
+        // PlayerId -> Role 변환은 이 한 곳에서만 한다.
+        // Host(PlayerId 1) = mental, Client(그 외) = ear
+        Role role = (player.PlayerId == 1) ? Role.mental : Role.ear;
+
         NetworkPrefabRef prefabToSpawn =
-            (player.PlayerId == 1) ? playerMentalPrefab : playerEarPrefab;
+            (role == Role.mental) ? playerMentalPrefab : playerEarPrefab;
 
         NetworkObject networkPlayerObject =
-            runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player);
+            runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player,
+                onBeforeSpawned: (NetworkRunner spawnRunner, NetworkObject spawnedObject) =>
+                {
+                    // Spawned()가 불리기 전에 Role을 넣어야
+                    // 모든 클라이언트가 처음부터 올바른 값을 본다.
+                    var networkPlayer = spawnedObject.GetComponent<NetworkPlayer>();
+                    if (networkPlayer == null)
+                        networkPlayer = spawnedObject.GetComponentInChildren<NetworkPlayer>(true);
+
+                    if (networkPlayer != null)
+                        networkPlayer.AssignRole(role);
+                    else
+                        Debug.LogError("스폰된 플레이어 프리팭에 NetworkPlayer가 없어 Role을 부여하지 못했습니다.", this);
+                });
 
         _spawnedUsers.Add(player, networkPlayerObject);
     }

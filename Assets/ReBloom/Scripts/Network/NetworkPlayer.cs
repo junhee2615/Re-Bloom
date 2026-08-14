@@ -31,7 +31,40 @@ public class NetworkPlayer : NetworkBehaviour
     public static NetworkPlayer LocalInstance { get; private set; }
 
 
-    [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
+        /// <summary>
+    /// 이 플레이어의 Role(mental / ear).
+    /// 서버가 스폰 직전에 확정하며 모든 클라이언트에 동기화된다.
+    /// (PlayerSpawner.SpawnPlayer -> AssignRole)
+    /// </summary>
+    [Networked] public Role AssignedRole { get; private set; }
+
+    /// <summary>이 기기 로컬 플레이어의 Role. 아직 스폰 전이면 null.</summary>
+    public static Role? LocalRole =>
+        LocalInstance != null ? LocalInstance.AssignedRole : (Role?)null;
+
+    /// <summary>(서버 전용) 스폰 시점에 Role을 확정한다.</summary>
+    public void AssignRole(Role role)
+    {
+        AssignedRole = role;
+    }
+
+    /// <summary>해당 Role을 가진 플레이어를 찾는다. 없으면 false.</summary>
+    public static bool TryGetByRole(Role role, out NetworkPlayer networkPlayer)
+    {
+        foreach (var candidate in Players.Values)
+        {
+            if (candidate != null && candidate.AssignedRole == role)
+            {
+                networkPlayer = candidate;
+                return true;
+            }
+        }
+
+        networkPlayer = null;
+        return false;
+    }
+
+[Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
     [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
     [Networked] public NetworkBool IsRightTriggerHeld { get; private set; }
     [Networked] public NetworkBool IsLeftTriggerHeld { get; private set; }
@@ -89,7 +122,11 @@ public class NetworkPlayer : NetworkBehaviour
 
         if (IsLocalNetworkRig)
         {
-            hardwareRig = FindFirstObjectByType<HardwareRig>();
+                        // StartScene의 Host/Join 버튼으로 정해둔 로컬 Role을
+            // 서버가 확정한 값으로 다시 맞춘다.
+            RoleManager.SetLocalRole(AssignedRole);
+
+hardwareRig = FindFirstObjectByType<HardwareRig>();
 
             if (hardwareRig == null)
             {
