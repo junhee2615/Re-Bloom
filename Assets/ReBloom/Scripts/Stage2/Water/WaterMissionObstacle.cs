@@ -50,6 +50,10 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Networked] private PlayerRef GrabberB { get; set; }
     [Networked] private NetworkBool GrabberBIsLeft { get; set; }
 
+    // "치워짐" 여부. 호스트가 판정해 세팅하고 네트워크로 복제된다.
+    [Networked] private NetworkBool Cleared { get; set; }
+    public bool IsCleared => Cleared;
+
     protected Vector3 originPosition;
     protected Quaternion originRotation;
 
@@ -176,6 +180,12 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         else if (Same(GrabberB, GrabberBIsLeft, player, isLeft)) { GrabberB = PlayerRef.None; GrabberBIsLeft = false; }
     }
 
+    /// <summary>호스트: 이 장애물을 "치워짐"으로 표시한다.</summary>
+    public void HostMarkCleared()
+    {
+        if (HasStateAuthority) Cleared = true;
+    }
+
     // 잡은 손이 물체 표면에서 releaseDistance 를 넘어 멀어지면 그 손 슬롯을 비운다.
     private void PruneDistantGrabbers(in Hands h)
     {
@@ -273,6 +283,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
         if (state == State.Tracking)
         {
+            if (PoseDirectlyWhileHeld) // 속도 추종 대신 kinematic 으로 직접 포즈.
+            {
+                if (!body.isKinematic) body.isKinematic = true;
+                body.MovePosition(trackTargetPos);
+                body.MoveRotation(trackTargetRot);
+                return;
+            }
+
             EnsureDynamic();
 
             float dt = Time.fixedDeltaTime;
@@ -295,7 +313,6 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         }
 
         // 낙하 중 커스텀 중력. gravityScale 이 1이 아닐 때만.
-        // 이것도 클라에서 필요없나?
         if (state == State.Falling && !body.isKinematic && !Mathf.Approximately(gravityScale, 1f))
             body.AddForce(Physics.gravity * gravityScale, ForceMode.Acceleration);
     }
@@ -399,6 +416,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     /// <summary>충분한 인원이 잡았는지. 기본: requiredGrabbers 이상. 돌은 "서로 다른 2인"으로 재정의.</summary>
     protected virtual bool HasEnoughGrabbers(int count) => count >= requiredGrabbers;
+
+    /// <summary>true 면 잡은 동안 속도 추종 대신 kinematic 으로 트랜스폼을 직접 세팅한다. </summary>
+    protected virtual bool PoseDirectlyWhileHeld => false;
 
     /// <summary>이번 프레임에 처음 들리기 시작했을 때.</summary>
     protected virtual void OnHeldBegin(Hands h) { }

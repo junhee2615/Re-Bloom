@@ -86,10 +86,9 @@ public class SoilLump : NetworkBehaviour
     private void RPC_Grip(PlayerRef player, NetworkBool isLeft)
     {
         if (PiecesRemaining <= 0 || piecePrefab == null) return;
-        if (!TryGetHand(player, isLeft, out Vector3 handPos, out Quaternion handRot)) return;
+        if (!TryGetHand(player, isLeft, out Vector3 handPos)) return;
 
-        // 손 위치에 조각을 스폰하고, 그 손이 잡은 것으로 배정 → 손을 따라온다.
-        NetworkObject pieceObj = Runner.Spawn(piecePrefab, handPos, handRot);
+        NetworkObject pieceObj = Runner.Spawn(piecePrefab, handPos, Quaternion.identity); // 손 위치에 스폰.
         WaterMissionObstacle piece = pieceObj != null ? pieceObj.GetComponent<WaterMissionObstacle>() : null;
         piece?.HostAssignGrabber(player, isLeft);
 
@@ -131,9 +130,9 @@ public class SoilLump : NetworkBehaviour
     private float RemainingFraction()
         => pieceCount > 0 ? Mathf.Clamp01((float)PiecesRemaining / pieceCount) : 0f;
 
-    private bool TryGetHand(PlayerRef p, NetworkBool isLeft, out Vector3 pos, out Quaternion rot)
+    private bool TryGetHand(PlayerRef p, NetworkBool isLeft, out Vector3 pos)
     {
-        pos = default; rot = Quaternion.identity;
+        pos = default;
         if (p == PlayerRef.None) return false;
         if (!NetworkPlayer.TryGet(p, out var np)) return false;
 
@@ -141,7 +140,6 @@ public class SoilLump : NetworkBehaviour
         if (hand == null) return false;
 
         pos = hand.position;
-        rot = hand.rotation;
         return true;
     }
 }
