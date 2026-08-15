@@ -64,13 +64,14 @@ public class NetworkPlayer : NetworkBehaviour
         return false;
     }
 
-[Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
+    [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
     [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
     [Networked] public NetworkBool IsRightTriggerHeld { get; private set; }
     [Networked] public NetworkBool IsLeftTriggerHeld { get; private set; }
     [Networked] public Hand CooperativeContactHand { get; private set; }
     [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
     [Networked] public float CooperativeHoldProgress { get; private set; }
+    [Networked] public NetworkBool IsWalking { get; private set; }
 
     public bool IsTriggerHeld(Hand hand) =>
         hand == Hand.Right ? (bool)IsRightTriggerHeld :
@@ -182,6 +183,7 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
             {
                 IsRightTriggerHeld = input.RightTriggerPressed;
                 IsLeftTriggerHeld = input.LeftTriggerPressed;
+                IsWalking = input.IsWalking;
             }
 
             playerTransform.transform.SetPositionAndRotation(

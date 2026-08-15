@@ -407,6 +407,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a9591752ca03db4a8401e223e89add2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayer
+  _AssignedRole: 0
+  _IsActivationTriggerHeld:
+    _value: 0
+  _AreCooperativeHandsContacted:
+    _value: 0
   _IsRightTriggerHeld:
     _value: 0
   _IsLeftTriggerHeld:
@@ -1791,6 +1796,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bf202ecbe6687a4b9444bc4ed6a782d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XRWalkingAnimation
+  networkPlayer: {fileID: 2244771845460819798}
   characterAnimator: {fileID: 4203942665151249738}
   moveInput: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   leftLegIK: {fileID: 6608968780078355824}

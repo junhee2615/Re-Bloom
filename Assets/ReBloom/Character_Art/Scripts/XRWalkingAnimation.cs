@@ -9,6 +9,9 @@ public sealed class XRWalkingAnimation : MonoBehaviour
 
     [Header("References")]
     [SerializeField]
+    private NetworkPlayer networkPlayer;
+
+    [SerializeField]
     private Animator characterAnimator;
 
     [SerializeField]
@@ -33,13 +36,27 @@ public sealed class XRWalkingAnimation : MonoBehaviour
 
     private void Update()
     {
-        if (characterAnimator == null || moveInput == null)
+        if (networkPlayer == null || characterAnimator == null)
         {
             return;
         }
 
-        Vector2 moveValue = moveInput.action.ReadValue<Vector2>();
-        bool isWalking = moveValue.magnitude > inputThreshold;
+        bool isWalking;
+
+        if (networkPlayer.IsLocalNetworkRig)
+        {
+            if (moveInput == null)
+            {
+                return;
+            }
+
+            Vector2 moveValue = moveInput.action.ReadValue<Vector2>();
+            isWalking = moveValue.magnitude > inputThreshold;
+        }
+        else
+        {
+            isWalking = networkPlayer.IsWalking;
+        }
 
         characterAnimator.SetBool(IsWalkingHash, isWalking);
 

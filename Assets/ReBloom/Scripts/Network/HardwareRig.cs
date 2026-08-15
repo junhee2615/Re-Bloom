@@ -74,12 +74,24 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
         xrRigState.RightHandRotation = rightHandTransform.rotation;
 
         InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        rightController.TryGetFeatureValue(CommonUsages.triggerButton, out bool rightTriggerPressed);
+        rightController.TryGetFeatureValue(
+            CommonUsages.triggerButton,
+            out bool rightTriggerPressed
+        );
         xrRigState.RightTriggerPressed = rightTriggerPressed;
 
         InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        leftController.TryGetFeatureValue(CommonUsages.triggerButton, out bool leftTriggerPressed);
+        leftController.TryGetFeatureValue(
+            CommonUsages.triggerButton,
+            out bool leftTriggerPressed
+        );
         xrRigState.LeftTriggerPressed = leftTriggerPressed;
+
+        leftController.TryGetFeatureValue(
+            CommonUsages.primary2DAxis,
+            out Vector2 moveValue
+        );
+        xrRigState.IsWalking = moveValue.magnitude > 0.1f;
 
         input.Set(xrRigState);
     }
@@ -229,6 +241,8 @@ public struct RigState : INetworkInput
     public Quaternion RightHandRotation;
     public NetworkBool RightTriggerPressed;
     public NetworkBool LeftTriggerPressed;
+
+    public NetworkBool IsWalking;
 }
 
 
