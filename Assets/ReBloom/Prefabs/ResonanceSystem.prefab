@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1262953713171301032
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8036374099704065041}
+  - component: {fileID: 7056909740674982866}
+  - component: {fileID: 8668976121401715430}
+  m_Layer: 0
+  m_Name: ResonanceSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8036374099704065041
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262953713171301032}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7056909740674982866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262953713171301032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 100
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: fd8824d99fd770c439ba19e6eaa76fe9, type: 2}
+--- !u!114 &8668976121401715430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262953713171301032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fb02f0957794c6d93fac4809ae6cd50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResonanceController
+  resonanceDistance: 15
+  useFixedResonanceDistance: 0
+  minDistance: 2
+  distanceResponseSpeed: 6
+  logDistanceCalculation: 0
+  fog:
+    fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
+    activeIntensity: 1
+    maxConstraintRelief: 0.4
+  volume:
+    resonanceVolume: {fileID: 7056909740674982866}
+    releasedVolumeWeight: 0.6
+    relievedVolumeWeight: 0.9
+  audioConstraint:
+    constrainedAudioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    resonanceGroup: {fileID: 3158594053033413330, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    normalGroup: {fileID: 24300002, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    constrainedSnapshot: {fileID: 24500006, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+    relievedSnapshot: {fileID: 24500007, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
+  constraintEnabled: 1

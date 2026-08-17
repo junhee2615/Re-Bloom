@@ -27,6 +27,9 @@ public sealed class AudioConstraint
     private AudioMixerSnapshot[] snapshots;
     private readonly float[] weights = new float[2];
 
+    /// <summary>스테이지 전환 시 제약 대상 AudioSource를 교체한다.</summary>
+    public void SetSources(AudioSource[] sources) => constrainedAudioSources = sources;
+
     /// <summary>공명 on/off에 따라 지정 AudioSource의 출력 믹서 그룹을 전환한다.</summary>
     public void Apply(bool inactive)
     {

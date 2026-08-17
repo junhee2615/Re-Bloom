@@ -4845,6 +4845,59 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &2033885614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2033885616}
+  - component: {fileID: 2033885615}
+  m_Layer: 0
+  m_Name: ResonanceSceneContext
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2033885615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033885614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 692da0601ff18834f94e7d3616259dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResonanceSceneContext
+  hostSpawnPoint: {fileID: 429216927}
+  clientSpawnPoint: {fileID: 1663898910}
+  constrainedAudioSources:
+  - {fileID: 1808106307}
+  - {fileID: 208765481}
+  - {fileID: 1718984750}
+  overrideFogIntensity: 0
+  fogActiveIntensity: 1
+  startReleased: 0
+--- !u!4 &2033885616
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033885614}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2064725024
 GameObject:
   m_ObjectHideFlags: 0
@@ -4991,91 +5044,6 @@ MonoBehaviour:
   m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
---- !u!1 &2138010513
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2138010515}
-  - component: {fileID: 2138010514}
-  - component: {fileID: 2138010516}
-  m_Layer: 0
-  m_Name: Global Volume
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2138010514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2138010513}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: fd8824d99fd770c439ba19e6eaa76fe9, type: 2}
---- !u!4 &2138010515
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2138010513}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2138010516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2138010513}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fb02f0957794c6d93fac4809ae6cd50, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ResonanceController
-  hostSpawnPoint: {fileID: 429216927}
-  clientSpawnPoint: {fileID: 1663898910}
-  minDistance: 2
-  distanceResponseSpeed: 6
-  logDistanceCalculation: 0
-  fog:
-    fogSettings: {fileID: 11400000, guid: 83a2a0301e288694dbfae24ce7e0f030, type: 2}
-    activeIntensity: 1
-    maxConstraintRelief: 0.4
-  volume:
-    resonanceVolume: {fileID: 2138010514}
-    releasedVolumeWeight: 0.6
-    relievedVolumeWeight: 0.9
-  audioConstraint:
-    constrainedAudioSources:
-    - {fileID: 1808106307}
-    - {fileID: 208765481}
-    - {fileID: 1718984750}
-    resonanceGroup: {fileID: 3158594053033413330, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
-    normalGroup: {fileID: 24300002, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
-    constrainedSnapshot: {fileID: 24500006, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
-    relievedSnapshot: {fileID: 24500007, guid: 33fd2bba415716047b52f2c8ba3c8c10, type: 2}
-  constraintEnabled: 1
 --- !u!1001 &1078895369397983015
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6467,7 +6435,6 @@ SceneRoots:
   - {fileID: 795704459}
   - {fileID: 237794402}
   - {fileID: 1599178304}
-  - {fileID: 2138010515}
   - {fileID: 1887335084}
   - {fileID: 309541159}
   - {fileID: 1953158070}
@@ -6488,3 +6455,4 @@ SceneRoots:
   - {fileID: 1391991068}
   - {fileID: 1995655493}
   - {fileID: 2064725025}
+  - {fileID: 2033885616}

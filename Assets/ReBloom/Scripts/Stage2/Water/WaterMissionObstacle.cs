@@ -37,8 +37,8 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Tooltip("낙하 중력 배수. 1 = 기본, 작을수록 가볍고 둥실 떠서 멀리 간다.")]
     [SerializeField] private float gravityScale = 1f;
 
-    // 잡고 따라올 때 속도 상한(m/s). 손을 아무리 빨리 움직여도 물리가 폭주하지 않게 제한.
-    private const float TrackMaxSpeed = 30f;
+    [Tooltip("잡고 따라올 때 속도 상한(m/s). 흙 던지기 세기도 이 값에 영향을 받음.")]
+    [SerializeField] private float trackMaxSpeed = 12f;
 
     [Networked] private NetworkBool Initialized { get; set; }
     [Networked] private Vector3 NetPosition { get; set; }
@@ -297,7 +297,7 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
             // 선형: 목표까지의 오차를 속도로.
             Vector3 v = (trackTargetPos - body.position) / dt;
-            body.linearVelocity = Vector3.ClampMagnitude(v, TrackMaxSpeed);
+            body.linearVelocity = Vector3.ClampMagnitude(v, trackMaxSpeed);
 
             // 각속도: 목표 회전까지 남은 회전을 각속도로.
             Quaternion delta = trackTargetRot * Quaternion.Inverse(body.rotation); // 남은 회전 구하기

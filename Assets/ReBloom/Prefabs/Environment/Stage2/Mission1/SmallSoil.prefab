@@ -81,7 +81,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!114 &6679616569037208076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,9 +98,11 @@ MonoBehaviour:
   fallSafetyDepth: 15
   releaseDistance: 0.5
   gravityScale: 1
+  trackMaxSpeed: 15
   throwVelocityMultiplier: 1.6
   maxThrowSpeed: 24
   localHoldOffset: {x: 0, y: -0.06, z: -0.08}
+  spawnEuler: {x: 0, y: 0, z: 0}
 --- !u!114 &6668983246449160923
 MonoBehaviour:
   m_ObjectHideFlags: 0
