@@ -461,6 +461,106 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf6f5964668042041ac95c84a60bba0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetalRhythmMission
+--- !u!114 &532814892 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4311354860236062978, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
+--- !u!114 &532814893 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7477206933020168347, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
+--- !u!4 &532814894 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5881619761027741128, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &532814895 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1273795119126999281, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &537576297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 537576298}
+  - component: {fileID: 537576299}
+  m_Layer: 0
+  m_Name: WaterMissionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &537576298
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537576297}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -30.53595, y: -0.98463005, z: -36.25829}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1888650204}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &537576299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537576297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88ef154512666142872636a978aa26c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterMissionManager
+  waterwayZone: {fileID: 1541650495}
+  obstacleRoots:
+  - {fileID: 532814895}
+  - {fileID: 532814894}
+  soilLumps:
+  - {fileID: 532814893}
+  - {fileID: 532814892}
+  objectsToActivate:
+  - {fileID: 510166039}
+  - {fileID: 1518101701}
+  dirtyToCleanWaterRoot: {fileID: 510166037}
+--- !u!134 &570038743
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,6 +847,64 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1518101701 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5263729796713020585, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1541650494
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1541650496}
+  - component: {fileID: 1541650495}
+  m_Layer: 0
+  m_Name: WaterwayZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &1541650495
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541650494}
+  m_Material: {fileID: 570038743}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.2, y: 3, z: 3.2}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &1541650496
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541650494}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -18.5, y: 1, z: -15.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1682157983 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
@@ -824,6 +982,7 @@ Transform:
   m_Children:
   - {fileID: 1209978439}
   - {fileID: 2015647331}
+  - {fileID: 537576298}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1898797545
@@ -1181,6 +1340,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1001730881121512443, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 1958210698
+      objectReference: {fileID: 0}
+    - target: {fileID: 1096876278016273086, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 3833654996
+      objectReference: {fileID: 0}
     - target: {fileID: 1119664402948138554, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 10.1
@@ -1236,6 +1403,10 @@ PrefabInstance:
     - target: {fileID: 1521991973372881345, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: SortKey
       value: 1011323444
+      objectReference: {fileID: 0}
+    - target: {fileID: 1717950403765029484, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 3884848433
       objectReference: {fileID: 0}
     - target: {fileID: 1822735537610339862, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsTrigger
@@ -1319,6 +1490,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0.137
       objectReference: {fileID: 0}
+    - target: {fileID: 5094604865253873253, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 963931692
+      objectReference: {fileID: 0}
     - target: {fileID: 5190765232543466688, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: missionManager
       value: 
@@ -1370,6 +1545,10 @@ PrefabInstance:
     - target: {fileID: 5873289836101243761, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_Color.r
       value: 0.25490198
+      objectReference: {fileID: 0}
+    - target: {fileID: 5874368372472542223, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 3364870348
       objectReference: {fileID: 0}
     - target: {fileID: 5893037157836720168, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
@@ -1427,6 +1606,10 @@ PrefabInstance:
       propertyPath: missionManager
       value: 
       objectReference: {fileID: 1209978440}
+    - target: {fileID: 6789921347666181229, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 1178038296
+      objectReference: {fileID: 0}
     - target: {fileID: 6950202704644790839, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1467,6 +1650,10 @@ PrefabInstance:
       propertyPath: noteTouchClip
       value: 
       objectReference: {fileID: 8300000, guid: 06d20555efd55e44683cd5eb42746268, type: 3}
+    - target: {fileID: 7420853207218011342, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 2853150360
+      objectReference: {fileID: 0}
     - target: {fileID: 7459844269013306799, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_Color.b
       value: 0.19607843
@@ -1486,6 +1673,14 @@ PrefabInstance:
     - target: {fileID: 7856236123432268207, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7870162189248157924, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 2280987129
+      objectReference: {fileID: 0}
+    - target: {fileID: 8091981270500552283, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: SortKey
+      value: 4260921299
       objectReference: {fileID: 0}
     - target: {fileID: 8247957459733385935, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: SortKey
@@ -1601,3 +1796,4 @@ SceneRoots:
   - {fileID: 1861574692}
   - {fileID: 7609589794507034517}
   - {fileID: 1888650204}
+  - {fileID: 1541650496}
