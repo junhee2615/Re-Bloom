@@ -26,17 +26,14 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     [Header("공통 설정")]
     [Tooltip("움직이는 데 필요한 최소 손 개수.")]
     [SerializeField] protected int requiredGrabbers = 1;
-
     [Tooltip("원위치보다 이만큼(m) 더 아래로 떨어지면 낙하를 멈춘다(무한 낙하 방지).")]
     [SerializeField] private float fallSafetyDepth = 15f;
-
     [Tooltip("잡은 손이 물체 표면에서 이 거리(m)보다 멀어지면 그 손을 놓는다.")]
     [SerializeField] private float releaseDistance = 0.5f;
 
     [Header("낙하 물리")]
     [Tooltip("낙하 중력 배수. 1 = 기본, 작을수록 가볍고 둥실 떠서 멀리 간다.")]
     [SerializeField] private float gravityScale = 1f;
-
     [Tooltip("잡고 따라올 때 속도 상한(m/s). 흙 던지기 세기도 이 값에 영향을 받음.")]
     [SerializeField] private float trackMaxSpeed = 12f;
 
