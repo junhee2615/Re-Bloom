@@ -19,8 +19,10 @@ public class WaterMissionManager : MonoBehaviour
     private readonly List<WaterMissionObstacle> obstacles = new List<WaterMissionObstacle>();
 
     [Header("완료 조건 — 흙")]
-    [Tooltip("조각을 다 떠내 Despawn 되면 치워진 것으로 본다.")]
-    [SerializeField] private List<SoilLump> soilLumps = new List<SoilLump>();
+    [Tooltip("흙 덩이 그룹의 부모.")]
+    [SerializeField] private Transform soilRoot;
+
+    private readonly List<SoilLump> soilLumps = new List<SoilLump>();
 
     [Header("완료 연출")]
     [Tooltip("클리어 시 활성화할 오브젝트들.")]
@@ -36,6 +38,9 @@ public class WaterMissionManager : MonoBehaviour
             if (root == null) continue;
             obstacles.AddRange(root.GetComponentsInChildren<WaterMissionObstacle>(true));
         }
+
+        if (soilRoot != null)
+            soilLumps.AddRange(soilRoot.GetComponentsInChildren<SoilLump>(true));
     }
 
     private void Update()

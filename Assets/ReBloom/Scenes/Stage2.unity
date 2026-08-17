@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &125839716 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7148027558407860420, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &455224795
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,28 +466,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf6f5964668042041ac95c84a60bba0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetalRhythmMission
---- !u!114 &532814892 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4311354860236062978, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
---- !u!114 &532814893 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7477206933020168347, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
 --- !u!4 &532814894 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5881619761027741128, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -541,9 +524,7 @@ MonoBehaviour:
   obstacleRoots:
   - {fileID: 532814895}
   - {fileID: 532814894}
-  soilLumps:
-  - {fileID: 532814893}
-  - {fileID: 532814892}
+  soilRoot: {fileID: 125839716}
   objectsToActivate:
   - {fileID: 510166039}
   - {fileID: 1518101701}
