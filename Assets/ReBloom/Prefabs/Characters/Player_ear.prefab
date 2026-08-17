@@ -476,6 +476,8 @@ MonoBehaviour:
   _HasCooperativeActivationSucceeded:
     _value: 0
   _CooperativeHoldProgress: 0
+  _IsWalking:
+    _value: 0
   playerTransform: {fileID: 104267420603040855}
   headTransform: {fileID: 7874007534624037014}
   leftHandTransform: {fileID: 497737410415720117}
@@ -1887,6 +1889,7 @@ MonoBehaviour:
   body: {fileID: 1161072700954318278}
   leftFootTarget: {fileID: 3021828339523983471}
   rightFootTarget: {fileID: 6543673317495205216}
+  playerRoot: {fileID: 9140594028986485547}
   crouchSpeed: 8
   crouchStrength: 0.7
   isRunning: 0
@@ -1895,6 +1898,8 @@ MonoBehaviour:
   crouchAmount: 0
   bodyLocalYBefore: 0
   bodyLocalYAfter: 0
+  leftFootLocalY: 0
+  rightFootLocalY: 0
 --- !u!114 &8603129927404359901
 MonoBehaviour:
   m_ObjectHideFlags: 0

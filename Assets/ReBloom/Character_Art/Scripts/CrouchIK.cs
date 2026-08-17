@@ -7,10 +7,13 @@ public class CrouchIK : MonoBehaviour
     public Transform body;
     public Transform leftFootTarget;
     public Transform rightFootTarget;
+    public Transform playerRoot;
 
     [Header("Settings")]
     public float crouchSpeed = 8f;
-    [Range(0f, 1f)] public float crouchStrength = 0.7f;
+
+    [Range(0f, 1f)]
+    public float crouchStrength = 0.7f;
 
     [Header("Debug - Play 중 확인")]
     [SerializeField] private bool isRunning;
@@ -20,9 +23,10 @@ public class CrouchIK : MonoBehaviour
     [SerializeField] private float bodyLocalYBefore;
     [SerializeField] private float bodyLocalYAfter;
 
+    [SerializeField] private float leftFootLocalY;
+    [SerializeField] private float rightFootLocalY;
+
     private float initialBodyLocalY;
-    private float leftFootY;
-    private float rightFootY;
     private bool initialized;
 
     private void Start()
@@ -32,14 +36,19 @@ public class CrouchIK : MonoBehaviour
             initialBodyLocalY = body.localPosition.y;
         }
 
-        if (leftFootTarget != null)
+        if (playerRoot != null)
         {
-            leftFootY = leftFootTarget.position.y;
-        }
+            if (leftFootTarget != null)
+            {
+                leftFootLocalY =
+                    leftFootTarget.position.y - playerRoot.position.y;
+            }
 
-        if (rightFootTarget != null)
-        {
-            rightFootY = rightFootTarget.position.y;
+            if (rightFootTarget != null)
+            {
+                rightFootLocalY =
+                    rightFootTarget.position.y - playerRoot.position.y;
+            }
         }
     }
 
@@ -47,38 +56,57 @@ public class CrouchIK : MonoBehaviour
     {
         isRunning = true;
 
-        if (headTarget == null || body == null)
+        if (headTarget == null ||
+            body == null ||
+            playerRoot == null)
         {
             return;
         }
 
-        currentHeadHeight = headTarget.position.y;
+        // Player Root 기준 상대 머리 높이
+        currentHeadHeight =
+            headTarget.position.y - playerRoot.position.y;
 
         if (!initialized)
-{
-        // HeadTarget이 아직 원점에 있다면 HMD 추적이 준비되지 않은 상태
-        if (currentHeadHeight < 0.5f)
         {
+            if (currentHeadHeight < 0.5f)
+            {
+                return;
+            }
+
+            standingHeadHeight = currentHeadHeight;
+            initialBodyLocalY = body.localPosition.y;
+
+            // HMD 추적이 정상화된 시점에 발 높이도 다시 저장
+            if (leftFootTarget != null)
+            {
+                leftFootLocalY =
+                    leftFootTarget.position.y - playerRoot.position.y;
+            }
+
+            if (rightFootTarget != null)
+            {
+                rightFootLocalY =
+                    rightFootTarget.position.y - playerRoot.position.y;
+            }
+
+            initialized = true;
+
+            Debug.Log(
+                $"CrouchIK initialized: " +
+                $"standingHeight={standingHeadHeight}, " +
+                $"bodyLocalY={initialBodyLocalY}"
+            );
+
             return;
         }
 
-        standingHeadHeight = currentHeadHeight;
-        initialBodyLocalY = body.localPosition.y;
-        initialized = true;
-
-        Debug.Log(
-            $"CrouchIK initialized: standingHeight={standingHeadHeight}, " +
-            $"bodyLocalY={initialBodyLocalY}"
-        );
-
-        return;
-    }
-
+        // Player Root 기준 상대 높이로 발 Y 유지
         if (leftFootTarget != null)
         {
             leftFootTarget.position = new Vector3(
                 leftFootTarget.position.x,
-                leftFootY,
+                playerRoot.position.y + leftFootLocalY,
                 leftFootTarget.position.z
             );
         }
@@ -87,20 +115,22 @@ public class CrouchIK : MonoBehaviour
         {
             rightFootTarget.position = new Vector3(
                 rightFootTarget.position.x,
-                rightFootY,
+                playerRoot.position.y + rightFootLocalY,
                 rightFootTarget.position.z
             );
         }
 
         crouchAmount = Mathf.Max(
-        0f,
-        standingHeadHeight - currentHeadHeight
-    ) * crouchStrength;
+            0f,
+            standingHeadHeight - currentHeadHeight
+        ) * crouchStrength;
 
         bodyLocalYBefore = body.localPosition.y;
 
         Vector3 targetPosition = body.localPosition;
-        targetPosition.y = initialBodyLocalY - crouchAmount;
+
+        targetPosition.y =
+            initialBodyLocalY - crouchAmount;
 
         body.localPosition = Vector3.Lerp(
             body.localPosition,
