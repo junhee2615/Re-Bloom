@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -34,8 +34,8 @@ public sealed class CooperativeActivationController : MonoBehaviour
     [SerializeField] private UnityEvent onActivationSucceeded;
 
     private NetworkPlayer owner;
-    private NetworkPlayer cachedHost;
-    private NetworkPlayer cachedClient;
+    private NetworkPlayer cachedMental;
+    private NetworkPlayer cachedEar;
     private float holdElapsed;
     private bool previousContact;
     private bool previousSuccess;
@@ -52,41 +52,41 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (owner == null || !owner.HasNetworkStateAuthority || owner.HasCooperativeActivationSucceeded)
             return;
 
-        if (!TryResolvePair(out NetworkPlayer hostPlayer, out NetworkPlayer clientPlayer) ||
-            owner != hostPlayer)
+        if (!TryResolvePair(out NetworkPlayer mentalPlayer, out NetworkPlayer earPlayer) ||
+            owner != mentalPlayer)
             return;
         
-        float handDistance = GetClosestHandPair(hostPlayer, clientPlayer, out Hand hostHand, out Hand clientHand);
+        float handDistance = GetClosestHandPair(mentalPlayer, earPlayer, out Hand mentalHand, out Hand earHand);
         bool handsContacted = handDistance <= handContactDistance;
-        bool hostReady = hostPlayer.IsTriggerHeld(hostHand);
-        bool clientReady = clientPlayer.IsTriggerHeld(clientHand);
-        bool bothReady = hostReady && clientReady;
+        bool mentalReady = mentalPlayer.IsTriggerHeld(mentalHand);
+        bool earReady = earPlayer.IsTriggerHeld(earHand);
+        bool bothReady = mentalReady && earReady;
         bool holding = handsContacted && bothReady;
         
-        hostPlayer.SetCooperativeContactHand(handsContacted ? hostHand : Hand.None);
-        clientPlayer.SetCooperativeContactHand(handsContacted ? clientHand : Hand.None);
+        mentalPlayer.SetCooperativeContactHand(handsContacted ? mentalHand : Hand.None);
+        earPlayer.SetCooperativeContactHand(handsContacted ? earHand : Hand.None);
 
         if (!holding)
         {
             holdElapsed = 0f;
-            hostPlayer.SetCooperativeHoldProgress(0f);
-            clientPlayer.SetCooperativeHoldProgress(0f);
+            mentalPlayer.SetCooperativeHoldProgress(0f);
+            earPlayer.SetCooperativeHoldProgress(0f);
             LogActivationState(
-                hostPlayer, handDistance, hostHand, clientHand, hostReady, clientReady, handsContacted, holding);
+                mentalPlayer, handDistance, mentalHand, earHand, mentalReady, earReady, handsContacted, holding);
             return;
         }
 
         holdElapsed += Time.fixedDeltaTime;
         float holdProgress = holdDuration <= 0f ? 1f : Mathf.Clamp01(holdElapsed / holdDuration);
-        hostPlayer.SetCooperativeHoldProgress(holdProgress);
-        clientPlayer.SetCooperativeHoldProgress(holdProgress);
+        mentalPlayer.SetCooperativeHoldProgress(holdProgress);
+        earPlayer.SetCooperativeHoldProgress(holdProgress);
         LogActivationState(
-            hostPlayer, handDistance, hostHand, clientHand, hostReady, clientReady, handsContacted, holding);
+            mentalPlayer, handDistance, mentalHand, earHand, mentalReady, earReady, handsContacted, holding);
         if (holdElapsed < holdDuration)
             return;
         
-        hostPlayer.SetCooperativeActivationSucceeded();
-        clientPlayer.SetCooperativeActivationSucceeded();
+        mentalPlayer.SetCooperativeActivationSucceeded();
+        earPlayer.SetCooperativeActivationSucceeded();
     }
 
     private void Update()
@@ -169,12 +169,12 @@ public sealed class CooperativeActivationController : MonoBehaviour
     }
 
     private void LogActivationState(
-        NetworkPlayer hostPlayer,
+        NetworkPlayer mentalPlayer,
         float handDistance,
-        Hand hostHand,
-        Hand clientHand,
-        bool hostReady,
-        bool clientReady,
+        Hand mentalHand,
+        Hand earHand,
+        bool mentalReady,
+        bool earReady,
         bool handsContacted,
         bool holding)
     {
@@ -183,35 +183,35 @@ public sealed class CooperativeActivationController : MonoBehaviour
 
         nextDebugLogTime = Time.unscaledTime + debugLogInterval;
         Debug.Log(
-            $"[Cooperative Activation] host(hand={hostHand}, ready={hostReady}) " +
-            $"client(hand={clientHand}, ready={clientReady}) " +
+            $"[Cooperative Activation] host(hand={mentalHand}, ready={mentalReady}) " +
+            $"client(hand={earHand}, ready={earReady}) " +
             $"hands(distance={handDistance:F2}/{handContactDistance:F2}, contact={handsContacted}) " +
-            $"holding={holding}, hold={holdElapsed:F2}/{holdDuration:F2}, success={hostPlayer.HasCooperativeActivationSucceeded}", this);
+            $"holding={holding}, hold={holdElapsed:F2}/{holdDuration:F2}, success={mentalPlayer.HasCooperativeActivationSucceeded}", this);
     }
 
     /// <summary>
     /// 캐시된 페어가 유효하면 스캔 없이 재사용하고, 무효일 때만 씬을 한 번 스캔한다.
     /// (상대가 아직 스폰 전이거나 접속이 끊긴 경우에만 다시 탐색)
     /// </summary>
-    private bool TryResolvePair(out NetworkPlayer hostPlayer, out NetworkPlayer clientPlayer)
+    private bool TryResolvePair(out NetworkPlayer mentalPlayer, out NetworkPlayer earPlayer)
     {
-        if (IsValidPlayer(cachedHost) && IsValidPlayer(cachedClient))
+        if (IsValidPlayer(cachedMental) && IsValidPlayer(cachedEar))
         {
-            hostPlayer = cachedHost;
-            clientPlayer = cachedClient;
+            mentalPlayer = cachedMental;
+            earPlayer = cachedEar;
             return true;
         }
 
         NetworkPlayer[] players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
-        if (TryGetPair(players, out hostPlayer, out clientPlayer))
+        if (TryGetPair(players, out mentalPlayer, out earPlayer))
         {
-            cachedHost = hostPlayer;
-            cachedClient = clientPlayer;
+            cachedMental = mentalPlayer;
+            cachedEar = earPlayer;
             return true;
         }
 
-        cachedHost = null;
-        cachedClient = null;
+        cachedMental = null;
+        cachedEar = null;
         return false;
     }
 
@@ -222,24 +222,30 @@ public sealed class CooperativeActivationController : MonoBehaviour
 
     private static bool TryGetPair(
         NetworkPlayer[] players,
-        out NetworkPlayer hostPlayer,
-        out NetworkPlayer clientPlayer)
+        out NetworkPlayer mentalPlayer,
+        out NetworkPlayer earPlayer)
     {
-        hostPlayer = null;
-        clientPlayer = null;
+        mentalPlayer = null;
+        earPlayer = null;
 
         foreach (NetworkPlayer player in players)
         {
             if (player == null || player.Object == null || !player.Object.IsValid)
                 continue;
 
-            if (player.Object.InputAuthority.PlayerId == 1)
-                hostPlayer = player;
-            else if (clientPlayer == null)
-                clientPlayer = player;
+            // 역할은 Lobby에서 정해져 NetworkPlayer.AssignedRole로 동기화된다.
+            if (player.AssignedRole == Role.mental)
+            {
+                if (mentalPlayer == null)
+                    mentalPlayer = player;
+            }
+            else if (earPlayer == null)
+            {
+                earPlayer = player;
+            }
         }
 
-        return hostPlayer != null && clientPlayer != null;
+        return mentalPlayer != null && earPlayer != null;
     }
 
     /// <summary>

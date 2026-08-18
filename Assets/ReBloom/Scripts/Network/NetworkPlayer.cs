@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
@@ -81,18 +81,14 @@ public class NetworkPlayer : NetworkBehaviour
         hand == Hand.Right ? RightHand :
         hand == Hand.Left ? LeftHand : null;
 
-    private TeleportGhostManager.CharacterType LocalCharacterType
-    {
-        get
-        {
-            if (Object.InputAuthority.PlayerId == 1)
-            {
-                return TeleportGhostManager.CharacterType.Mental;
-            }
-
-            return TeleportGhostManager.CharacterType.Ear;
-        }
-    }
+    /// <summary>
+    /// 텔레포트 고스트에 쓸 캐릭터 종류.
+    /// Lobby에서 고른 역할(AssignedRole)을 그대로 따른다.
+    /// </summary>
+    private TeleportGhostManager.CharacterType LocalCharacterType =>
+        AssignedRole == Role.mental
+            ? TeleportGhostManager.CharacterType.Mental
+            : TeleportGhostManager.CharacterType.Ear;
 
     [Header("Network Transforms")]
     [SerializeField] private NetworkTransform playerTransform;

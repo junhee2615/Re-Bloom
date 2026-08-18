@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -56,9 +56,9 @@ public class CombinedMission : ActivationMission
 
     [Header("협동 역할")]
     [Tooltip("리듬 소리를 듣는 역할 (기본 Host)")]
-    [SerializeField] private MissionRole soundRole = MissionRole.HostOnly;
+    [SerializeField] private MissionRole soundRole = MissionRole.MentalOnly;
     [Tooltip("Grab 입력이 카운트되는 역할 (기본 Client)")]
-    [SerializeField] private MissionRole grabRole = MissionRole.ClientOnly;
+    [SerializeField] private MissionRole grabRole = MissionRole.EarOnly;
 
     [Header("Grab 판정 (넉넉하게)")]
     [SerializeField] private float beatTolerance = 0.35f;
@@ -76,7 +76,7 @@ public class CombinedMission : ActivationMission
     [SerializeField] private RectTransform clientNote;  // Client용 노트 (보임)
     [SerializeField] private RectTransform hostNote;    // Host용 노트 (안 보이지만 클릭)
     [Tooltip("노트 터치를 카운트하는 역할 (기본 Host)")]
-    [SerializeField] private MissionRole noteRole = MissionRole.HostOnly;
+    [SerializeField] private MissionRole noteRole = MissionRole.MentalOnly;
     [TextArea]
     [SerializeField] private string msgNoteIntro = "청각 제약 캐릭터는 노트가 빨간 선에 닿을 때\n노트가 몇 번 레인에 있는지 알려주세요.";
     [SerializeField] private float phaseGap = 3f;          // 1부 클리어 후 대기
@@ -262,14 +262,16 @@ private IEnumerator RunMission()
         return intervals;
     }
 
-    // 주어진 역할이 로컬 플레이어와 맞는지 (미연결 = 단독 테스트는 허용)
+    // 주어진 역할이 로컬 플레이어와 맞는지 (역할 미지정 = 단독 테스트는 허용)
     private bool LocalMatches(MissionRole role)
     {
-        if (!PlayerRole.IsConnected) return true;
+        // 역할이 아직 없다 = 단독 테스트. 제한하지 않는다.
+        if (!RoleManager.HasLocalRole) return true;
+
         switch (role)
         {
-            case MissionRole.HostOnly:   return PlayerRole.LocalIsHost();
-            case MissionRole.ClientOnly: return PlayerRole.LocalIsClient();
+            case MissionRole.MentalOnly: return RoleManager.LocalIsMental;
+            case MissionRole.EarOnly:    return RoleManager.LocalIsEar;
             default:                     return true;
         }
     }
@@ -342,18 +344,19 @@ private void ResetNoteRound()
     }
 
 
-// 역할에 맞는 노트 세트를 골라 수집 (한 번만). Host 세트는 안 보이지만 클릭 가능.
+// 역할에 맞는 노트 세트를 골라 수집 (한 번만). mental 세트는 안 보이지만 클릭 가능.
     private void GatherNotes()
     {
         if (notesGathered) return;
         notesGathered = true;
 
-        bool useHost = PlayerRole.IsConnected && PlayerRole.LocalIsHost();
-        activeNoteRoot = useHost ? hostNote : clientNote;
+        // hostNote / clientNote 는 각각 mental / ear 용 노트 세트다.
+        bool useMental = RoleManager.LocalIsMental;
+        activeNoteRoot = useMental ? hostNote : clientNote;
         if (activeNoteRoot == null) { Debug.LogWarning("[Combined] 노트 컨테이너 미할당"); return; }
 
         // Host 세트: 투명(alpha 0)하지만 클릭은 되도록 CanvasGroup 처리
-        if (useHost)
+        if (useMental)
         {
             CanvasGroup cg = activeNoteRoot.GetComponent<CanvasGroup>();
             if (cg == null) cg = activeNoteRoot.gameObject.AddComponent<CanvasGroup>();
@@ -386,7 +389,7 @@ private void ResetNoteRound()
             noteList.Add(n);
         }
 
-        Debug.Log("[Combined] 노트 " + noteList.Count + "개 수집 (Host세트=" + useHost + ")");
+        Debug.Log("[Combined] 노트 " + noteList.Count + "개 수집 (mental세트=" + useMental + ")");
     }
 
 

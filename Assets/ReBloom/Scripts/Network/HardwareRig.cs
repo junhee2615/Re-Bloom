@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections;
@@ -197,14 +197,24 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     {
         yield return null;
 
-        Transform spawnPoint;
+        // Lobby에서 고른 역할을 따른다.
+        // 씬에 역할 이름의 스폰 포인트가 없으면 기존 Host/Client 이름으로 넘어간다.
+        bool isMental = RoleManager.LocalIsMental;
+        string roleName = isMental ? "MentalSpawnPoint" : "EarSpawnPoint";
+        string legacyName = isMental ? "HostSpawnPoint" : "ClientSpawnPoint";
 
-        if (runner.LocalPlayer.PlayerId == 1)
-            spawnPoint = GameObject.Find("HostSpawnPoint").transform;
-        else
-            spawnPoint = GameObject.Find("ClientSpawnPoint").transform;
+        GameObject spawnPointObject = GameObject.Find(roleName);
+        if (spawnPointObject == null)
+            spawnPointObject = GameObject.Find(legacyName);
 
-        TeleportTo(spawnPoint);
+        // Lobby처럼 스폰 포인트가 없는 씬에서는 배치된 위치를 그대로 쓴다.
+        if (spawnPointObject == null)
+        {
+            Debug.Log($"[HardwareRig] '{roleName}' / '{legacyName}' 둘 다 없어 현재 위치를 유지합니다.");
+            yield break;
+        }
+
+        TeleportTo(spawnPointObject.transform);
     }
 
     public void TeleportTo(Transform target)

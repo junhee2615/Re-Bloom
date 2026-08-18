@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class TeleportGhostManager : MonoBehaviour
@@ -44,6 +44,13 @@ public class TeleportGhostManager : MonoBehaviour
 
     private void CreateGhost()
     {
+        // 씬을 옮기며 Initialize가 다시 불릴 때 고스트가 중복 생성되지 않도록 정리한다.
+        if (currentGhost != null)
+        {
+            Destroy(currentGhost);
+            currentGhost = null;
+        }
+
         GameObject selectedPrefab;
 
         if (characterType == CharacterType.Ear)

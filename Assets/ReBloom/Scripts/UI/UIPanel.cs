@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR;
@@ -102,9 +102,8 @@ public class UIPanel : MonoBehaviour
         missionText.text = message.MissionLabel;
         titleText.text = message.Title;
 
-        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-
-        if (runner != null && runner.LocalPlayer.PlayerId == 1)
+        // HostDescription / ClientDescription 은 각각 mental / ear 용 설명이다.
+        if (RoleManager.LocalIsMental)
         {
             descriptionText.text = message.HostDescription;
         }
