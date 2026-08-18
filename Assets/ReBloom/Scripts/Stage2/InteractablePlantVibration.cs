@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -39,8 +39,8 @@ public class InteractablePlantVibration : MonoBehaviour
         if (!other.CompareTag("Right Controller"))
             return;
 
-        // Client(PlayerId != 1)만 진동 느낌
-        if (!PlayerRole.LocalIsClient())
+        // ear 역할만 진동을 느낀다.
+        if (!RoleManager.LocalIsEar)
             return;
 
         isTouching = true;

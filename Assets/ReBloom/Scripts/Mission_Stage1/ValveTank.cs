@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class ValveTank : MonoBehaviour
 {
@@ -10,8 +10,8 @@ public class ValveTank : MonoBehaviour
     {
         ValveHapticVib haptic = other.GetComponent<ValveHapticVib>();
 
-        // Client(PlayerId != 1)¸¸ Áøµ¿ ´À³¦
-        if (!PlayerRole.LocalIsClient())
+        // ear ì—­í• ë§Œ ì§„ë™ì„ ëŠë‚€ë‹¤.
+        if (!RoleManager.LocalIsEar)
             return;
 
         if (haptic != null)
@@ -22,13 +22,13 @@ public class ValveTank : MonoBehaviour
             {
                 float stability = missionManager.stability;
 
-                // stability ³·À»¼ö·Ï ·£´ı °­ÇÔ
+                // stability ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 float amplitude =
                     Mathf.Lerp(Random.Range(0.2f, 1f),
                                0.5f,
                                stability);
 
-                // stability ³·À»¼ö·Ï ·£´ı °£°İ
+                // stability ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 float duration =
                     Mathf.Lerp(Random.Range(0.05f, 0.3f),
                                0.15f,

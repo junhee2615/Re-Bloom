@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections;
@@ -15,10 +15,21 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField]
     private GameObject _runnerPrefab;
 
-    [SerializeField, Tooltip("Host가 세션 시작 시 로드할 씬 이름. Build Settings에 등록된 씬이어야 함.")]
-    private string _targetSceneName = "Stage1";
+    /// <summary>
+    /// 세션 입장 직후 항상 로드하는 씬. StartScene 다음은 언제나 Lobby다.
+    /// (Host가 로드하면 Client는 Fusion이 자동으로 따라온다.)
+    /// Build Profiles > Scene List에 등록되어 있어야 한다.
+    /// 어느 스테이지로 갈지는 Lobby의 LobbyManager.nextSceneName에서 정한다.
+    /// </summary>
+    public const string LobbySceneName = "Lobby";
 
     public NetworkRunner Runner { get; private set; }
+
+    /// <summary>StartScene에서 어느 버튼으로 입장했는지(Multi / Single).</summary>
+    public SessionMode Mode { get; private set; } = SessionMode.Multi;
+
+    /// <summary>세션 시작 절차가 이미 진행되었는지.</summary>
+    public bool IsSessionStarted => _sessionStarted;
 
     private bool _sessionStarted;
 
@@ -41,43 +52,57 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         Fusion.Photon.Realtime.PhotonAppSettings.Global.AppSettings.FixedRegion = "asia";
     }
 
-    public async void CreateSession(string roomCode)
+    /// <summary>
+    /// StartScene의 Multi / Single 버튼 공용 진입점.
+    ///
+    /// GameMode.AutoHostOrClient 이므로 같은 이름의 방이 없으면 Host,
+    /// 이미 있으면 Client가 된다. Host가 되면 Lobby 씬을 로드하고
+    /// Client는 Fusion이 자동으로 같은 씬으로 따라온다.
+    /// </summary>
+    /// <returns>세션 입장 성공 여부.</returns>
+    public async Task<bool> EnterSession(string roomCode, SessionMode mode)
     {
-        if (_sessionStarted) return;
+        if (_sessionStarted)
+            return false;
+
         _sessionStarted = true;
+        Mode = mode;
 
         NetworkSceneManagerDefault sceneManager = GetComponent<NetworkSceneManagerDefault>();
-        if (!GetTargetScene(sceneManager, out SceneRef targetScene))
+        if (!GetLobbyScene(sceneManager, out SceneRef lobbyScene))
         {
             _sessionStarted = false;
-            return;
+            return false;
         }
 
         CreateRunner();
 
         var args = new StartGameArgs()
         {
-            GameMode = GameMode.Host,
+            GameMode = GameMode.AutoHostOrClient,
             SessionName = roomCode,
             SceneManager = sceneManager,
-            Scene = targetScene
+            Scene = lobbyScene
         };
-        await Runner.StartGame(args);
-    }
 
-    public async void JoinSession(string roomCode)
-    {
-        if (_sessionStarted) return;
-        _sessionStarted = true;
-        CreateRunner();
+        StartGameResult result = await Runner.StartGame(args);
 
-        var args = new StartGameArgs()
+        if (!result.Ok)
         {
-            GameMode = GameMode.Client,
-            SessionName = roomCode,
-            SceneManager = GetComponent<NetworkSceneManagerDefault>()
-        };
-        await Runner.StartGame(args);
+            Debug.LogError($"세션 입장 실패 (room={roomCode}): {result.ShutdownReason} / {result.ErrorMessage}", this);
+
+            if (Runner != null)
+            {
+                Destroy(Runner.gameObject);
+                Runner = null;
+            }
+
+            _sessionStarted = false;
+            return false;
+        }
+
+        Debug.Log($"세션 입장 성공 - room={roomCode}, mode={Mode}, isHost={Runner.IsServer}, playerId={Runner.LocalPlayer.PlayerId}");
+        return true;
     }
 
     public void CreateRunner()
@@ -90,7 +115,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     private async Task Connect(string SessionName)
     {
         NetworkSceneManagerDefault sceneManager = GetComponent<NetworkSceneManagerDefault>();
-        if (!GetTargetScene(sceneManager, out SceneRef targetScene))
+        if (!GetLobbyScene(sceneManager, out SceneRef lobbyScene))
             return;
 
         var args = new StartGameArgs()
@@ -98,15 +123,27 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             GameMode = GameMode.Shared,
             SessionName = SessionName,
             SceneManager = sceneManager,
-            Scene = targetScene
+            Scene = lobbyScene
 
         };
         await Runner.StartGame(args);
     }
 
-    private bool GetTargetScene(NetworkSceneManagerDefault sceneManager, out SceneRef targetScene)
+    /// <summary>씬 이름을 Fusion의 SceneRef로 바꾼다. 못 찾으면 SceneRef.None.</summary>
+    public SceneRef GetSceneRef(string sceneName)
     {
-        targetScene = SceneRef.None;
+        NetworkSceneManagerDefault sceneManager = GetComponent<NetworkSceneManagerDefault>();
+
+        if (sceneManager == null || string.IsNullOrWhiteSpace(sceneName))
+            return SceneRef.None;
+
+        return sceneManager.GetSceneRef(sceneName.Trim());
+    }
+
+    /// <summary>세션 입장 시 로드할 Lobby 씬을 찾는다.</summary>
+    private bool GetLobbyScene(NetworkSceneManagerDefault sceneManager, out SceneRef lobbyScene)
+    {
+        lobbyScene = SceneRef.None;
 
         if (sceneManager == null)
         {
@@ -114,17 +151,12 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(_targetSceneName))
-        {
-            Debug.LogError("Target Scene Name이 비어 있습니다.", this);
-            return false;
-        }
+        lobbyScene = sceneManager.GetSceneRef(LobbySceneName);
 
-        targetScene = sceneManager.GetSceneRef(_targetSceneName.Trim());
-        if (targetScene == SceneRef.None)
+        if (lobbyScene == SceneRef.None)
         {
             Debug.LogError(
-                $"씬 '{_targetSceneName}'을 찾을 수 없습니다. File > Build Profiles > Scene List에 씬을 등록했는지 확인하세요.",
+                $"씬 '{LobbySceneName}'을 찾을 수 없습니다. File > Build Profiles > Scene List에 씬을 등록했는지 확인하세요.",
                 this);
             return false;
         }
@@ -152,6 +184,10 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
         Debug.Log("<<<<<<< Runner Shutdown >>>>>>>>");
+
+        // 다시 StartScene으로 돌아왔을 때 재입장이 가능하도록 상태를 되돌린다.
+        _sessionStarted = false;
+        Runner = null;
 
         // 세션이 끝난 뒤에 직전 Role이 남아 오판하지 않도록 초기화한다.
         RoleManager.ClearLocalRole();

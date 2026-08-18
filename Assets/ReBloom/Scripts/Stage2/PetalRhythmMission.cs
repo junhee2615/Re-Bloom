@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PetalRhythmMission : MonoBehaviour
 {
@@ -14,8 +15,9 @@ public class PetalRhythmMission : MonoBehaviour
     [SerializeField] private PlantRevive plantRevive;
 
     [Header("역할 제한")]
-    [Tooltip("체크 시 Host(PlayerId 1)만 연꽃잎 입력이 유효. 솔로 테스트 시 해제.")]
-    [SerializeField] private bool hostOnly = true;
+    [Tooltip("체크 시 mental 역할만 연꽃잎 입력이 유효. 솔로 테스트 시 해제.")]
+    [FormerlySerializedAs("hostOnly")]
+    [SerializeField] private bool mentalOnly = true;
 
     [Header("박자 판정 (넉넉하게)")]
     [Tooltip("간격 허용 오차(초). 클수록 관대")]
@@ -64,13 +66,13 @@ public class PetalRhythmMission : MonoBehaviour
             _registry.Remove(plantId);
     }
 
-    /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. Host 로컬에서만 유효
+    /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. mental 로컬에서만 유효
     public void OnPetalTouched()
     {
         if (cleared)
             return;
 
-        if (hostOnly && !PlayerRole.LocalIsHost())
+        if (mentalOnly && !RoleManager.LocalIsMental)
             return;
 
         if (vibration == null)

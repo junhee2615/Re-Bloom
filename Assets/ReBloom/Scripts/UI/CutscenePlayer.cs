@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using Fusion;
 using UnityEngine;
@@ -20,8 +20,8 @@ public class CutscenePlayer : NetworkBehaviour
     [SerializeField] private float clientWaitTimeout = 15f;
 
     [Header("Scene")]
-    [Tooltip("컷신 후 로드할 다음 씬의 Build Index.")]
-    [SerializeField] private int nextSceneBuildIndex = 2;
+    [Tooltip("컷신 후 로드할 다음 씬 이름. Build Profiles > Scene List에 등록되어 있어야 한다.")]
+    [SerializeField] private string nextSceneName = "Stage2";
 
     private ScreenFade screenFade;
     private RawImage videoRawImage;
@@ -213,7 +213,18 @@ public class CutscenePlayer : NetworkBehaviour
         if (!HasStateAuthority || loadTriggered)
             return;
 
+        // 빌드 인덱스는 Scene List에 씬을 추가하면 밀리므로 이름으로 찾는다.
+        SceneRef next = NetworkManager.Instance != null
+            ? NetworkManager.Instance.GetSceneRef(nextSceneName)
+            : SceneRef.None;
+
+        if (next == SceneRef.None)
+        {
+            Debug.LogError($"[CutscenePlayer] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            return;
+        }
+
         loadTriggered = true;
-        Runner.LoadScene(SceneRef.FromIndex(nextSceneBuildIndex));
+        Runner.LoadScene(next);
     }
 }
