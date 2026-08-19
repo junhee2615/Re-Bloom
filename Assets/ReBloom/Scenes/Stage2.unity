@@ -119,6 +119,74 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &125839716 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7148027558407860420, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &395063640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 395063642}
+  - component: {fileID: 395063641}
+  m_Layer: 0
+  m_Name: ResonanceSceneContext
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &395063641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 395063640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 692da0601ff18834f94e7d3616259dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResonanceSceneContext
+  hostSpawnPoint: {fileID: 1898797546}
+  clientSpawnPoint: {fileID: 1861574692}
+  constrainedAudioSources:
+  - {fileID: 1473216229}
+  - {fileID: 1473216228}
+  - {fileID: 1473216227}
+  - {fileID: 1473216226}
+  - {fileID: 1473216225}
+  - {fileID: 1473216224}
+  - {fileID: 1473216223}
+  - {fileID: 1979704987}
+  - {fileID: 1473216222}
+  - {fileID: 1473216221}
+  - {fileID: 1473216220}
+  - {fileID: 1473216219}
+  - {fileID: 1473216218}
+  overrideFogIntensity: 0
+  fogActiveIntensity: 1
+  startReleased: 0
+--- !u!4 &395063642
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 395063640}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &455224795
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,28 +529,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf6f5964668042041ac95c84a60bba0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PetalRhythmMission
---- !u!114 &532814892 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4311354860236062978, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
---- !u!114 &532814893 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7477206933020168347, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
 --- !u!4 &532814894 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5881619761027741128, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -541,9 +587,7 @@ MonoBehaviour:
   obstacleRoots:
   - {fileID: 532814895}
   - {fileID: 532814894}
-  soilLumps:
-  - {fileID: 532814893}
-  - {fileID: 532814892}
+  soilRoot: {fileID: 125839716}
   objectsToActivate:
   - {fileID: 510166039}
   - {fileID: 1518101701}
@@ -847,6 +891,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1473216218 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 499577919828617338, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216219 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 499577919828617339, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216220 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 499577919828617340, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216221 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 499577919828617341, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216222 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 435251085196814461, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216223 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 2114836920896448695, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216224 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 678451015345694297, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216225 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 1184275738661259672, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216226 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 4719721466737647441, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216227 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 7330768207248253476, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216228 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 4374508415778427037, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &1473216229 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 651405932011690764, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1518101701 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5263729796713020585, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -888,8 +992,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.2, y: 3, z: 3.2}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 3, y: 3, z: 3}
+  m_Center: {x: 0.1, y: 0, z: 0.53}
 --- !u!4 &1541650496
 Transform:
   m_ObjectHideFlags: 0
@@ -1250,7 +1354,6 @@ MonoBehaviour:
   waterRiseDuration: 5
   activateCleanWater: 1
   objectsToActivate:
-  - {fileID: 510166039}
   - {fileID: 510166038}
   dirtyToCleanWaterRoot: {fileID: 510166037}
   aquaticStaticRoot: {fileID: 510166036}
@@ -1276,10 +1379,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 257830301022087061, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 289647078912854707, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsTrigger
       value: 1
@@ -1490,6 +1589,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0.137
       objectReference: {fileID: 0}
+    - target: {fileID: 4946687152756803588, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5094604865253873253, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: SortKey
       value: 963931692
@@ -1498,10 +1601,6 @@ PrefabInstance:
       propertyPath: missionManager
       value: 
       objectReference: {fileID: 1209978440}
-    - target: {fileID: 5263729796713020585, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5386472990602379702, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_SizeDelta.y
       value: 196.8
@@ -1731,7 +1830,6 @@ PrefabInstance:
     - {fileID: 53861667086388598, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     m_RemovedGameObjects:
     - {fileID: 787620963953070262, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-    - {fileID: 4565706196357403952, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     - {fileID: 5120685421465282961, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     - {fileID: 169188658748673565, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     m_AddedGameObjects:
@@ -1797,3 +1895,4 @@ SceneRoots:
   - {fileID: 7609589794507034517}
   - {fileID: 1888650204}
   - {fileID: 1541650496}
+  - {fileID: 395063642}

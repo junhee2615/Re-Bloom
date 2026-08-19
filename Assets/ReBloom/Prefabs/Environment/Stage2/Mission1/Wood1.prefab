@@ -966,7 +966,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 3
 --- !u!114 &33665314631629000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1131,6 +1131,7 @@ MonoBehaviour:
   fallSafetyDepth: 15
   releaseDistance: 0.5
   gravityScale: 1
+  trackMaxSpeed: 12
   basePivotOffset: {x: 0, y: -0.3, z: 0}
   extractTiltAngle: 35
   showPivotGizmo: 0

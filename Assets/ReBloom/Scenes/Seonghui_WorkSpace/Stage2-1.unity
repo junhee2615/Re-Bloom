@@ -426,28 +426,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5263729796713020585, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
   m_PrefabInstance: {fileID: 7609589794507034517}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &794336106 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4311354860236062978, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
---- !u!114 &794336107 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7477206933020168347, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
-  m_PrefabInstance: {fileID: 7609589794507034517}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92a5658280c61434881b8ab5f4549cde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SoilLump
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
@@ -575,6 +553,11 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!4 &1132309221 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7148027558407860420, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1209978438
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,9 +641,7 @@ MonoBehaviour:
   obstacleRoots:
   - {fileID: 7609589794507034523}
   - {fileID: 7609589794507034522}
-  soilLumps:
-  - {fileID: 794336107}
-  - {fileID: 794336106}
+  soilRoot: {fileID: 1132309221}
   objectsToActivate:
   - {fileID: 510554916}
   - {fileID: 599462159}

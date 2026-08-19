@@ -4,7 +4,7 @@
 
 ## 사용법
 
-1. 씬의 `Global Volume` 오브젝트 선택
+1. `StartScene`의 `VRSystem/ResonanceSystem` 오브젝트 선택
 2. `ResonanceController`의 **Constraint Enabled** 체크 해제 → 제약 연출 OFF
 3. 다시 체크 → 원래대로 복귀
 
