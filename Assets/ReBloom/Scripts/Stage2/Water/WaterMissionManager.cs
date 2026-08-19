@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,6 +31,12 @@ public class WaterMissionManager : MonoBehaviour
     [SerializeField] private Transform dirtyToCleanWaterRoot;
 
     private bool completed;
+    
+    [Header("물 차오르기")]
+    [SerializeField] private Transform cleanWater;
+    [SerializeField] private float waterStartY = -0.81f;
+    [SerializeField] private float waterEndY = 0.30696f;
+    [SerializeField] private float waterRiseDuration = 5f;
 
     private void Awake()
     {
@@ -97,5 +104,33 @@ public class WaterMissionManager : MonoBehaviour
         if (dirtyToCleanWaterRoot != null) // 물 정화 (DirtyToCleanWater → M_CleanWater)
             foreach (WaterPurify wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>())
                 wp.StartPurify();
+        
+        // 물 차오르기 (5초 연출)
+        if (cleanWater != null)
+            StartCoroutine(RiseWater());
+    }
+    
+    private IEnumerator RiseWater()
+    {
+        cleanWater.gameObject.SetActive(true);
+
+        Vector3 p = cleanWater.localPosition;
+        p.y = waterStartY;
+        cleanWater.localPosition = p;
+
+        float t = 0f;
+        while (t < waterRiseDuration)
+        {
+            t += Time.deltaTime;
+            float y = Mathf.Lerp(waterStartY, waterEndY, Mathf.Clamp01(t / waterRiseDuration));
+            Vector3 cur = cleanWater.localPosition;
+            cur.y = y;
+            cleanWater.localPosition = cur;
+            yield return null;
+        }
+
+        Vector3 end = cleanWater.localPosition;
+        end.y = waterEndY;
+        cleanWater.localPosition = end;
     }
 }

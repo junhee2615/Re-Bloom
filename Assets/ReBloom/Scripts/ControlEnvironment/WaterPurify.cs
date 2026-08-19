@@ -19,6 +19,9 @@ public class WaterPurify : MonoBehaviour
     private Renderer waterRenderer;
     private bool isPurifying = false;
 
+    // 정화 진행 중 '더러움 → 맑음'으로 부드럽게 섞을 색 프로퍼티.
+    private static readonly string[] BlendColors = { "_BaseColor", "_ShallowColor", "_HorizonColor", "_FoamColor" };
+
     void Start()
     {
         // 1. 물 오브젝트의 Renderer(화면에 그려주는 부품)를 가져옵니다.
@@ -34,10 +37,11 @@ public class WaterPurify : MonoBehaviour
     // 외부(미션 매니저 등)에서 이 함수를 부르면 연출이 시작됩니다!
     public void StartPurify()
     {
-        if (!isPurifying && waterRenderer != null && cleanWaterMat != null)
-        {
-            StartCoroutine(PurifyRoutine());
-        }
+        if (isPurifying) return;
+        if (waterRenderer == null) waterRenderer = GetComponent<Renderer>();
+        if (waterRenderer == null || dirtyWaterMat == null || cleanWaterMat == null) return;
+
+        StartCoroutine(PurifyRoutine());
     }
 
     // 서서히 머티리얼을 섞어주는 코루틴
@@ -60,9 +64,8 @@ public class WaterPurify : MonoBehaviour
             // 0.0 에서 1.0 까지 시간에 따른 진행도를 계산합니다.
             float t = elapsedTime / purifyDuration;
 
-            // 핵심 코드: 더러운 물과 깨끗한 물을 t의 비율만큼 스르륵 섞어줍니다!
-            currentMat.Lerp(dirtyWaterMat, cleanWaterMat, t);
-            
+            // 색은 브라운↔블루 중간 탁한 톤을 덜 거치도록 SmoothStep 으로 섞는다.
+            BlendColorsTo(currentMat, Mathf.SmoothStep(0f, 1f, t));
             transform.position = Vector3.Lerp(startPos, endPos, t);
 
             yield return null; // 다음 프레임까지 대기
@@ -72,5 +75,13 @@ public class WaterPurify : MonoBehaviour
         waterRenderer.material = cleanWaterMat;
         transform.position = endPos;
         isPurifying = false;
+    }
+
+    // 지정한 색 프로퍼티만 dirty → clean 으로 t 만큼 섞어 target 에 적용한다.
+    private void BlendColorsTo(Material target, float t)
+    {
+        foreach (string p in BlendColors)
+            if (dirtyWaterMat.HasProperty(p) && cleanWaterMat.HasProperty(p))
+                target.SetColor(p, Color.Lerp(dirtyWaterMat.GetColor(p), cleanWaterMat.GetColor(p), t));
     }
 }

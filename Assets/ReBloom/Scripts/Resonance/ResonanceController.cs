@@ -29,10 +29,13 @@ public sealed class ResonanceController : MonoBehaviour
     [Tooltip("테스트용: 끄면 안개·Volume·청각 제약 연출을 모두 비활성화한다. 플레이 중 실시간 토글 가능.")]
     [SerializeField] private bool constraintEnabled = true;
 
-    private bool initialized;
     private bool isConstraintReleased;
     private bool hasContext;
     private bool resonanceDistanceResolved;
+
+    // StartReleased(스테이지 설정)를 네트워크 상태에 한 번만 시드하기 위한 플래그.
+    private bool startReleasedRequested;
+    private bool startReleasedSeeded;
 
     // 제약 연출이 꺼진 상태: 테스트 토글 OFF 또는 공명 해제.
     private bool IsConstraintInactive => !constraintEnabled || isConstraintReleased;
@@ -49,23 +52,17 @@ public sealed class ResonanceController : MonoBehaviour
         // VRSystem 하위에 두면 부모가 이미 DontDestroyOnLoad이므로 별도 호출은 필요 없다.
         // 독립 루트로 둘 경우에만 DontDestroyOnLoad(gameObject) 를 켠다.
 
-        initialized = fog.Initialize(this);
+        // 각 서브 오브젝트가 자체 initialized 가드를 갖는다.
+        fog.Initialize(this);
         volume.Initialize(constraintEnabled, this);
 
         if (_currentContext != null) Bind(_currentContext);
         else ApplyNoContext();
     }
 
-    private void OnEnable()
-    {
-        if (Instance != this) return;
-        CooperativeActivationController.ActivationSucceeded += ReleaseFogConstraint;
-    }
-
     private void OnDisable()
     {
         if (Instance != this) return;
-        CooperativeActivationController.ActivationSucceeded -= ReleaseFogConstraint;
 
         if (Application.isPlaying)
             fog.Apply(0f);
@@ -124,12 +121,18 @@ public sealed class ResonanceController : MonoBehaviour
         if (context.OverrideFogIntensity)
             fog.SetActiveIntensity(context.FogActiveIntensity);
 
+        // 해제 여부의 단일 진실 공급원은 NetworkPlayer.HasCooperativeActivationSucceeded 다.
+        // StartReleased는 플레이어 스폰 전까지의 초기값이자, 권한 피어가 네트워크 상태에
+        // 한 번 시드할 요청으로만 쓰인다. (SyncReleaseState 참고)
+        startReleasedRequested = context.StartReleased;
+        startReleasedSeeded = false;
         isConstraintReleased = context.StartReleased;
         hasContext = true;
 
         ApplyConstraintEffects();                    // Bloom/Vignette + 청각 초기 상태
         fog.SnapConstrained(!IsConstraintInactive);  // 안개 초기 강도
         volume.Snap(IsConstraintInactive);           // 전환 직후 weight 튐 방지
+        audioConstraint.UpdateRelief(0f);
     }
 
     /// <summary>
@@ -157,22 +160,28 @@ public sealed class ResonanceController : MonoBehaviour
     private void ApplyNoContext()
     {
         hasContext = false;
-        audioConstraint.SetSources(null);   // 파괴된 AudioSource 참조 정리
         audioConstraint.Apply(true);        // 정상(Master) 그룹
+        audioConstraint.SetSources(null);   // 파괴된 AudioSource 참조 정리
         audioConstraint.UpdateRelief(1f);   // 믹서 스냅샷을 완화 상태로 되돌림
         fog.Apply(0f);
         volume.Snap(true);
+        volume.ApplyPostFx(true);
     }
 
     private void Update()
     {
-        if (!initialized || !constraintEnabled || !hasContext)
+        if (!constraintEnabled || !hasContext)
             return;
 
-        bool hasDistance = TryGetOtherPlayerDistance(out float playerDistance);
+        ResolvePlayers(out NetworkPlayer localPlayer, out NetworkPlayer remotePlayer);
+        SyncReleaseState(localPlayer);
 
-        // 가까워졌다가 다시 멀어지면 제약을 재적용하고 공명 성공 상태를 리셋
-        if (isConstraintReleased && hasDistance && playerDistance >= resonanceDistance)
+        bool hasDistance = TryGetPlayerDistance(localPlayer, remotePlayer, out float playerDistance);
+
+        // 가까워졌다가 다시 멀어지면 제약을 재적용한다.
+        // 판정은 StateAuthority만 수행하고, 결과는 네트워크로 전파돼 양쪽이 같은 상태가 된다.
+        if (isConstraintReleased && hasDistance && playerDistance >= resonanceDistance
+            && localPlayer != null && localPlayer.HasNetworkStateAuthority)
             ReengageConstraint();
 
         float proximity = CalculateProximity(hasDistance, playerDistance);
@@ -188,6 +197,39 @@ public sealed class ResonanceController : MonoBehaviour
                 $"proximity={proximity:F3}, fogIntensity={fog.CurrentIntensity:F3}, " +
                 $"activeIntensity={fog.ActiveIntensity:F3}", this);
         }
+    }
+
+    /// <summary>
+    /// 해제 여부는 네트워크 상태(<see cref="NetworkPlayer.HasCooperativeActivationSucceeded"/>)를
+    /// 단일 진실 공급원으로 삼는다. 로컬 캐시와 어긋나면 연출을 다시 맞춘다.
+    /// </summary>
+    private void SyncReleaseState(NetworkPlayer localPlayer)
+    {
+        if (localPlayer == null)
+            return;   // 스폰 전에는 Bind가 넣어둔 StartReleased 값을 유지한다
+
+        // 스테이지가 "해제 상태로 시작"을 요구하면 권한 피어가 네트워크 상태에 한 번만 반영한다.
+        if (startReleasedRequested && !startReleasedSeeded)
+        {
+            startReleasedSeeded = true;
+
+            if (localPlayer.HasNetworkStateAuthority)
+            {
+                foreach (NetworkPlayer player in NetworkPlayer.All)
+                {
+                    if (player != null && player.Object != null && player.Object.IsValid)
+                        player.SetCooperativeActivationSucceeded();
+                }
+                return;   // 복제된 상태는 다음 프레임에 읽는다
+            }
+        }
+
+        bool released = localPlayer.HasCooperativeActivationSucceeded;
+        if (released == isConstraintReleased)
+            return;
+
+        isConstraintReleased = released;
+        ApplyConstraintEffects();
     }
 
     // 공명 on/off에 따른 효과(Bloom/Vignette + 청각)를 반영한다.
@@ -216,12 +258,12 @@ public sealed class ResonanceController : MonoBehaviour
             ? 1f : 1f - Mathf.Exp(-distanceResponseSpeed * Time.deltaTime);
     }
 
-    private static bool TryGetOtherPlayerDistance(out float playerDistance)
+    /// <summary>유효한 로컬/원격 NetworkPlayer를 한 번에 찾는다.</summary>
+    private static void ResolvePlayers(out NetworkPlayer localPlayer, out NetworkPlayer remotePlayer)
     {
-        playerDistance = 0f;
+        localPlayer = null;
+        remotePlayer = null;
 
-        NetworkPlayer localPlayer = null;
-        NetworkPlayer remotePlayer = null;
         foreach (NetworkPlayer player in NetworkPlayer.All)
         {
             if (player == null || player.Object == null || !player.Object.IsValid)
@@ -232,6 +274,12 @@ public sealed class ResonanceController : MonoBehaviour
             else
                 remotePlayer ??= player;
         }
+    }
+
+    private static bool TryGetPlayerDistance(
+        NetworkPlayer localPlayer, NetworkPlayer remotePlayer, out float playerDistance)
+    {
+        playerDistance = 0f;
 
         if (localPlayer == null || remotePlayer == null || remotePlayer.PlayerTransform == null)
             return false;
@@ -254,20 +302,12 @@ public sealed class ResonanceController : MonoBehaviour
         return true;
     }
 
-    private void ReleaseFogConstraint()
-    {
-        isConstraintReleased = true;
-        ApplyConstraintEffects(); // 공명 해제 → Bloom/Vignette OFF, 청각 정상
-    }
-
     /// <summary>
-    /// 거리 이탈로 제약을 다시 적용한다.
+    /// 거리 이탈로 제약을 다시 적용한다. StateAuthority에서만 호출된다.
+    /// 네트워크 플래그만 내리고, 로컬 연출은 <see cref="SyncReleaseState"/> 가 복제된 상태를 보고 반영한다.
     /// </summary>
-    private void ReengageConstraint()
+    private static void ReengageConstraint()
     {
-        isConstraintReleased = false;
-        ApplyConstraintEffects(); // 다시 제약 → Bloom/Vignette ON, 청각 제약
-
         foreach (NetworkPlayer player in NetworkPlayer.All)
         {
             if (player != null && player.Object != null && player.Object.IsValid)

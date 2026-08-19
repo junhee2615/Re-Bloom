@@ -8,18 +8,8 @@ public class PlantClearSequence : MonoBehaviour
     [Header("트리거: 이 미션들이 모두 클리어되면 실행")]
     [SerializeField] private List<PetalRhythmMission> plants = new List<PetalRhythmMission>();
 
-    [Header("물 차오르기")]
-    [SerializeField] private Transform cleanWater;
-    [SerializeField] private float waterStartY = -0.81f;
-    [SerializeField] private float waterEndY = 0.30696f;
-    [SerializeField] private float waterRiseDuration = 5f;
-    [SerializeField] private bool activateCleanWater = true;
-
     [Header("활성화할 오브젝트 (FloatingPlant, Fish 등)")]
     [SerializeField] private List<GameObject> objectsToActivate = new List<GameObject>();
-
-    [Header("물 정화: WaterPurify 들의 부모 (DirtyToCleanWater)")]
-    [SerializeField] private Transform dirtyToCleanWaterRoot;
 
     [Header("식생 복원: PlantRevive 들의 부모 (AquaticPlant/Static)")]
     [SerializeField] private Transform aquaticStaticRoot;
@@ -78,11 +68,6 @@ public class PlantClearSequence : MonoBehaviour
             if (go != null)
                 go.SetActive(true);
 
-        // 물 정화
-        if (dirtyToCleanWaterRoot != null)
-            foreach (var wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>(true))
-                wp.StartPurify();
-
         // 식생 복원
         if (aquaticStaticRoot != null)
             foreach (var pr in aquaticStaticRoot.GetComponentsInChildren<PlantRevive>(true))
@@ -94,37 +79,7 @@ public class PlantClearSequence : MonoBehaviour
 
         // 안개 색
         RenderSettings.fogColor = fogColor;
-
-        // 물 차오르기 (5초 연출)
-        if (cleanWater != null)
-            StartCoroutine(RiseWater());
     }
-
-    private IEnumerator RiseWater()
-    {
-        if (activateCleanWater)
-            cleanWater.gameObject.SetActive(true);
-
-        Vector3 p = cleanWater.localPosition;
-        p.y = waterStartY;
-        cleanWater.localPosition = p;
-
-        float t = 0f;
-        while (t < waterRiseDuration)
-        {
-            t += Time.deltaTime;
-            float y = Mathf.Lerp(waterStartY, waterEndY, Mathf.Clamp01(t / waterRiseDuration));
-            Vector3 cur = cleanWater.localPosition;
-            cur.y = y;
-            cleanWater.localPosition = cur;
-            yield return null;
-        }
-
-        Vector3 end = cleanWater.localPosition;
-        end.y = waterEndY;
-        cleanWater.localPosition = end;
-    }
-
 
     // 스카이박스 페이드: 기존 스카이박스를 어둠게 낮춘 뒤 새 스카이박스로 교체하고 다시 밝힌다.
     // 원본 메티리얼 에셋 보호를 위해 런타임 인스턴스로 동작한다.

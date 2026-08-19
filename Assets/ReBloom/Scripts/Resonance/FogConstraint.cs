@@ -84,5 +84,7 @@ public sealed class FogConstraint
         fogSettings.heightFogIntensity = configuredHeightIntensity;
         fogMaterial.SetFloat(DistanceFogIntensityId, configuredDistanceIntensity);
         fogMaterial.SetFloat(HeightFogIntensityId, configuredHeightIntensity);
+        
+        initialized = false;
     }
 }

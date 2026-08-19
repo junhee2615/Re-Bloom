@@ -48,6 +48,7 @@ public class SoilLump : NetworkBehaviour
         {
             grab.trackPosition = false;
             grab.trackRotation = false;
+            grab.trackScale = false;
             grab.throwOnDetach = false;
             grab.selectEntered.AddListener(OnSelectEntered);
             grab.selectExited.AddListener(OnSelectExited);
