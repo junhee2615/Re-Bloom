@@ -1,20 +1,9 @@
 using System;
 
-/// <summary>
-/// 이 기기(로컬 플레이어)의 Role을 보관한다.
-///
-/// - StartScene에서 HostBtn/JoinBtn을 누르는 시점에 결정된다. (ConnectionManager)
-/// - 스폰 이후에는 서버가 확정한 NetworkPlayer.AssignedRole 값으로 다시 맞춰진다.
-///   (NetworkPlayer.Spawned)
-///
-/// 기존 PlayerRole(PlayerId 기반) 헬퍼와 병행해서 쓸 수 있고,
-/// 추후 미션 분기를 Role 기준으로 옮길 때 이 클래스를 호출하면 된다.
-/// </summary>
 public static class RoleManager
 {
     private static Role _localRole;
 
-    /// <summary>로컬 Role이 정해졌는지. 입장 전/세션 종료 후에는 false.</summary>
     public static bool HasLocalRole { get; private set; }
 
     /// <summary>

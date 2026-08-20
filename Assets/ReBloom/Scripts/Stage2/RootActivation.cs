@@ -41,6 +41,8 @@ public class RootActivation : MonoBehaviour
 
     // 네트워크 시퀀스에서 이 뿌리의 순서 인덱스 (RootMissionManager.AttachNet에서 설정)
     public int MissionIndex { get; private set; }
+    public AudioSource audioSource;
+    public AudioClip missionClearClip;
 
     /// <summary>네트워크 모드에서 매니저/인덱스를 연결한다.</summary>
     public void SetContext(RootMissionManager m, int index)
@@ -144,6 +146,9 @@ public void OnStartButtonPressed()
 
         if (aliveDecal != null)
             aliveDecal.SetActive(true);
+
+        if (audioSource != null && missionClearClip != null)
+            audioSource.PlayOneShot(missionClearClip);
 
         Debug.Log($"{name} 활성화 미션 완료");
 

@@ -22,6 +22,9 @@ public class PlantClearSequence : MonoBehaviour
 
     [Header("안개 색")]
     [SerializeField] private Color fogColor = new Color32(0x4B, 0x44, 0x35, 0xFF);
+    /// <summary>수생식물 미션(MISSION 2) 완료. 연꽃 3개가 모두 클리어되어 완료 연출이 시작될 때 1회.</summary>
+    public static event System.Action MissionCleared;
+
 
     private bool played;
 
@@ -79,7 +82,17 @@ public class PlantClearSequence : MonoBehaviour
 
         // 안개 색
         RenderSettings.fogColor = fogColor;
+        // 튜토리얼 진행 알림 (TutorialMissionManager_2가 구독)
+        MissionCleared?.Invoke();
+
     }
+    // 도메인 리로드 비활성화 환경 대비: 재생 세션 시작 전 정적 이벤트 리셋
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        MissionCleared = null;
+    }
+
 
     // 스카이박스 페이드: 기존 스카이박스를 어둠게 낮춘 뒤 새 스카이박스로 교체하고 다시 밝힌다.
     // 원본 메티리얼 에셋 보호를 위해 런타임 인스턴스로 동작한다.
