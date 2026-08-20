@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
@@ -273,13 +273,34 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
     /// (Host 전용) 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스트한다.
     /// Host 는 상태 권한을 가지므로 RPC 를 보낼 수 있고, InvokeLocal 로 자기 자신도 실행된다.
     /// </summary>
+    /// <summary>
+    /// 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스한다.
+    /// 역할(mental/ear)과 접속 모드(Host/Client)는 로비에서 따로 정해지므로
+    /// mental 플레이어가 클라이언트일 수 있다. Host 모드에서 클라이언트는
+    /// 자기 아바타에 대해서도 StateAuthority가 없으므로, 권한자를 거쳐 중계한다.
+    /// </summary>
     public void RequestRevivePlant(int plantId)
     {
-        if (HasNetworkStateAuthority)
+        // 네트워크 미연결(단독 테스트) — 로컬로만 복원
+        if (Object == null || !Object.IsValid)
+        {
+            PetalRhythmMission.ReviveById(plantId);
+            return;
+        }
+
+        if (Object.HasStateAuthority)
             Rpc_RevivePlant(plantId);
         else
-            PetalRhythmMission.ReviveById(plantId);
+            Rpc_RequestRevivePlant(plantId);
     }
+
+    /// <summary>클라이언트 → 권한자 중계. 권한자가 받아 전원에게 재방송한다.</summary>
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_RequestRevivePlant(int plantId, RpcInfo info = default)
+    {
+        Rpc_RevivePlant(plantId);
+    }
+
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void Rpc_RevivePlant(int plantId)

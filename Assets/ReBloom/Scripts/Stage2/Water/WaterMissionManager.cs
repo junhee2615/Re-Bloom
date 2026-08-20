@@ -29,6 +29,8 @@ public class WaterMissionManager : MonoBehaviour
     [Tooltip("클리어 시 활성화할 오브젝트들.")]
     [SerializeField] private List<GameObject> objectsToActivate = new List<GameObject>();
     [SerializeField] private Transform dirtyToCleanWaterRoot;
+    /// <summary>수로 정화 미션(MISSION 1) 완료. 모든 머신에서 로컬로 1회 발행된다.</summary>
+    public static event System.Action MissionCleared;
 
     private bool completed;
     
@@ -108,7 +110,17 @@ public class WaterMissionManager : MonoBehaviour
         // 물 차오르기 (5초 연출)
         if (cleanWater != null)
             StartCoroutine(RiseWater());
+
+        // 튜토리얼 진행 알림 (TutorialMissionManager_2가 구독)
+        MissionCleared?.Invoke();
     }
+    // 도메인 리로드 비활성화 환경 대비: 재생 세션 시작 전 정적 이벤트 리셋
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        MissionCleared = null;
+    }
+
     
     private IEnumerator RiseWater()
     {

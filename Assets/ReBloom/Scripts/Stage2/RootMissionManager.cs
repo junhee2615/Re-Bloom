@@ -20,6 +20,15 @@ public class RootMissionManager : MonoBehaviour
     private bool activationStarted;
     // 네트워크: 발견 완료를 이미 Host에 알렸는지 (중복 RPC 방지)
     private bool findNotified;
+    /// <summary>찾기 미션(MISSION 3) 완료. 세 뿌리를 모두 찾은 순간 모든 머신에서 1회.</summary>
+    public static event System.Action RootsFound;
+
+    /// <summary>활성화 미션(MISSION 4) 전체 완료. 모든 머신에서 1회.</summary>
+    public static event System.Action AllRootsActivated;
+
+    // 오프라인/네트워크 두 경로 모두 Completed로 수렴하므로 중복 발행을 막는 래치
+    private bool allActivatedNotified;
+
 
 
     // 네트워크 브리지 (연결 시에만 존재). null이면 오프라인 단독 흐름.
@@ -51,6 +60,9 @@ public class RootMissionManager : MonoBehaviour
 
         if (cur >= activationRoots.Count)
             Debug.Log("모든 뿌리 활성화 완료! 미션 종료 (네트워크)");
+        if (cur >= activationRoots.Count)
+            NotifyAllActivated();
+
     }
 
     /// <summary>네트워크: RPC_StartAll이 모든 머신에서 해당 뿌리 미션을 시작시킬 때.</summary>
@@ -106,6 +118,10 @@ public void OnRootFound(LivingRoot root)
 private IEnumerator DelayedActivation()
     {
         // 대기 동안 LivingRoot는 켜져 있어 마지막 뿌리 진동을 계속 느낌 수 있다.
+        // 튜토리얼 진행 알림: 찾기 미션 완료 (TutorialMissionManager_2가 구독)
+        // activationStarted 래치 넭분에 오프라인·네트워크 경로 모두에서 정확히 1회만 호출된다.
+        RootsFound?.Invoke();
+
         yield return new WaitForSeconds(activationDelay);
 
         // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둔다)
@@ -153,6 +169,8 @@ private IEnumerator DelayedActivation()
         {
             currentState = RootMissionState.Completed;
             Debug.Log("모든 뿌리 활성화 완료! 미션 종료");
+            NotifyAllActivated();
+
             return;
         }
 
@@ -176,5 +194,24 @@ private IEnumerator DelayedActivation()
         Debug.Log($"{root.name} 활성화 완료 ({currentActivationIndex + 1}/{activationRoots.Count})");
 
         BeginNextRoot();   // 다음 뿌리로
+    }
+
+
+    // 활성화 미션 전체 완료를 튜토리얼에 알린다. 중복 호출은 무시된다.
+    private void NotifyAllActivated()
+    {
+        if (allActivatedNotified)
+            return;
+
+        allActivatedNotified = true;
+        AllRootsActivated?.Invoke();
+    }
+
+    // 도메인 리로드 비활성화 환경 대비: 재생 세션 시작 전 정적 이벤트 리셋
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        RootsFound = null;
+        AllRootsActivated = null;
     }
 }

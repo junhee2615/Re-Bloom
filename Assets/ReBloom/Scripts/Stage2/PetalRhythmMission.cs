@@ -108,7 +108,7 @@ public class PetalRhythmMission : MonoBehaviour
         }
     }
 
-    // 터치 확인용 오른손 햄틱 펄스 (피드백용, UI 아님)
+    // 터치 확인용 오른손 햅틱 펄스 (피드백용, UI 아님)
     // 터치 확인용 효과음 재생 (피드백용, UI 아님)
     private void PlayTouchSound()
     {
@@ -150,7 +150,7 @@ public class PetalRhythmMission : MonoBehaviour
         if (plantRevive != null)
             plantRevive.StartRevive();
 
-        // 복원 후에는 줄기 진동을 끕
+        // 복원 후에는 줄기 진동을 끔
         if (vibration != null)
             vibration.enabled = false;
 
