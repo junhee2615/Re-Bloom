@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &108707630 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3729218330578279067, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
 --- !u!4 &125839716 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7148027558407860420, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -684,6 +695,17 @@ PhysicsMaterial:
   m_Bounciness: 0
   m_FrictionCombine: 0
   m_BounceCombine: 0
+--- !u!114 &762380429 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5085206480807314118, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25264fcc044a0b24bad7c4c1d293e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlantRevive
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
@@ -1563,7 +1585,8 @@ MonoBehaviour:
   - {fileID: 1013463637}
   - {fileID: 1013463641}
   - {fileID: 1013463636}
-  lastOutlines: []
+  lastOutlines:
+  - {fileID: 108707630}
 --- !u!1001 &1979704983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1572,6 +1595,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7609589794507034518}
     m_Modifications:
+    - target: {fileID: -4060599768809639524, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1076717472749852548, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: m_Name
       value: Train
@@ -1979,12 +2006,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2855821198138003591, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3066310301520705826, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: shortGap
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 3310019573998246285, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: touchClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 84ed82c6da3136c43819096187be06ba, type: 3}
     - target: {fileID: 3379072451705528530, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: SortKey
       value: 2822644546
@@ -2163,6 +2194,10 @@ PrefabInstance:
       propertyPath: missionClearClip
       value: 
       objectReference: {fileID: 8300000, guid: a524950a1e3b4c946b391142fb2adc44, type: 3}
+    - target: {fileID: 6450409210088623437, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: plantRevive
+      value: 
+      objectReference: {fileID: 762380429}
     - target: {fileID: 6551374712973930404, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: missionManager
       value: 
@@ -2290,6 +2325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 53861667086388598, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+    - {fileID: 3980126567547786575, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     m_RemovedGameObjects:
     - {fileID: 787620963953070262, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
     - {fileID: 5120685421465282961, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}

@@ -181,7 +181,7 @@ public class SoundTriggerMission : ActivationMission
     private void SendPulse()
     {
         if (pulseAudioSource != null && pulseClip != null)
-            pulseAudioSource.PlayOneShot(pulseClip);
+            AudioSource.PlayClipAtPoint(pulseClip, transform.position);
     }
 
     // (8) Grab 박자 판정 : (3)의 소리 패턴대로 Grab 버튼을 눌렀는지 비교 (너무 빡빡하지 않게)

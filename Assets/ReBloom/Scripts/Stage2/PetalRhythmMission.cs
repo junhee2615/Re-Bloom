@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -67,42 +67,55 @@ public class PetalRhythmMission : MonoBehaviour
     }
 
     /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. mental 로컬에서만 유효
-    public void OnPetalTouched()
+public void OnPetalTouched()
     {
+        Debug.Log("[PetalDebug] " + name + " OnPetalTouched 진입 cleared=" + cleared + " mentalOnly=" + mentalOnly + " LocalIsMental=" + RoleManager.LocalIsMental + " vibNull=" + (vibration == null));
+
         if (cleared)
+        {
+            Debug.Log("[PetalDebug] return: cleared");
             return;
+        }
 
         if (mentalOnly && !RoleManager.LocalIsMental)
+        {
+            Debug.Log("[PetalDebug] return: not mental");
             return;
+        }
 
         if (vibration == null)
+        {
+            Debug.Log("[PetalDebug] return: vibration null");
             return;
+        }
 
         float now = Time.time;
 
-        // 같은 터치가 두 스피어에서 동시에 잡히는 중복 방지
         if (now - lastTouchTime < touchDebounce)
+        {
+            Debug.Log("[PetalDebug] return: debounce");
             return;
+        }
 
-        // 무입력이 길었으면 시퀀스 초기화 후 새로 시작
         if (pressTimes.Count > 0 && now - lastTouchTime > betweenInputTimeout)
             pressTimes.Clear();
 
         lastTouchTime = now;
         pressTimes.Add(now);
 
+        Debug.Log("[PetalDebug] PlayTouchSound 호출 (pressTimes=" + pressTimes.Count + "/" + vibration.ExpectedPulseCount + ")");
         PlayTouchSound();
 
         int expectedCount = vibration.ExpectedPulseCount;
         if (expectedCount <= 0)
             return;
 
-        // 필요한 횟수만큼 눌렸으면 판정
         if (pressTimes.Count >= expectedCount)
         {
             bool ok = Judge(vibration.BuildExpectedIntervals(), pressTimes);
             pressTimes.Clear();
 
+            Debug.Log("[PetalDebug] 판정 ok=" + ok);
             if (ok)
                 ClearMission();
         }
@@ -110,15 +123,14 @@ public class PetalRhythmMission : MonoBehaviour
 
     // 터치 확인용 오른손 햅틱 펄스 (피드백용, UI 아님)
     // 터치 확인용 효과음 재생 (피드백용, UI 아님)
-    private void PlayTouchSound()
+private void PlayTouchSound()
     {
         if (touchClip == null)
             return;
 
-        if (touchAudioSource != null)
-            touchAudioSource.PlayOneShot(touchClip, touchVolume);
-        else
-            AudioSource.PlayClipAtPoint(touchClip, transform.position, touchVolume);
+        // 일부 플랜트의 개별 AudioSource가 동일 설정인데도 런타임에 출력을 안 하는 사례가 있어,
+        // 매 터치마다 새 임시 소스로 확실히 재생한다. (플레이어가 만질 땐 플랜트 앞이라 위치도 자연스럽다.)
+        AudioSource.PlayClipAtPoint(touchClip, transform.position, touchVolume);
     }
 
 

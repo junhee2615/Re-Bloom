@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -159,7 +159,7 @@ private IEnumerator RunMission()
     {
         if (!LocalMatches(soundRole)) return;
         if (pulseAudioSource != null && pulseClip != null)
-            pulseAudioSource.PlayOneShot(pulseClip);
+            AudioSource.PlayClipAtPoint(pulseClip, transform.position);
     }
 
     // (10) Grab 박자 판정 (grabRole 입력만 카운트)
@@ -308,7 +308,7 @@ private void GetWorldY(RectTransform rt, out float minY, out float maxY)
 
         n.touched = true;
         noteTouchedCount++;
-        if (pulseAudioSource != null && noteTouchClip != null) pulseAudioSource.PlayOneShot(noteTouchClip);
+        if (noteTouchClip != null) AudioSource.PlayClipAtPoint(noteTouchClip, transform.position);
         if (n.image != null) n.image.color = noteTouchedColor;
         n.hideTime = Time.time + noteHideDelay;
     }

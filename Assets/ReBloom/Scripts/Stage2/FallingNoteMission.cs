@@ -251,7 +251,7 @@ private void OnNoteClicked(Note n)
         touchedCount++;
         Debug.Log($"[FallingNote] {n.go.name} 터치 성공! ({touchedCount}/{notes.Count})");
 
-        if (sfxSource != null && touchClip != null) sfxSource.PlayOneShot(touchClip);
+        if (touchClip != null) AudioSource.PlayClipAtPoint(touchClip, transform.position);
         if (n.image != null) n.image.color = touchedColor;
         n.hideTime = Time.time + noteHideDelay;
     }

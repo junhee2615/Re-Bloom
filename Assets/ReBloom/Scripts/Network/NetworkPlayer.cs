@@ -279,19 +279,20 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
     /// mental 플레이어가 클라이언트일 수 있다. Host 모드에서 클라이언트는
     /// 자기 아바타에 대해서도 StateAuthority가 없으므로, 권한자를 거쳐 중계한다.
     /// </summary>
-    public void RequestRevivePlant(int plantId)
+public void RequestRevivePlant(int plantId)
     {
-        // 네트워크 미연결(단독 테스트) — 로컬로만 복원
-        if (Object == null || !Object.IsValid)
-        {
-            PetalRhythmMission.ReviveById(plantId);
-            return;
-        }
-
-        if (Object.HasStateAuthority)
-            Rpc_RevivePlant(plantId);
+        // mental이 Host든 Client든 상관없이 두 플레이어 모두에게 복원을 전파한다.
+        if (HasNetworkStateAuthority)
+            Rpc_RevivePlant(plantId);          // 권한자(Host) → 모두
         else
-            Rpc_RequestRevivePlant(plantId);
+            Rpc_RequestRevivePlant(plantId);   // 클라이언트 → 권한자에게 요청 → 권한자가 모두에게 전파
+    }
+
+    // 클라이언트(비권한자)가 복원을 일으켰을 때, 권한자에게 전파를 요청한다.
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_RequestRevivePlant(int plantId)
+    {
+        Rpc_RevivePlant(plantId);
     }
 
     /// <summary>클라이언트 → 권한자 중계. 권한자가 받아 전원에게 재방송한다.</summary>

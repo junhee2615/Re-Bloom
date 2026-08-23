@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// 트래킹 타깃(XR 컨트롤러)을 <b>속도로 추종</b>하는 물리 손.
@@ -36,6 +38,11 @@ public class PhysicsHand : MonoBehaviour
     [Tooltip("접촉 중이어도 이 거리(m)를 넘으면 스냅. snapDistance보다 커야 함.")]
     public float hardSnapDistance = 1.5f;
 
+    [Header("플랜트 통과(충돌 무시)")]
+    [Tooltip("이 손이 통과할 콜라이더. 비우면 씨의 InteractablePlant(PetalRhythmMission) 콜라이더를 자동으로 찾는다.")]
+    [SerializeField] private Collider[] passThroughColliders;
+
+
     Rigidbody rb;
     bool touching;   // 이 물리 스텝에 무언가와 접촉 중인지
 
@@ -55,7 +62,10 @@ public class PhysicsHand : MonoBehaviour
 
     void Start()
     {
-        if (!captureOffsetAtRuntime || target == null)
+        StartCoroutine(SetupPlantPassThrough());  // 연꽃/꽃잎 콜라이더 통과(충돌 무시)
+
+        
+if (!captureOffsetAtRuntime || target == null)
             return;
 
         // 구버전 동작(권장하지 않음): 첫 프레임의 실제 상대 포즈로 오프셋을 잡는다.
@@ -70,6 +80,60 @@ public class PhysicsHand : MonoBehaviour
                 $"Capture Offset At Runtime을 끄세요.", this);
         }
     }
+
+// 물리 손이 연꽃/꽃잎 콜라이더를 통과하도록 충돌을 무시한다.
+    // 꽃잎 트리거가 SM_lotus 솔리드 안쪽에 있어 손이 표면에서 막히면 터치가 안 되던 문제 해결.
+    // 벽·바닥 등 다른 지오메트리와의 충돌은 그대로 유지된다.
+// 물리 손이 연꽃/꽃잎 콜라이더를 통과하도록 충돌을 무시한다. 대상을 찾아 적용했으면 true.
+    // (꽃잎 트리거가 SM_lotus 솔리드 안쪽에 있어 손이 표면에서 막히던 문제 해결. 벽·바닥 등과의 충돌은 그대로.)
+    private bool IgnorePlantCollisions()
+    {
+        Collider[] myColliders = GetComponentsInChildren<Collider>(true);
+        if (myColliders == null || myColliders.Length == 0)
+            return false;
+
+        List<Collider> targets = new List<Collider>();
+        if (passThroughColliders != null && passThroughColliders.Length > 0)
+        {
+            targets.AddRange(passThroughColliders);
+        }
+        else
+        {
+            foreach (PetalRhythmMission plant in FindObjectsByType<PetalRhythmMission>(FindObjectsSortMode.None))
+            {
+                if (plant != null)
+                    targets.AddRange(plant.GetComponentsInChildren<Collider>(true));
+            }
+        }
+
+        if (targets.Count == 0)
+            return false;
+
+        foreach (Collider mine in myColliders)
+        {
+            if (mine == null) continue;
+            foreach (Collider other in targets)
+            {
+                if (other == null || other == mine) continue;
+                Physics.IgnoreCollision(mine, other, true);
+            }
+        }
+        return true;
+    }
+
+    // 플랜트(씨)가 아직 로드 전일 수 있어, 대상을 찾을 때까지 잠시 재시도한다.
+    private IEnumerator SetupPlantPassThrough()
+    {
+        float timeout = 10f;
+        while (timeout > 0f)
+        {
+            if (IgnorePlantCollisions())
+                yield break;
+            yield return new WaitForSeconds(0.5f);
+            timeout -= 0.5f;
+        }
+    }
+
 
     void FixedUpdate()
     {
