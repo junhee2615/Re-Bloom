@@ -161,6 +161,43 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.24, y: 0, z: 3.12}
   m_Center: {x: 0, y: 0.49, z: 0}
+--- !u!114 &275532664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275532662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3182945037
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 275532665}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &275532665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275532662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9a86d5a82c62174e8786190348e56ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stage2ToStage3Teleporter
+  boardingZone: {fileID: 275532663}
+  verticalTolerance: 2
+  delayBeforeTransition: 3
+  fadeDuration: 1
+  clientWaitTimeout: 8
+  nextSceneName: Stage3
 --- !u!1 &395063640
 GameObject:
   m_ObjectHideFlags: 0
@@ -2379,6 +2416,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 504269316762596926, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 275532663}
+    - targetCorrespondingSourceObject: {fileID: 504269316762596926, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 275532665}
+    - targetCorrespondingSourceObject: {fileID: 504269316762596926, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 275532664}
   m_SourcePrefab: {fileID: 100100000, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
 --- !u!4 &7609589794507034518 stripped
 Transform:
