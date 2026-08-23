@@ -782,6 +782,10 @@ PrefabInstance:
       propertyPath: beforebuilding
       value: 
       objectReference: {fileID: 1694344740}
+    - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
+      propertyPath: stage1ClearCutscene
+      value: 
+      objectReference: {fileID: 473456124}
     - target: {fileID: 7886334735591973132, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.073
@@ -1553,6 +1557,77 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 438ecb8c778e2d24b98ab304e96ba00c, type: 3}
+--- !u!1 &473456122
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 473456125}
+  - component: {fileID: 473456124}
+  - component: {fileID: 473456123}
+  m_Layer: 0
+  m_Name: Stage1ClearCutsceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &473456123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 473456122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3367065561
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 473456124}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &473456124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 473456122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbb2f5969414794cb7e546e96854ea2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stage1ClearCutscene
+  videoPlayer: {fileID: 1114619648}
+  fadeDuration: 1
+  maxVideoSeconds: 30
+  clientWaitTimeout: 15
+  videoRawImage: {fileID: 0}
+  stage1ScreenDistance: 1.3
+  leverMissionManager: {fileID: 2107632370}
+--- !u!4 &473456125
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 473456122}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &530430109
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2304,6 +2379,74 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 777501311727040164, guid: e19a9bc77e8f5b7498d58ed9a470f66b, type: 3}
   m_PrefabInstance: {fileID: 1101251806}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1114619647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1114619649}
+  - component: {fileID: 1114619648}
+  m_Layer: 0
+  m_Name: Stage1ClearVideoPlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!328 &1114619648
+VideoPlayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1114619647}
+  m_Enabled: 1
+  m_VideoClip: {fileID: 32900000, guid: f0f4a8b54076f5843a305025714ce2fb, type: 3}
+  m_TargetCameraAlpha: 1
+  m_TargetCamera3DLayout: 0
+  m_TargetCamera: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: 891a55e6c2408e1409c38ed29e08751c, type: 2}
+  m_TimeReference: 0
+  m_TargetMaterialRenderer: {fileID: 0}
+  m_TargetMaterialProperty: <noninit>
+  m_RenderMode: 2
+  m_AspectRatio: 2
+  m_DataSource: 0
+  m_TimeUpdateMode: 2
+  m_PlaybackSpeed: 1
+  m_AudioOutputMode: 2
+  m_TargetAudioSources:
+  - {fileID: 0}
+  m_DirectAudioVolumes:
+  - 1
+  m_Url: 
+  m_EnabledAudioTracks: 01
+  m_DirectAudioMutes: 00
+  m_ControlledAudioTrackCount: 1
+  m_PlayOnAwake: 0
+  m_SkipOnDrop: 1
+  m_Looping: 0
+  m_WaitForFirstFrame: 1
+  m_FrameReadyEventEnabled: 0
+  m_VideoShaders: []
+--- !u!4 &1114619649
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1114619647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1176247256
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4035,7 +4178,7 @@ MonoBehaviour:
   fadeDuration: 1
   maxVideoSeconds: 60
   clientWaitTimeout: 15
-  nextSceneBuildIndex: 2
+  nextSceneName: Stage2
 --- !u!1 &1756398498
 GameObject:
   m_ObjectHideFlags: 0
@@ -6502,6 +6645,8 @@ SceneRoots:
   - {fileID: 429216927}
   - {fileID: 1663898910}
   - {fileID: 1391991068}
+  - {fileID: 1114619649}
+  - {fileID: 473456125}
   - {fileID: 1995655493}
   - {fileID: 2064725025}
   - {fileID: 2033885616}
