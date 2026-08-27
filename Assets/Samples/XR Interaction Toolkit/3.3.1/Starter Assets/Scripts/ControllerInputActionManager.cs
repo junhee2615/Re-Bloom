@@ -113,6 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [SerializeField] float teleportMoveThreshold = 0.1f;
 
         Coroutine teleportCheckCoroutine;
+        bool teleportWasStarted;
 
         public bool smoothMotionEnabled
         {
@@ -263,6 +264,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void OnStartTeleport(InputAction.CallbackContext context)
         {
+            teleportWasStarted = true;
+
             m_PostponedDeactivateTeleport = false;
 
             // Aim 사운드 시작
@@ -300,8 +303,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 teleportAudioSource.loop = false;
             }
 
-            // 실제 텔레포트 성공 여부 확인 시작
-            if (xrOrigin != null)
+            // 실제 텔레포트 입력이 시작된 경우에만 성공 여부 확인
+            if (teleportWasStarted && xrOrigin != null)
             {
                 if (teleportCheckCoroutine != null)
                     StopCoroutine(teleportCheckCoroutine);
@@ -309,6 +312,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 teleportCheckCoroutine =
                     StartCoroutine(CheckTeleportSuccess(xrOrigin.position));
             }
+
+            teleportWasStarted = false;
 
             m_PostponedDeactivateTeleport = true;
 
