@@ -1,6 +1,7 @@
 using Fusion;
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class LeverMissionManager : NetworkBehaviour
@@ -23,22 +24,32 @@ public class LeverMissionManager : NetworkBehaviour
     public GameObject clearBuilding;
     public GameObject trainLight;
 
+    [Header("Realtime VR Cutscene")]
     [SerializeField]
-    private Stage1ClearCutscene stage1ClearCutscene;
+    private Stage1XRCutsceneRigFollower stage1Cutscene;
 
     [Networked]
     public NetworkBool IsMissionClear { get; set; }
 
-    // 컷씬 종료 후 실제 맵 복구 상태
     [Networked]
     public NetworkBool IsRestoreApplied { get; set; }
 
     [Networked]
     public NetworkBool IsDoorOpen { get; set; }
 
-    private bool started = false;
-    private bool playedDoorAnimation = false;
-    private bool subscribedToCutscene = false;
+    [Networked]
+    public NetworkBool IsCutscenePlaying { get; set; }
+
+    private bool started;
+    private bool playedDoorAnimation;
+
+    // 이 클라이언트가 현재 컷씬 상태인지
+    private bool localCutsceneRunning;
+
+    // Host에서 받은 컷씬 종료 보고 수
+    private int cutsceneReportsReceived;
+
+    private bool subscribedToCutscene;
 
     [Header("Mission Sound")]
     public AudioSource missionAudioSourceA;
@@ -50,7 +61,11 @@ public class LeverMissionManager : NetworkBehaviour
     public AudioClip missionSuccessClip;
     public AudioClip electricLoopClip;
 
-    private bool playedMissionSuccessSound = false;
+    private bool playedMissionSuccessSound;
+
+    // =================================================
+    // Fusion
+    // =================================================
 
     public override void Spawned()
     {
@@ -61,7 +76,6 @@ public class LeverMissionManager : NetworkBehaviour
 
     private void Start()
     {
-        // Scene NetworkObject의 Spawned 시점 차이를 대비
         SubscribeCutsceneEvent();
     }
 
@@ -70,16 +84,20 @@ public class LeverMissionManager : NetworkBehaviour
         UnsubscribeCutsceneEvent();
     }
 
+    // =================================================
+    // Cutscene Event
+    // =================================================
+
     private void SubscribeCutsceneEvent()
     {
         if (subscribedToCutscene)
             return;
 
-        if (stage1ClearCutscene == null)
+        if (stage1Cutscene == null)
             return;
 
-        stage1ClearCutscene.CutsceneFinished +=
-            OnStage1ClearCutsceneFinished;
+        stage1Cutscene.CutsceneFinished +=
+            OnLocalCutsceneFinished;
 
         subscribedToCutscene = true;
     }
@@ -89,25 +107,41 @@ public class LeverMissionManager : NetworkBehaviour
         if (!subscribedToCutscene)
             return;
 
-        if (stage1ClearCutscene != null)
+        if (stage1Cutscene != null)
         {
-            stage1ClearCutscene.CutsceneFinished -=
-                OnStage1ClearCutsceneFinished;
+            stage1Cutscene.CutsceneFinished -=
+                OnLocalCutsceneFinished;
         }
 
         subscribedToCutscene = false;
     }
+
+    // =================================================
+    // Update
+    // =================================================
 
     private void Update()
     {
         if (Object == null || !Object.IsValid)
             return;
 
-        // 실제 도시 전환은
-        // IsMissionClear가 아니라
-        // 컷씬 종료 후 IsRestoreApplied를 기준으로 처리
-        ApplyRestoreVisualState();
+        // Timeline이 건물/열차 불을 직접 제어하는 동안에는
+        // LeverMissionManager가 상태를 덮어쓰지 않는다.
+        if (!localCutsceneRunning)
+        {
+            ApplyRestoreVisualState();
+        }
 
+        // Host가 복구 상태를 확정하면
+        // 각 클라이언트에서도 최종 상태를 적용
+        if (localCutsceneRunning &&
+            IsRestoreApplied)
+        {
+            localCutsceneRunning = false;
+            ApplyRestoreVisualState();
+        }
+
+        // 미션 성공 최초 1회
         if (IsMissionClear && !started)
         {
             started = true;
@@ -116,31 +150,20 @@ public class LeverMissionManager : NetworkBehaviour
 
             PlayMissionClearSounds();
 
-            // 컷씬 시작은 Host만 요청
             if (HasStateAuthority)
             {
-                if (stage1ClearCutscene != null)
-                {
-                    stage1ClearCutscene.BeginCutscene();
-                }
-                else
-                {
-                    // 컷씬 참조가 없을 경우 게임 진행이 막히지 않도록
-                    Debug.LogWarning(
-                        "[LeverMissionManager] Stage1ClearCutscene이 연결되지 않았습니다. " +
-                        "컷씬 없이 복구 상태를 적용합니다.",
-                        this);
+                cutsceneReportsReceived = 0;
 
-                    ApplyRestoreAfterCutscene();
-                }
+                IsCutscenePlaying = true;
+
+                RPC_StartStage1Cutscene();
             }
         }
 
         if (!HasStateAuthority)
             return;
 
-        // 두 레버가 모두 활성화되면
-        // Stage 1 최종 미션 성공
+        // 두 레버 모두 활성화
         if (!IsMissionClear &&
             leverA != null &&
             leverB != null &&
@@ -155,8 +178,112 @@ public class LeverMissionManager : NetworkBehaviour
         {
             playedDoorAnimation = true;
 
-            StartCoroutine(OpenDoorAnimation());
+            StartCoroutine(
+                OpenDoorAnimation());
         }
+    }
+
+    // =================================================
+    // Start Cutscene
+    // =================================================
+
+    [Rpc(
+        RpcSources.StateAuthority,
+        RpcTargets.All)]
+    private void RPC_StartStage1Cutscene()
+    {
+        localCutsceneRunning = true;
+
+        if (stage1Cutscene == null)
+        {
+            Debug.LogError(
+                "[LeverMissionManager] Stage1XRCutsceneRigFollower가 연결되지 않았습니다.",
+                this);
+
+            RPC_ReportCutsceneFinished();
+            return;
+        }
+
+        if (!stage1Cutscene.IsReady)
+        {
+            Debug.LogWarning(
+                "[LeverMissionManager] XR Cutscene Rig가 아직 준비되지 않았습니다.",
+                this);
+
+            RPC_ReportCutsceneFinished();
+            return;
+        }
+
+        stage1Cutscene.PlayCutscene();
+    }
+
+    // =================================================
+    // Local Cutscene Finished
+    // =================================================
+
+    private void OnLocalCutsceneFinished()
+    {
+        if (!localCutsceneRunning)
+            return;
+
+        RPC_ReportCutsceneFinished();
+    }
+
+    // =================================================
+    // Host receives completion
+    // =================================================
+
+    [Rpc(
+        RpcSources.All,
+        RpcTargets.StateAuthority)]
+    private void RPC_ReportCutsceneFinished()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        cutsceneReportsReceived++;
+
+        int expectedPlayers =
+            Runner != null
+                ? Runner.ActivePlayers.Count()
+                : 1;
+
+        if (cutsceneReportsReceived >=
+            expectedPlayers)
+        {
+            FinishStage1Cutscene();
+        }
+    }
+
+    private void FinishStage1Cutscene()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (!IsCutscenePlaying)
+            return;
+
+        IsCutscenePlaying = false;
+
+        ApplyRestoreAfterCutscene();
+    }
+
+    // =================================================
+    // Final Restore
+    // =================================================
+
+    private void ApplyRestoreAfterCutscene()
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (IsRestoreApplied)
+            return;
+
+        IsRestoreApplied = true;
+
+        StartCoroutine(
+            OpenDoorAfterDelay());
     }
 
     private void ApplyRestoreVisualState()
@@ -180,6 +307,10 @@ public class LeverMissionManager : NetworkBehaviour
         }
     }
 
+    // =================================================
+    // Mission Sound
+    // =================================================
+
     private void PlayMissionClearSounds()
     {
         if (playedMissionSuccessSound)
@@ -187,7 +318,6 @@ public class LeverMissionManager : NetworkBehaviour
 
         playedMissionSuccessSound = true;
 
-        // 두 배전반에서 성공 효과음 재생
         if (missionAudioSourceA != null &&
             missionSuccessClip != null)
         {
@@ -202,7 +332,6 @@ public class LeverMissionManager : NetworkBehaviour
                 missionSuccessClip);
         }
 
-        // 두 배전반 전기 작동음 Loop 시작
         if (electricLoopAudioSourceA != null &&
             electricLoopClip != null)
         {
@@ -224,33 +353,13 @@ public class LeverMissionManager : NetworkBehaviour
         }
     }
 
-    // Stage1ClearCutscene의
-    // 모든 플레이어 재생이 끝난 뒤 Host에서 호출됨
-    private void OnStage1ClearCutsceneFinished()
-    {
-        if (!HasStateAuthority)
-            return;
-
-        ApplyRestoreAfterCutscene();
-    }
-
-    private void ApplyRestoreAfterCutscene()
-    {
-        if (!HasStateAuthority)
-            return;
-
-        if (IsRestoreApplied)
-            return;
-
-        // 이제 실제 Stage1 월드를 복구 상태로 변경
-        IsRestoreApplied = true;
-
-        // 복구된 도시를 잠깐 본 뒤 열차 문 개방
-        StartCoroutine(OpenDoorAfterDelay());
-    }
+    // =================================================
+    // Train Door
+    // =================================================
 
     private IEnumerator OpenDoorAfterDelay()
     {
+        // 현재 코드에 있던 3초 유지
         yield return new WaitForSeconds(3f);
 
         if (!HasStateAuthority)
@@ -281,10 +390,12 @@ public class LeverMissionManager : NetworkBehaviour
             doorLeft.localPosition;
 
         Vector3 rightTarget =
-            rightStart + Vector3.right * 0.5f;
+            rightStart +
+            Vector3.right * 0.5f;
 
         Vector3 leftTarget =
-            leftStart + Vector3.left * 0.5f;
+            leftStart +
+            Vector3.left * 0.5f;
 
         float t = 0f;
 
@@ -313,6 +424,10 @@ public class LeverMissionManager : NetworkBehaviour
         doorLeft.localPosition =
             leftTarget;
     }
+
+    // =================================================
+    // Static Reset
+    // =================================================
 
     [RuntimeInitializeOnLoadMethod(
         RuntimeInitializeLoadType.SubsystemRegistration)]
