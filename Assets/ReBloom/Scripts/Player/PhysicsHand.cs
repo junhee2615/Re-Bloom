@@ -46,6 +46,8 @@ public class PhysicsHand : MonoBehaviour
     Rigidbody rb;
     bool touching;   // 이 물리 스텝에 무언가와 접촉 중인지
 
+    Collider myCollider;
+
     // 컨트롤러(target) 기준 손의 오프셋.
     Vector3 targetPositionOffset;
     Quaternion targetRotationOffset = Quaternion.identity;
@@ -56,6 +58,12 @@ public class PhysicsHand : MonoBehaviour
         rb.useGravity = false;
         rb.maxAngularVelocity = 100f; // 최대 각속도(rad/s) 상한
 
+        myCollider = GetComponent<Collider>();
+        if (myCollider == null)
+        {
+            Debug.LogWarning($"[PhysicsHand] {name}: 콜라이더가 없어 잡기/플랜트 통과 시 " + $"충돌 무시가 동작하지 않습니다.", this);
+        }
+
         targetPositionOffset = localPositionOffset;
         targetRotationOffset = Quaternion.Euler(localEulerOffset);
     }
@@ -64,8 +72,7 @@ public class PhysicsHand : MonoBehaviour
     {
         StartCoroutine(SetupPlantPassThrough());  // 연꽃/꽃잎 콜라이더 통과(충돌 무시)
 
-        
-if (!captureOffsetAtRuntime || target == null)
+        if (!captureOffsetAtRuntime || target == null)
             return;
 
         // 구버전 동작(권장하지 않음): 첫 프레임의 실제 상대 포즈로 오프셋을 잡는다.
@@ -81,15 +88,12 @@ if (!captureOffsetAtRuntime || target == null)
         }
     }
 
-// 물리 손이 연꽃/꽃잎 콜라이더를 통과하도록 충돌을 무시한다.
+    // 물리 손이 연꽃/꽃잎 콜라이더를 통과하도록 충돌을 무시한다. 대상을 찾아 적용했으면 true.
     // 꽃잎 트리거가 SM_lotus 솔리드 안쪽에 있어 손이 표면에서 막히면 터치가 안 되던 문제 해결.
     // 벽·바닥 등 다른 지오메트리와의 충돌은 그대로 유지된다.
-// 물리 손이 연꽃/꽃잎 콜라이더를 통과하도록 충돌을 무시한다. 대상을 찾아 적용했으면 true.
-    // (꽃잎 트리거가 SM_lotus 솔리드 안쪽에 있어 손이 표면에서 막히던 문제 해결. 벽·바닥 등과의 충돌은 그대로.)
     private bool IgnorePlantCollisions()
     {
-        Collider[] myColliders = GetComponentsInChildren<Collider>(true);
-        if (myColliders == null || myColliders.Length == 0)
+        if (myCollider == null)
             return false;
 
         List<Collider> targets = new List<Collider>();
@@ -109,14 +113,10 @@ if (!captureOffsetAtRuntime || target == null)
         if (targets.Count == 0)
             return false;
 
-        foreach (Collider mine in myColliders)
+        foreach (Collider other in targets)
         {
-            if (mine == null) continue;
-            foreach (Collider other in targets)
-            {
-                if (other == null || other == mine) continue;
-                Physics.IgnoreCollision(mine, other, true);
-            }
+            if (other == null || other == myCollider) continue;
+            Physics.IgnoreCollision(myCollider, other, true);
         }
         return true;
     }
@@ -182,6 +182,46 @@ if (!captureOffsetAtRuntime || target == null)
     void OnCollisionStay(Collision _)
     {
         touching = true;
+    }
+
+    /// <summary>
+    /// 이 손의 콜라이더와 <paramref name="other"/>의 충돌을 무시하거나(true) 복원한다(false).
+    /// 물체를 잡는 동안 손과 잡힌 물체가 서로 밀치며 겹치는 것을 막는 용도다.
+    /// 겹친 채로 놓으면 PhysX가 그 겹침을 큰 임펄스로 해소해 물체가 날아간다.
+    /// </summary>
+    /// <remarks>
+    /// Physics.IgnoreCollision은 양쪽 콜라이더가 모두 활성 상태여야 한다.
+    /// 비활성 콜라이더에 호출하면 Unity가 에러를 뱉으므로 여기서 걸러낸다.
+    /// </remarks>
+    public void IgnoreCollisionWith(Collider other, bool ignore)
+    {
+        if (other == null || !other.enabled || !other.gameObject.activeInHierarchy) return;
+        if (myCollider == null || myCollider == other) return;
+        if (!myCollider.enabled || !myCollider.gameObject.activeInHierarchy) return;
+
+        Physics.IgnoreCollision(myCollider, other, ignore);
+    }
+
+    /// <summary>
+    /// 이 손의 콜라이더가 <paramref name="other"/>와 실제로 겹쳐 있는지.
+    /// </summary>
+    /// <remarks>
+    /// 겹친 상태에서 충돌을 복원하면 PhysX가 그 겹침을 한 프레임에 밀어내면서(depenetration) 물체를 큰 속도로 쏘아버린다.
+    /// 놓은 물체의 충돌은 이 검사가 false가 된 뒤에 되살려야 한다.
+    /// </remarks>
+    public bool OverlapsWith(Collider other)
+    {
+        if (other == null || myCollider == null) return false;
+        if (!other.enabled || !other.gameObject.activeInHierarchy) return false;
+        if (!myCollider.enabled || !myCollider.gameObject.activeInHierarchy) return false;
+
+        Transform mineTr = myCollider.transform;
+        Transform otherTr = other.transform;
+
+        return Physics.ComputePenetration( // ?
+            myCollider, mineTr.position, mineTr.rotation,
+            other, otherTr.position, otherTr.rotation,
+            out _, out _);
     }
 
     /// <summary>
