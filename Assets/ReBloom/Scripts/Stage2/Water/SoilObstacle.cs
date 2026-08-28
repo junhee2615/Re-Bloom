@@ -14,6 +14,9 @@ public class SoilObstacle : WaterMissionObstacle
     [Tooltip("던지기 최대 속도(m/s) 상한. 클수록 세게 던지면 더 빨리/멀리 간다.")]
     [SerializeField] private float maxThrowSpeed = 24f;
 
+    [Tooltip("놓을 때 남길 회전 비율. 0 = 회전 없이 날아간다, 1 = 들 때 회전을 그대로 유지. " + "던진 흙이 자연스럽게 구르도록 일부만 남긴다.")]
+    [SerializeField, Range(0f, 1f)] private float releaseAngularRetention = 0.25f;
+
     [Header("들 때 위치")]
     [Tooltip("들 때 손 기준(로컬) 오프셋. 손을 축으로 조각이 함께 돈다.")]
     [SerializeField] private Vector3 localHoldOffset = new Vector3(0f, -0.05f, 0f);
@@ -45,6 +48,9 @@ public class SoilObstacle : WaterMissionObstacle
         pos = h.posA + h.rotA * localHoldOffset;   // 손 기준 오프셋 → 손을 축으로 함께 돎(rigid)
         rot = h.rotA * offsetRot;                  // 스폰 자세에서 시작해 손을 따라 회전
     }
+
+    // 흙은 던지는 물체라 회전을 완전히 죽이지 않고 일부만 남긴다.
+    protected override float ReleaseAngularRetention => releaseAngularRetention;
 
     // 던지기
     protected override void OnReleased(Vector3 velocity)

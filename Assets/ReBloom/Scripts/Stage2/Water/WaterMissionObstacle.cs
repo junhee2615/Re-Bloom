@@ -58,6 +58,9 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
     private Rigidbody body;
     private Collider[] bodyColliders;   // 손↔물체 표면 거리 측정용
 
+    /// <summary>이 장애물의 몸통 콜라이더들. 수로를 막고 있는지 형상으로 판정할 때 쓴다.</summary>
+    public Collider[] BodyColliders => bodyColliders;
+
     private enum State { Idle, Tracking, Falling } // 물체 상태
     private State state = State.Idle;
     private Vector3 trackTargetPos;       // 이번 틱의 손 추종 목표 위치
@@ -378,6 +381,10 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         // gravityScale 이 1이면 기본 중력, 아니면 위 FixedUpdate 에서 커스텀 중력을 적용한다.
         body.useGravity = Mathf.Approximately(gravityScale, 1f);
         body.linearVelocity = velocity;
+
+        // 추종 중 자세 보정으로 붙은 각속도를 여기서 정리한다.
+        body.angularVelocity *= ReleaseAngularRetention; // 그냥 0으로 두면 되는 거 아니야?
+
         body.WakeUp();
         state = State.Falling;
     }
@@ -416,6 +423,13 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
 
     /// <summary>true 면 잡은 동안 속도 추종 대신 kinematic 으로 트랜스폼을 직접 세팅한다. </summary>
     protected virtual bool PoseDirectlyWhileHeld => false;
+
+    /// <summary>
+    /// 놓을 때 남길 회전 비율. 0 = 즉시 정지, 1 = 그대로 유지.
+    /// 기본은 0 — 제자리에 떨어지는 돌·뿌리는 놓은 뒤 돌 이유가 없다.
+    /// 던지는 물체(흙)만 자연스러운 구름을 위해 일부를 남긴다.
+    /// </summary>
+    protected virtual float ReleaseAngularRetention => 0f;
 
     /// <summary>이번 프레임에 처음 들리기 시작했을 때.</summary>
     protected virtual void OnHeldBegin(Hands h) { }
