@@ -383,7 +383,7 @@ public abstract class WaterMissionObstacle : NetworkBehaviour
         body.linearVelocity = velocity;
 
         // 추종 중 자세 보정으로 붙은 각속도를 여기서 정리한다.
-        body.angularVelocity *= ReleaseAngularRetention; // 그냥 0으로 두면 되는 거 아니야?
+        body.angularVelocity *= ReleaseAngularRetention;
 
         body.WakeUp();
         state = State.Falling;

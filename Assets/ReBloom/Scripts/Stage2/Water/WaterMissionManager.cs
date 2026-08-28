@@ -6,13 +6,13 @@ using UnityEngine;
 /// 수로 장애물 미션 완료 처리.
 /// 모든 장애물(돌·나무·흙)이 치워지면 → 지정 오브젝트 활성화 + WaterPurify.StartPurify() 호출.
 ///
-/// - 돌·나무: 수로 영역(<see cref="waterwayZone"/>) 밖으로 나가면 치워진 것으로 판정한다
+/// - 돌·나무: 콜라이더가 수로 영역(<see cref="waterwayZone"/>)과 더 이상 겹치지 않으면 치워진 것으로 판정한다
 /// - 흙(<see cref="SoilLump"/>): 조각을 다 떠내 Despawn 되면 치워진 것으로 본다.
 /// </summary>
 public class WaterMissionManager : MonoBehaviour
 {
     [Header("완료 조건 — 돌·나무")]
-    [Tooltip("수로 영역 콜라이더. 장애물이 이 영역을 벗어나면 치워진 것으로 판정.")]
+    [Tooltip("수로 입구 영역 콜라이더. 장애물의 콜라이더가 이 영역과 더 이상 겹치지 않으면 치워진 것으로 판정.")]
     [SerializeField] private Collider waterwayZone;
     [Tooltip("장애물 그룹의 부모들.")]
     [SerializeField] private List<Transform> obstacleRoots = new List<Transform>();
@@ -74,14 +74,32 @@ public class WaterMissionManager : MonoBehaviour
             if (o.Object == null || !o.Object.IsValid || !o.HasStateAuthority) continue;
 
             // 수로 존 밖으로 나가면 치워진 것으로 판정.
-            if (!ZoneContains(waterwayZone, o.transform.position))
+            if (!OverlapsZone(waterwayZone, o))
                 o.HostMarkCleared();
         }
     }
 
-    // point 가 zone 콜라이더 내부면 true.
-    private static bool ZoneContains(Collider zone, Vector3 point)
-        => (zone.ClosestPoint(point) - point).sqrMagnitude <= 1e-6f;
+    // 장애물이 수로 존과 실제로 겹쳐 있으면 true.
+    // ComputePenetration은 형상만 비교한다.
+    // 양쪽 모두 convex여야 한다.
+    private static bool OverlapsZone(Collider zone, WaterMissionObstacle o)
+    {
+        Collider[] cols = o.BodyColliders;
+        if (cols == null) return false;
+
+        foreach (Collider c in cols)
+        {
+            if (c == null || !c.enabled || c.isTrigger) continue;
+
+            if (Physics.ComputePenetration(
+                    c, c.transform.position, c.transform.rotation,
+                    zone, zone.transform.position, zone.transform.rotation,
+                    out _, out _))
+                return true;
+        }
+
+        return false;
+    }
 
     private bool AllCleared()
     {
