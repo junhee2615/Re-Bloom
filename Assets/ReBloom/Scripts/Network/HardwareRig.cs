@@ -1,4 +1,4 @@
-﻿using Fusion;
+using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections;
@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using static Unity.Collections.Unicode;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
@@ -46,6 +48,90 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     {
         transform.SetParent(null, true);
     }
+
+
+    // =================================================
+    // Locomotion Lock
+    //
+    // 연출(열차 출발 등) 중 이동/회전/텔레포트를 잠근다.
+    // 리그는 씬을 넘어가도 유지되므로, 잠금 해제를 연출 스크립트의
+    // 수명에 맡기면 다음 씬까지 잠긴 채로 넘어갈 수 있다.
+    // 그래서 잠금 상태는 리그가 직접 들고 있고,
+    // OnSceneLoadDone에서 무조건 해제한다.
+    // =================================================
+
+    private readonly List<LocomotionProvider> lockedProviders =
+        new List<LocomotionProvider>();
+
+    private readonly List<GameObject> lockedTeleportInteractors =
+        new List<GameObject>();
+
+    public bool IsLocomotionLocked { get; private set; }
+
+    /// <summary>
+    /// 이동/회전/텔레포트를 잠그거나 푼다. 중력은 항상 유지한다.
+    /// 잠글 때 실제로 켜져 있던 대상만 기억했다가 그대로 되돌리므로,
+    /// 원래 꺼져 있던 프로바이더를 임의로 켜지 않는다.
+    /// </summary>
+    public void SetLocomotionLocked(bool locked)
+    {
+        if (locked == IsLocomotionLocked)
+            return;
+
+        if (locked)
+        {
+            lockedProviders.Clear();
+            lockedTeleportInteractors.Clear();
+
+            foreach (LocomotionProvider provider in
+                     GetComponentsInChildren<LocomotionProvider>(true))
+            {
+                if (provider is GravityProvider)
+                    continue;
+
+                if (!provider.enabled)
+                    continue;
+
+                provider.enabled = false;
+                lockedProviders.Add(provider);
+            }
+
+            foreach (XRRayInteractor interactor in
+                     GetComponentsInChildren<XRRayInteractor>(true))
+            {
+                GameObject interactorObject = interactor.gameObject;
+
+                if (!interactorObject.name.Contains("Teleport"))
+                    continue;
+
+                if (!interactorObject.activeSelf)
+                    continue;
+
+                interactorObject.SetActive(false);
+                lockedTeleportInteractors.Add(interactorObject);
+            }
+        }
+        else
+        {
+            foreach (LocomotionProvider provider in lockedProviders)
+            {
+                if (provider != null)
+                    provider.enabled = true;
+            }
+
+            foreach (GameObject interactorObject in lockedTeleportInteractors)
+            {
+                if (interactorObject != null)
+                    interactorObject.SetActive(true);
+            }
+
+            lockedProviders.Clear();
+            lockedTeleportInteractors.Clear();
+        }
+
+        IsLocomotionLocked = locked;
+    }
+
 
 
     #region INetworkRunnerCallbacks
@@ -168,6 +254,10 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     {
         //if (SceneManager.GetActiveScene().buildIndex != 2)
         //    return;
+
+        // 이전 씬의 연출이 이동을 잠근 채로 끝났더라도
+        // 새 씬에서는 반드시 풀린 상태로 시작한다.
+        SetLocomotionLocked(false);
 
         StartCoroutine(MoveToSpawnPoint(runner));
     }

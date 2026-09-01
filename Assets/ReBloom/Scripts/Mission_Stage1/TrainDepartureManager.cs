@@ -2,9 +2,9 @@ using System.Collections;
 using System.Linq;
 using Fusion;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+
+
+
 
 /// <summary>
 /// Stage1 → Stage2 출발 연출. 기존 CutscenePlayer(2D 영상 컷신)를 대체한다.
@@ -65,10 +65,11 @@ public class TrainDepartureManager : NetworkBehaviour
 
     private TrainFloor trainFloor;
     private ScreenFade screenFade;
+    private HardwareRig hardwareRig;
 
     // 각 피어 로컬 상태
     private bool departureStarted;
-    private bool locomotionLocked;
+
 
     // 호스트 전용 상태
     private int reportsReceived;
@@ -104,8 +105,8 @@ public class TrainDepartureManager : NetworkBehaviour
 
     private IEnumerator DepartureRoutine()
     {
-        // 달리는 열차 밖으로 이동/텔레포트하지 못하게 잠근다.
-        SetLocomotionEnabled(false);
+        // 달리는 열차 밖으로 이동/텔레포트하지 못하게 잠그다.
+        SetLocomotionLocked(true);
 
         // 1. 문 닫힘 (TrainFloor의 기존 연출을 재사용)
         if (trainFloor != null)
@@ -142,7 +143,13 @@ public class TrainDepartureManager : NetworkBehaviour
                 this);
         }
 
-        // 5. 호스트에 완료 보고
+        // 5. 씬을 넘기기 전에 잠금을 푸다.
+        //    화면은 이미 검정이라 플레이어가 할 수 있는 것도 없고,
+        //    Stage2에 잠긴 상태로 도착하는 상황을 1차적으로 막는다.
+        //    (2차 안전망은 HardwareRig.OnSceneLoadDone)
+        SetLocomotionLocked(false);
+
+        // 6. 호스트에 완료 보고
         RPC_ReportReady();
 
         // 클라이언트 지연/이탈 대비 워치독
@@ -196,32 +203,18 @@ public class TrainDepartureManager : NetworkBehaviour
         }
     }
 
-    private void SetLocomotionEnabled(bool value)
+    // 잠금 상태는 HardwareRig가 직접 소유한다.
+    // 리그는 씬을 넘어가도 살아있고, OnSceneLoadDone에서 무조건 잠금을 푸므로
+    // 이 스크립트가 어떻게 끝나든 Stage2에서는 항상 이동이 가능하다.
+    private void SetLocomotionLocked(bool locked)
     {
-        HardwareRig rig = FindFirstObjectByType<HardwareRig>();
+        if (hardwareRig == null)
+            hardwareRig = FindFirstObjectByType<HardwareRig>();
 
-        if (rig == null)
+        if (hardwareRig == null)
             return;
 
-        // 이동/회전/텔레포트만 잠그고 중력은 유지한다.
-        foreach (LocomotionProvider provider in
-                 rig.GetComponentsInChildren<LocomotionProvider>(true))
-        {
-            if (provider is GravityProvider)
-                continue;
-
-            provider.enabled = value;
-        }
-
-        // 텔레포트 레이 시각화도 함께 끈다.
-        foreach (XRRayInteractor interactor in
-                 rig.GetComponentsInChildren<XRRayInteractor>(true))
-        {
-            if (interactor.gameObject.name.Contains("Teleport"))
-                interactor.gameObject.SetActive(value);
-        }
-
-        locomotionLocked = !value;
+        hardwareRig.SetLocomotionLocked(locked);
     }
 
 
@@ -276,9 +269,13 @@ public class TrainDepartureManager : NetworkBehaviour
 
     // XR 리그는 씬을 넘어가도 유지되므로,
     // Stage1이 언로드될 때 반드시 이동 잠금을 풀어준다.
-    private void OnDestroy()
+    // Fusion의 정식 정리 훅.
+    // SimulationBehaviour가 OnDestroy를 이미 정의하고 있으므로
+    // OnDestroy를 직접 선언하면 Fusion의 정리를 가려버린다.
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (locomotionLocked)
-            SetLocomotionEnabled(true);
+        base.Despawned(runner, hasState);
+
+        SetLocomotionLocked(false);
     }
 }

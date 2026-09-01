@@ -255,7 +255,12 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
             hardwareRig.rightHandTransform.rotation);
     }
 
-    private void SetAvatarVisible(bool visible)
+    /// <summary>
+    /// 이 플레이어의 아바타 렌더러를 켜거나 끔다.
+    /// 로컬 플레이어는 Spawned에서 이미 숨겨져 있으므로,
+    /// 외부(컷씬 등)에서는 원격 플레이어에만 사용할 것.
+    /// </summary>
+    public void SetAvatarVisible(bool visible)
     {
         if (baseAvatar == null)
             return;
