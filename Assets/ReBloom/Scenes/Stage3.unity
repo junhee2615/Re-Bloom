@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &736556801
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 736556802}
+  m_Layer: 0
+  m_Name: ClientSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &736556802
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 736556801}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -16.769, y: 68.5067, z: -39.142}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &795704457
 GameObject:
   m_ObjectHideFlags: 0
@@ -246,6 +277,37 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &1096892047
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1096892048}
+  m_Layer: 0
+  m_Name: HostSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1096892048
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096892047}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -15.805, y: 68.5067, z: -39.41}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2138010513
 GameObject:
   m_ObjectHideFlags: 0
@@ -308,8 +370,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fb02f0957794c6d93fac4809ae6cd50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResonanceController
-  hostSpawnPoint: {fileID: 0}
-  clientSpawnPoint: {fileID: 0}
   minDistance: 2
   distanceResponseSpeed: 6
   logDistanceCalculation: 0
@@ -328,7 +388,7 @@ MonoBehaviour:
     constrainedSnapshot: {fileID: 0}
     relievedSnapshot: {fileID: 0}
   constraintEnabled: 1
---- !u!1001 &1313864199359300735
+--- !u!1001 &3846063778224516753
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -399,4 +459,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 795704459}
   - {fileID: 2138010515}
-  - {fileID: 1313864199359300735}
+  - {fileID: 3846063778224516753}
+  - {fileID: 1096892048}
+  - {fileID: 736556802}

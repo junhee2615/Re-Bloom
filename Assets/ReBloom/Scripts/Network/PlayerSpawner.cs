@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
 using System;
@@ -7,10 +7,14 @@ using System.Collections.Generic;
 
 public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
-    [SerializeField]
-    private NetworkPrefabRef playerEarPrefab; // û�� ���� ĳ����
-    [SerializeField]
-    private NetworkPrefabRef playerMentalPrefab; // ���� ���� ĳ����
+    [SerializeField, Tooltip("ear 역할 캐릭터 프리팹.")]
+    private NetworkPrefabRef playerEarPrefab;
+
+    [SerializeField, Tooltip("mental 역할 캐릭터 프리팹.")]
+    private NetworkPrefabRef playerMentalPrefab;
+
+    [SerializeField, Tooltip("플레이어 아바타를 스폰하지 않을 씬 이름. 역할이 정해지기 전 씬(Lobby 등)을 넣는다.")]
+    private string[] noSpawnScenes = { "StartScene", "Lobby" };
 
     // Dictionary of spawned user prefabs, to destroy them on disconnection
     private Dictionary<PlayerRef, NetworkObject> _spawnedUsers = new Dictionary<PlayerRef, NetworkObject>();
@@ -33,10 +37,14 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     #region INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsServer)
-        {
-            SpawnPlayer(runner, player);
-        }
+        if (!runner.IsServer)
+            return;
+
+        // Lobby처럼 역할이 정해지기 전 씬에서는 아바타를 만들지 않는다.
+        if (!IsSpawnAllowedScene())
+            return;
+
+        SpawnPlayer(runner, player);
     }
 
     private void SpawnPlayer(NetworkRunner runner, PlayerRef player)
@@ -44,11 +52,33 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (_spawnedUsers.ContainsKey(player))
             return;
 
+        // Lobby에서 고른 역할을 그대로 쓴다.
+        // Lobby를 거치지 않고 Stage 씬을 직접 실행한 경우에만 기존 PlayerId 규칙으로 넘어간다.
+        Role role;
+        if (!RoleAssignments.TryGet(player, out role))
+        {
+            role = (player.PlayerId == 1) ? Role.mental : Role.ear;
+            Debug.LogWarning($"[PlayerSpawner] player {player.PlayerId}의 Lobby 선택이 없어 PlayerId 규칙({role})으로 스폰합니다.", this);
+        }
+
         NetworkPrefabRef prefabToSpawn =
-            (player.PlayerId == 1) ? playerMentalPrefab : playerEarPrefab;
+            (role == Role.mental) ? playerMentalPrefab : playerEarPrefab;
 
         NetworkObject networkPlayerObject =
-            runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player);
+            runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, player,
+                onBeforeSpawned: (NetworkRunner spawnRunner, NetworkObject spawnedObject) =>
+                {
+                    // Spawned()가 불리기 전에 Role을 넣어야
+                    // 모든 클라이언트가 처음부터 올바른 값을 본다.
+                    var networkPlayer = spawnedObject.GetComponent<NetworkPlayer>();
+                    if (networkPlayer == null)
+                        networkPlayer = spawnedObject.GetComponentInChildren<NetworkPlayer>(true);
+
+                    if (networkPlayer != null)
+                        networkPlayer.AssignRole(role);
+                    else
+                        Debug.LogError("스폰된 플레이어 프리팹에 NetworkPlayer가 없어 Role을 부여하지 못했습니다.", this);
+                });
 
         _spawnedUsers.Add(player, networkPlayerObject);
     }
@@ -62,6 +92,29 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
     #endregion
+
+    private static string CurrentSceneName =>
+        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+    /// <summary>현재 씬에서 플레이어 아바타를 스폰해도 되는지.</summary>
+    private bool IsSpawnAllowedScene()
+    {
+        if (noSpawnScenes == null)
+            return true;
+
+        string current = CurrentSceneName;
+
+        foreach (string sceneName in noSpawnScenes)
+        {
+            if (string.IsNullOrWhiteSpace(sceneName))
+                continue;
+
+            if (string.Equals(sceneName.Trim(), current, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        return true;
+    }
 
     #region Unsed INetworkRunnerCallbacks
     public void OnConnectedToServer(NetworkRunner runner)
@@ -136,6 +189,13 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 stale.Add(kv.Key);
         foreach (var p in stale)
             _spawnedUsers.Remove(p);
+
+        // 역할 선택 전 씬(Lobby)에서는 서로의 아바타가 보이면 안 되므로 스폰을 건너뛴다.
+        if (!IsSpawnAllowedScene())
+        {
+            Debug.Log($"[PlayerSpawner] '{CurrentSceneName}' 씬에서는 아바타를 스폰하지 않습니다.");
+            return;
+        }
 
         foreach (var player in runner.ActivePlayers)
             SpawnPlayer(runner, player);

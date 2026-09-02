@@ -8,18 +8,8 @@ public class PlantClearSequence : MonoBehaviour
     [Header("트리거: 이 미션들이 모두 클리어되면 실행")]
     [SerializeField] private List<PetalRhythmMission> plants = new List<PetalRhythmMission>();
 
-    [Header("물 차오르기")]
-    [SerializeField] private Transform cleanWater;
-    [SerializeField] private float waterStartY = -0.81f;
-    [SerializeField] private float waterEndY = 0.30696f;
-    [SerializeField] private float waterRiseDuration = 5f;
-    [SerializeField] private bool activateCleanWater = true;
-
     [Header("활성화할 오브젝트 (FloatingPlant, Fish 등)")]
     [SerializeField] private List<GameObject> objectsToActivate = new List<GameObject>();
-
-    [Header("물 정화: WaterPurify 들의 부모 (DirtyToCleanWater)")]
-    [SerializeField] private Transform dirtyToCleanWaterRoot;
 
     [Header("식생 복원: PlantRevive 들의 부모 (AquaticPlant/Static)")]
     [SerializeField] private Transform aquaticStaticRoot;
@@ -32,6 +22,9 @@ public class PlantClearSequence : MonoBehaviour
 
     [Header("안개 색")]
     [SerializeField] private Color fogColor = new Color32(0x4B, 0x44, 0x35, 0xFF);
+    /// <summary>수생식물 미션(MISSION 2) 완료. 연꽃 3개가 모두 클리어되어 완료 연출이 시작될 때 1회.</summary>
+    public static event System.Action MissionCleared;
+
 
     private bool played;
 
@@ -78,11 +71,6 @@ public class PlantClearSequence : MonoBehaviour
             if (go != null)
                 go.SetActive(true);
 
-        // 물 정화
-        if (dirtyToCleanWaterRoot != null)
-            foreach (var wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>(true))
-                wp.StartPurify();
-
         // 식생 복원
         if (aquaticStaticRoot != null)
             foreach (var pr in aquaticStaticRoot.GetComponentsInChildren<PlantRevive>(true))
@@ -94,35 +82,15 @@ public class PlantClearSequence : MonoBehaviour
 
         // 안개 색
         RenderSettings.fogColor = fogColor;
+        // 튜토리얼 진행 알림 (TutorialMissionManager_2가 구독)
+        MissionCleared?.Invoke();
 
-        // 물 차오르기 (5초 연출)
-        if (cleanWater != null)
-            StartCoroutine(RiseWater());
     }
-
-    private IEnumerator RiseWater()
+    // 도메인 리로드 비활성화 환경 대비: 재생 세션 시작 전 정적 이벤트 리셋
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
     {
-        if (activateCleanWater)
-            cleanWater.gameObject.SetActive(true);
-
-        Vector3 p = cleanWater.localPosition;
-        p.y = waterStartY;
-        cleanWater.localPosition = p;
-
-        float t = 0f;
-        while (t < waterRiseDuration)
-        {
-            t += Time.deltaTime;
-            float y = Mathf.Lerp(waterStartY, waterEndY, Mathf.Clamp01(t / waterRiseDuration));
-            Vector3 cur = cleanWater.localPosition;
-            cur.y = y;
-            cleanWater.localPosition = cur;
-            yield return null;
-        }
-
-        Vector3 end = cleanWater.localPosition;
-        end.y = waterEndY;
-        cleanWater.localPosition = end;
+        MissionCleared = null;
     }
 
 

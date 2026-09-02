@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -26,10 +26,6 @@ public class InteractablePlantVibration : MonoBehaviour
     [Tooltip("리듬 한 번이 끝나고 다음 반복까지의 쉼(초)")]
     [SerializeField] private float loopGap = 0.6f;
 
-    [Header("역할 제한")]
-    [Tooltip("체크 시 Client(PlayerId != 1)만 진동을 느낀다. 솔로 테스트 시 해제.")]
-    [SerializeField] private bool clientOnly = true;
-
     private Coroutine runningRoutine;
     private bool isTouching;
 
@@ -43,8 +39,8 @@ public class InteractablePlantVibration : MonoBehaviour
         if (!other.CompareTag("Right Controller"))
             return;
 
-        // Client(PlayerId != 1)만 진동 느낌
-        if (clientOnly && !PlayerRole.LocalIsClient())
+        // ear 역할만 진동을 느낀다.
+        if (!RoleManager.LocalIsEar)
             return;
 
         isTouching = true;

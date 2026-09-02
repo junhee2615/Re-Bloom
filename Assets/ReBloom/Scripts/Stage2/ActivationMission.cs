@@ -1,7 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // 미션을 수행할 수 있는 플레이어 역할 (Any = 제한 없음)
-public enum MissionRole { Any, HostOnly, ClientOnly }
+// 값 순서는 인스펙터 설정을 유지하기 위해 바꾸지 않는다.
+public enum MissionRole { Any, MentalOnly, EarOnly }
 
 /// <summary>
 /// 모든 "뿌리 활성화 미션"의 공통 베이스.
@@ -15,7 +16,7 @@ public abstract class ActivationMission : MonoBehaviour
     public System.Action OnCleared;
 
     [Header("역할 제한")]
-    [Tooltip("이 미션을 수행할 수 있는 플레이어 역할 (Any=제한없음, HostOnly=호스트만, ClientOnly=클라이언트만)")]
+    [Tooltip("이 미션을 수행할 수 있는 플레이어 역할 (Any=제한없음, MentalOnly=mental만, EarOnly=ear만)")]
     [SerializeField] protected MissionRole requiredRole = MissionRole.Any;
 
     // 네트워크 동기화용 뿌리 인덱스 (RootActivation이 설정). 오프라인이면 0.
@@ -42,15 +43,17 @@ public abstract class ActivationMission : MonoBehaviour
 
 /// <summary>
     /// 로컬 플레이어가 이 미션을 수행할 수 있는 역할인지.
-    /// 네트워크 미연결(단독 테스트) 상태에서는 항상 허용한다.
+    /// 역할이 정해지지 않은 단독 테스트 상태에서는 항상 허용한다.
     /// </summary>
     public bool CanLocalPlayerPlay()
     {
-        if (!PlayerRole.IsConnected) return true;
+        // 역할이 아직 없다 = Lobby를 거치지 않은 단독 테스트. 제한하지 않는다.
+        if (!RoleManager.HasLocalRole) return true;
+
         switch (requiredRole)
         {
-            case MissionRole.HostOnly:   return PlayerRole.LocalIsHost();
-            case MissionRole.ClientOnly: return PlayerRole.LocalIsClient();
+            case MissionRole.MentalOnly: return RoleManager.LocalIsMental;
+            case MissionRole.EarOnly:    return RoleManager.LocalIsEar;
             default:                     return true;
         }
     }

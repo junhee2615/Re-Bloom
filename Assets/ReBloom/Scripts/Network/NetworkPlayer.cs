@@ -31,6 +31,39 @@ public class NetworkPlayer : NetworkBehaviour
     public static NetworkPlayer LocalInstance { get; private set; }
 
 
+        /// <summary>
+    /// 이 플레이어의 Role(mental / ear).
+    /// 서버가 스폰 직전에 확정하며 모든 클라이언트에 동기화된다.
+    /// (PlayerSpawner.SpawnPlayer -> AssignRole)
+    /// </summary>
+    [Networked] public Role AssignedRole { get; private set; }
+
+    /// <summary>이 기기 로컬 플레이어의 Role. 아직 스폰 전이면 null.</summary>
+    public static Role? LocalRole =>
+        LocalInstance != null ? LocalInstance.AssignedRole : (Role?)null;
+
+    /// <summary>(서버 전용) 스폰 시점에 Role을 확정한다.</summary>
+    public void AssignRole(Role role)
+    {
+        AssignedRole = role;
+    }
+
+    /// <summary>해당 Role을 가진 플레이어를 찾는다. 없으면 false.</summary>
+    public static bool TryGetByRole(Role role, out NetworkPlayer networkPlayer)
+    {
+        foreach (var candidate in Players.Values)
+        {
+            if (candidate != null && candidate.AssignedRole == role)
+            {
+                networkPlayer = candidate;
+                return true;
+            }
+        }
+
+        networkPlayer = null;
+        return false;
+    }
+
     [Networked] public NetworkBool IsActivationTriggerHeld { get; private set; }
     [Networked] public NetworkBool AreCooperativeHandsContacted { get; private set; }
     [Networked] public NetworkBool IsRightTriggerHeld { get; private set; }
@@ -38,6 +71,7 @@ public class NetworkPlayer : NetworkBehaviour
     [Networked] public Hand CooperativeContactHand { get; private set; }
     [Networked] public NetworkBool HasCooperativeActivationSucceeded { get; private set; }
     [Networked] public float CooperativeHoldProgress { get; private set; }
+    [Networked] public NetworkBool IsWalking { get; private set; }
 
     public bool IsTriggerHeld(Hand hand) =>
         hand == Hand.Right ? (bool)IsRightTriggerHeld :
@@ -47,18 +81,14 @@ public class NetworkPlayer : NetworkBehaviour
         hand == Hand.Right ? RightHand :
         hand == Hand.Left ? LeftHand : null;
 
-    private TeleportGhostManager.CharacterType LocalCharacterType
-    {
-        get
-        {
-            if (Object.InputAuthority.PlayerId == 1)
-            {
-                return TeleportGhostManager.CharacterType.Mental;
-            }
-
-            return TeleportGhostManager.CharacterType.Ear;
-        }
-    }
+    /// <summary>
+    /// 텔레포트 고스트에 쓸 캐릭터 종류.
+    /// Lobby에서 고른 역할(AssignedRole)을 그대로 따른다.
+    /// </summary>
+    private TeleportGhostManager.CharacterType LocalCharacterType =>
+        AssignedRole == Role.mental
+            ? TeleportGhostManager.CharacterType.Mental
+            : TeleportGhostManager.CharacterType.Ear;
 
     [Header("Network Transforms")]
     [SerializeField] private NetworkTransform playerTransform;
@@ -89,7 +119,11 @@ public class NetworkPlayer : NetworkBehaviour
 
         if (IsLocalNetworkRig)
         {
-            hardwareRig = FindFirstObjectByType<HardwareRig>();
+                        // StartScene의 Host/Join 버튼으로 정해둔 로컬 Role을
+            // 서버가 확정한 값으로 다시 맞춘다.
+            RoleManager.SetLocalRole(AssignedRole);
+
+hardwareRig = FindFirstObjectByType<HardwareRig>();
 
             if (hardwareRig == null)
             {
@@ -145,6 +179,7 @@ public class NetworkPlayer : NetworkBehaviour
             {
                 IsRightTriggerHeld = input.RightTriggerPressed;
                 IsLeftTriggerHeld = input.LeftTriggerPressed;
+                IsWalking = input.IsWalking;
             }
 
             playerTransform.transform.SetPositionAndRotation(
@@ -238,13 +273,35 @@ public class NetworkPlayer : NetworkBehaviour
     /// (Host 전용) 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스트한다.
     /// Host 는 상태 권한을 가지므로 RPC 를 보낼 수 있고, InvokeLocal 로 자기 자신도 실행된다.
     /// </summary>
-    public void RequestRevivePlant(int plantId)
+    /// <summary>
+    /// 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스한다.
+    /// 역할(mental/ear)과 접속 모드(Host/Client)는 로비에서 따로 정해지므로
+    /// mental 플레이어가 클라이언트일 수 있다. Host 모드에서 클라이언트는
+    /// 자기 아바타에 대해서도 StateAuthority가 없으므로, 권한자를 거쳐 중계한다.
+    /// </summary>
+public void RequestRevivePlant(int plantId)
     {
+        // mental이 Host든 Client든 상관없이 두 플레이어 모두에게 복원을 전파한다.
         if (HasNetworkStateAuthority)
-            Rpc_RevivePlant(plantId);
+            Rpc_RevivePlant(plantId);          // 권한자(Host) → 모두
         else
-            PetalRhythmMission.ReviveById(plantId);
+            Rpc_RequestRevivePlant(plantId);   // 클라이언트 → 권한자에게 요청 → 권한자가 모두에게 전파
     }
+
+    // 클라이언트(비권한자)가 복원을 일으켰을 때, 권한자에게 전파를 요청한다.
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_RequestRevivePlant(int plantId)
+    {
+        Rpc_RevivePlant(plantId);
+    }
+
+    /// <summary>클라이언트 → 권한자 중계. 권한자가 받아 전원에게 재방송한다.</summary>
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_RequestRevivePlant(int plantId, RpcInfo info = default)
+    {
+        Rpc_RevivePlant(plantId);
+    }
+
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void Rpc_RevivePlant(int plantId)

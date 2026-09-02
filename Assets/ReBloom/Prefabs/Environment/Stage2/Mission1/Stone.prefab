@@ -944,7 +944,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 3
 --- !u!114 &2117986798445019096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1107,7 +1107,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StoneObstacle
   requiredGrabbers: 2
   fallSafetyDepth: 15
+  releaseDistance: 0.5
   gravityScale: 1
+  trackMaxSpeed: 12
 --- !u!64 &2115222030117798781
 MeshCollider:
   m_ObjectHideFlags: 0

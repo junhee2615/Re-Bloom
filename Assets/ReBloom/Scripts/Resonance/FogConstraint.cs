@@ -72,6 +72,9 @@ public sealed class FogConstraint
     /// <summary>제약 상태 기준으로 안개 강도를 즉시 세팅한다.</summary>
     public void SnapConstrained(bool constrained) => Apply(constrained ? activeIntensity : 0f);
 
+    /// <summary>스테이지별 안개 강도 오버라이드.</summary>
+    public void SetActiveIntensity(float value) => activeIntensity = Mathf.Clamp01(value);
+
     /// <summary>재생 종료 시 원본 FogSettings/머티리얼 값을 복원한다.</summary>
     public void Restore()
     {
@@ -81,5 +84,7 @@ public sealed class FogConstraint
         fogSettings.heightFogIntensity = configuredHeightIntensity;
         fogMaterial.SetFloat(DistanceFogIntensityId, configuredDistanceIntensity);
         fogMaterial.SetFloat(HeightFogIntensityId, configuredHeightIntensity);
+        
+        initialized = false;
     }
 }

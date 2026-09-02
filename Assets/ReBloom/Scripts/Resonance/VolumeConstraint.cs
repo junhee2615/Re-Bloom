@@ -93,12 +93,12 @@ public sealed class VolumeConstraint
             vignetteOverride.intensity.value = configuredVignetteIntensity * postFx;
     }
 
-    /// <summary>테스트 토글 OFF 시 weight를 해제값으로 즉시 스냅한다.</summary>
-    public void SnapReleased()
+    /// <summary>보간 없이 현재 상태의 weight로 즉시 스냅한다.</summary>
+    public void Snap(bool inactive)
     {
         if (!initialized) return;
 
-        smoothedVolumeWeight = releasedVolumeWeight;
-        resonanceVolume.weight = releasedVolumeWeight;
+        smoothedVolumeWeight = inactive ? releasedVolumeWeight : constrainedVolumeWeight;
+        resonanceVolume.weight = smoothedVolumeWeight;
     }
 }

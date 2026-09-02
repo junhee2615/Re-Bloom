@@ -41,6 +41,8 @@ public class RootActivation : MonoBehaviour
 
     // 네트워크 시퀀스에서 이 뿌리의 순서 인덱스 (RootMissionManager.AttachNet에서 설정)
     public int MissionIndex { get; private set; }
+    public AudioSource audioSource;
+    public AudioClip missionClearClip;
 
     /// <summary>네트워크 모드에서 매니저/인덱스를 연결한다.</summary>
     public void SetContext(RootMissionManager m, int index)
@@ -127,7 +129,7 @@ public void OnStartButtonPressed()
     /// 미션을 성공적으로 끝냈을 때 호출된다 (mission.Clear() → OnCleared).
     /// ActivateCircle/MissionCanvas를 끄고 AliveDecal을 켜 뒤 매니저에 완료를 알린다.
     /// </summary>
-    public void CompleteActivation()
+public void CompleteActivation()
     {
         if (IsActivated)
             return;
@@ -145,11 +147,22 @@ public void OnStartButtonPressed()
         if (aliveDecal != null)
             aliveDecal.SetActive(true);
 
+        PlayClearSound();
+
         Debug.Log($"{name} 활성화 미션 완료");
 
         // 매니저에 알림 → 다음 뿌리로 진행
         missionManager?.OnRootActivated(this);
     }
+
+// 미션 클리어 사운드(alive_decal)를 임시 소스로 재생한다.
+    // 개별 AudioSource가 런타임에 출력을 안 하는 사례가 있어, 매번 새 임시 소스로 확실히 재생.
+    private void PlayClearSound()
+    {
+        if (missionClearClip != null)
+            AudioSource.PlayClipAtPoint(missionClearClip, transform.position);
+    }
+
 
 // 오프라인(단독) 로컬 미션 시작
     private void StartMissionLocal()
@@ -204,7 +217,7 @@ public void OnStartButtonPressed()
     }
 
     // 네트워크: ActiveIndex가 이 뿌리를 지나갈 때 모든 머신에서 호출되는 완료 연출.
-    public void NetComplete()
+public void NetComplete()
     {
         if (IsActivated) return;
         IsActivated = true;
@@ -216,6 +229,8 @@ public void OnStartButtonPressed()
         if (activateCircle != null) activateCircle.SetActive(false);
         if (missionCanvas != null) missionCanvas.SetActive(false);
         if (aliveDecal != null) aliveDecal.SetActive(true);
+
+        PlayClearSound();
 
         Debug.Log($"{name} 활성화 미션 완료 (네트워크)");
     }

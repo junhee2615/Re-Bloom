@@ -106,7 +106,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6388778651349475325
 RectTransform:
   m_ObjectHideFlags: 0
@@ -308,7 +308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4124080434002979958
 RectTransform:
   m_ObjectHideFlags: 0
@@ -433,14 +433,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6039216, g: 0.90588236, b: 0.6117647, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: eec38445fa3728f4ea8cdbdcc89d5011, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBBF8\uC158 \uC2DC\uC791!"
+  m_text: PLAY!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
   m_sharedMaterial: {fileID: 3233738384545482434, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
@@ -542,13 +542,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 22
-  m_fontSizeBase: 22
+  m_fontSize: 13
+  m_fontSizeBase: 13
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1565,6 +1565,8 @@ MonoBehaviour:
   startButton: {fileID: 4609177298415767656}
   missionPanel: {fileID: 1958228660970557746}
   mission: {fileID: 9052913778262986138}
+  audioSource: {fileID: 0}
+  missionClearClip: {fileID: 0}
 --- !u!82 &8525350099763890567
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1790,7 +1792,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 100, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5020638895923405364
 CanvasRenderer:
@@ -1813,7 +1815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.20784314, g: 1, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7094,8 +7096,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7165,6 +7167,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6388778651349475325}
     m_Modifications:
+    - target: {fileID: 870241114594718524, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 78.3
+      objectReference: {fileID: 0}
     - target: {fileID: 1600753916923810795, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -7231,7 +7237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1600753916923810795, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -11.1
       objectReference: {fileID: 0}
     - target: {fileID: 1600753916923810795, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -7253,8 +7259,19 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8034311279172334796, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 33.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8458848971279193240, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 52.6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3151882641055315414, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
+    - {fileID: 8400483607864309385, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
+    - {fileID: 6609679453080129946, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2a4f0e449995bca418e5003d755abf89, type: 3}

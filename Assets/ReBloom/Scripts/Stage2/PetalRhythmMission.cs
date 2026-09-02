@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PetalRhythmMission : MonoBehaviour
 {
@@ -14,8 +15,9 @@ public class PetalRhythmMission : MonoBehaviour
     [SerializeField] private PlantRevive plantRevive;
 
     [Header("역할 제한")]
-    [Tooltip("체크 시 Host(PlayerId 1)만 연꽃잎 입력이 유효. 솔로 테스트 시 해제.")]
-    [SerializeField] private bool hostOnly = true;
+    [Tooltip("체크 시 mental 역할만 연꽃잎 입력이 유효. 솔로 테스트 시 해제.")]
+    [FormerlySerializedAs("hostOnly")]
+    [SerializeField] private bool mentalOnly = true;
 
     [Header("박자 판정 (넉넉하게)")]
     [Tooltip("간격 허용 오차(초). 클수록 관대")]
@@ -64,59 +66,71 @@ public class PetalRhythmMission : MonoBehaviour
             _registry.Remove(plantId);
     }
 
-    /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. Host 로컬에서만 유효
-    public void OnPetalTouched()
+    /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. mental 로컬에서만 유효
+public void OnPetalTouched()
     {
-        if (cleared)
-            return;
+        Debug.Log("[PetalDebug] " + name + " OnPetalTouched 진입 cleared=" + cleared + " mentalOnly=" + mentalOnly + " LocalIsMental=" + RoleManager.LocalIsMental + " vibNull=" + (vibration == null));
 
-        if (hostOnly && !PlayerRole.LocalIsHost())
+        if (cleared)
+        {
+            Debug.Log("[PetalDebug] return: cleared");
             return;
+        }
+
+        if (mentalOnly && !RoleManager.LocalIsMental)
+        {
+            Debug.Log("[PetalDebug] return: not mental");
+            return;
+        }
 
         if (vibration == null)
+        {
+            Debug.Log("[PetalDebug] return: vibration null");
             return;
+        }
 
         float now = Time.time;
 
-        // 같은 터치가 두 스피어에서 동시에 잡히는 중복 방지
         if (now - lastTouchTime < touchDebounce)
+        {
+            Debug.Log("[PetalDebug] return: debounce");
             return;
+        }
 
-        // 무입력이 길었으면 시퀀스 초기화 후 새로 시작
         if (pressTimes.Count > 0 && now - lastTouchTime > betweenInputTimeout)
             pressTimes.Clear();
 
         lastTouchTime = now;
         pressTimes.Add(now);
 
+        Debug.Log("[PetalDebug] PlayTouchSound 호출 (pressTimes=" + pressTimes.Count + "/" + vibration.ExpectedPulseCount + ")");
         PlayTouchSound();
 
         int expectedCount = vibration.ExpectedPulseCount;
         if (expectedCount <= 0)
             return;
 
-        // 필요한 횟수만큼 눌렸으면 판정
         if (pressTimes.Count >= expectedCount)
         {
             bool ok = Judge(vibration.BuildExpectedIntervals(), pressTimes);
             pressTimes.Clear();
 
+            Debug.Log("[PetalDebug] 판정 ok=" + ok);
             if (ok)
                 ClearMission();
         }
     }
 
-    // 터치 확인용 오른손 햄틱 펄스 (피드백용, UI 아님)
+    // 터치 확인용 오른손 햅틱 펄스 (피드백용, UI 아님)
     // 터치 확인용 효과음 재생 (피드백용, UI 아님)
-    private void PlayTouchSound()
+private void PlayTouchSound()
     {
         if (touchClip == null)
             return;
 
-        if (touchAudioSource != null)
-            touchAudioSource.PlayOneShot(touchClip, touchVolume);
-        else
-            AudioSource.PlayClipAtPoint(touchClip, transform.position, touchVolume);
+        // 일부 플랜트의 개별 AudioSource가 동일 설정인데도 런타임에 출력을 안 하는 사례가 있어,
+        // 매 터치마다 새 임시 소스로 확실히 재생한다. (플레이어가 만질 땐 플랜트 앞이라 위치도 자연스럽다.)
+        AudioSource.PlayClipAtPoint(touchClip, transform.position, touchVolume);
     }
 
 
@@ -148,7 +162,7 @@ public class PetalRhythmMission : MonoBehaviour
         if (plantRevive != null)
             plantRevive.StartRevive();
 
-        // 복원 후에는 줄기 진동을 끕
+        // 복원 후에는 줄기 진동을 끔
         if (vibration != null)
             vibration.enabled = false;
 

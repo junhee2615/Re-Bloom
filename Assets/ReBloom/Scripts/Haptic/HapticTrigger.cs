@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR;
 
 public class HapticTrigger : MonoBehaviour
@@ -22,6 +22,11 @@ public class HapticTrigger : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Collision Enter");
+
+        // ear 역할만 진동을 느낀다.
+        if (!RoleManager.LocalIsEar)
+            return;
+
         TriggerHaptic(1.0f, 0.1f);
     }
 }

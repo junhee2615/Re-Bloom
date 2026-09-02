@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using System.Collections;
 using UnityEngine;
 
@@ -7,6 +7,9 @@ public class TrainController : NetworkBehaviour
     [SerializeField] private float moveDistance = 20f;
     [SerializeField] private float maxSpeed = 8f;
     [SerializeField] private float acceleration = 2f;
+
+    [SerializeField, Tooltip("도착 후 로드할 씬 이름. Build Profiles > Scene List에 등록되어 있어야 한다.")]
+    private string nextSceneName = "Stage2";
     [Networked]
     private NetworkBool IsTrainMoving { get; set; }
     [Networked]
@@ -92,17 +95,28 @@ public class TrainController : NetworkBehaviour
 
         if (HasStateAuthority)
         {
-            StartCoroutine(LoadStage2());
+            StartCoroutine(LoadNextStage());
         }
     }
 
-    private IEnumerator LoadStage2()
+    private IEnumerator LoadNextStage()
     {
         yield return new WaitForSeconds(1f); // FadeOut 시간
 
-        if (HasStateAuthority)
+        if (!HasStateAuthority)
+            yield break;
+
+        // 빌드 인덱스는 Scene List에 씬을 추가하면 밀리므로 이름으로 찾는다.
+        SceneRef next = NetworkManager.Instance != null
+            ? NetworkManager.Instance.GetSceneRef(nextSceneName)
+            : SceneRef.None;
+
+        if (next == SceneRef.None)
         {
-            Runner.LoadScene(SceneRef.FromIndex(2));
+            Debug.LogError($"[TrainController] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            yield break;
         }
+
+        Runner.LoadScene(next);
     }
 }

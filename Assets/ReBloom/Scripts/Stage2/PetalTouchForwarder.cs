@@ -13,12 +13,17 @@ public class PetalTouchForwarder : MonoBehaviour
 
     public void SetMission(PetalRhythmMission m) => mission = m;
 
-    private void OnTriggerEnter(Collider other)
+private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("[PetalDebug] " + name + " TriggerEnter by '" + other.name + "' tag=" + other.tag + " mission=" + (mission != null ? mission.name : "NULL"));
+
         if (mission == null)
             return;
 
         if (other.CompareTag(rightControllerTag))
+        {
+            Debug.Log("[PetalDebug] " + name + " -> OnPetalTouched() 호출");
             mission.OnPetalTouched();
+        }
     }
 }

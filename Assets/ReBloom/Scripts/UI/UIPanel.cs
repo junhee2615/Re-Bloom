@@ -18,6 +18,12 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData initialMessage;
     [SerializeField] private MissionPanelData generatorCompleteMessage;
     [SerializeField] private MissionPanelData valveCompleteMessage;
+    [Header("Mission Data - Stage2")]
+    [SerializeField] private MissionPanelData stage2InitialMessage;
+    [SerializeField] private MissionPanelData stage2WaterCompleteMessage;
+    [SerializeField] private MissionPanelData stage2PlantCompleteMessage;
+    [SerializeField] private MissionPanelData stage2StumpCompleteMessage;
+
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -32,6 +38,8 @@ public class UIPanel : MonoBehaviour
     {
         panelRoot.SetActive(false);
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
+        TutorialMissionManager_2.TutorialChanged += OnTutorialChanged_2;
+
     }
 
     private void Update()
@@ -88,6 +96,31 @@ public class UIPanel : MonoBehaviour
         }
     }
 
+    // Stage2 튜토리얼. 첫 미션 지연(5초)은 TutorialMissionManager_2가 처리하므로
+    // 여기서는 받은 단계를 그대로 표시한다.
+    private void OnTutorialChanged_2(TutorialStep_2 step)
+    {
+        switch (step)
+        {
+            case TutorialStep_2.Initial:
+                ShowTutorial(stage2InitialMessage);
+                break;
+
+            case TutorialStep_2.WaterComplete:
+                ShowTutorial(stage2WaterCompleteMessage);
+                break;
+
+            case TutorialStep_2.PlantComplete:
+                ShowTutorial(stage2PlantCompleteMessage);
+                break;
+
+            case TutorialStep_2.StumpComplete:
+                ShowTutorial(stage2StumpCompleteMessage);
+                break;
+        }
+    }
+
+
     private IEnumerator ShowFirstTutorialAfterDelay()
     {
         yield return new WaitForSeconds(5f);
@@ -102,9 +135,8 @@ public class UIPanel : MonoBehaviour
         missionText.text = message.MissionLabel;
         titleText.text = message.Title;
 
-        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-
-        if (runner != null && runner.LocalPlayer.PlayerId == 1)
+        // HostDescription / ClientDescription 은 각각 mental / ear 용 설명이다.
+        if (RoleManager.LocalIsMental)
         {
             descriptionText.text = message.HostDescription;
         }
@@ -125,5 +157,7 @@ public class UIPanel : MonoBehaviour
     private void OnDestroy()
     {
         TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
+        TutorialMissionManager_2.TutorialChanged -= OnTutorialChanged_2;
+
     }
 }
