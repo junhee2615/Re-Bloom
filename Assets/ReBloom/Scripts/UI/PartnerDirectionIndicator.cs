@@ -20,7 +20,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
 
     [Header("Display")]
     [SerializeField] private float verticalOffset = 0f;
-    [SerializeField] private float arrowScale = 3.0f;
+    [SerializeField] private float arrowScale = 0.7f;
     [SerializeField] private float textOffsetY = 70f;
 
     [Header("Development Test")]
@@ -174,9 +174,9 @@ public class PartnerDirectionIndicator : MonoBehaviour
             arrowRectTransform.anchorMax = max;
 
             arrowRectTransform.anchoredPosition = Vector2.zero;
-            arrowRectTransform.localScale = new Vector3(arrowScale, arrowScale, 1f);
+            arrowRectTransform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
-            float finalRotation = clampedYaw - 90f;
+            float finalRotation = clampedYaw;
             arrowRectTransform.localRotation = Quaternion.Euler(0f, 0f, -finalRotation);
         }
 
@@ -190,7 +190,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
             if (horizontalDirection.sqrMagnitude < VerySmallValue)
             {
                 if (arrowRectTransform != null)
-                    arrowRectTransform.localRotation = Quaternion.Euler(0f, 0f, -90f);
+                    arrowRectTransform.localRotation = Quaternion.identity;
             }
         }
     }
