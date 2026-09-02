@@ -284,6 +284,57 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
             this);
     }
 
+
+    // =================================================
+    // Cutscene UI / Avatar
+    //
+    // 컷씬 동안 XR Origin을 컷씬 카메라로 순간이동시키므로
+    // 두 플레이어가 같은 지점에 겹친다. 상대 아바타를 숨긴다.
+    // 손에 붙은 튜토리얼 패널도 시야에서 치운다.
+    // =================================================
+
+    [Header("Cutscene UI / Avatar")]
+    [Tooltip("컷씬 동안 왼손 컨트롤러의 TutorialCanvas를 숨긴다.")]
+    [SerializeField]
+    private bool hideTutorialCanvas = true;
+
+    [Tooltip("컷씬 동안 상대 플레이어의 아바타를 숨긴다.")]
+    [SerializeField]
+    private bool hideRemoteAvatars = true;
+
+    private HardwareRig hardwareRig;
+
+    private bool cutsceneUIHidden;
+
+    private void SetCutsceneUIHidden(bool hidden)
+    {
+        if (cutsceneUIHidden == hidden)
+            return;
+
+        cutsceneUIHidden = hidden;
+
+        if (hideTutorialCanvas)
+        {
+            if (hardwareRig == null)
+                hardwareRig = FindFirstObjectByType<HardwareRig>();
+
+            if (hardwareRig != null)
+                hardwareRig.SetTutorialCanvasVisible(!hidden);
+        }
+
+        if (!hideRemoteAvatars)
+            return;
+
+        foreach (NetworkPlayer player in NetworkPlayer.All)
+        {
+            if (player == null || player.IsLocalNetworkRig)
+                continue;
+
+            player.SetAvatarVisible(!hidden);
+        }
+    }
+
+
     // =================================================
     // Cinemachine -> XR Rig
     // =================================================
@@ -573,6 +624,7 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
 
     private IEnumerator StartCutsceneWithFade()
     {
+        SetCutsceneUIHidden(true);
         waitingForCutsceneStart = true;
 
         // =================================================
@@ -683,6 +735,7 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
 
         ResetEndFadeState();
 
+        SetCutsceneUIHidden(true);
         cutsceneActive = true;
 
         Debug.Log(
@@ -769,6 +822,12 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
 
         // 위치/효과 적용 시간 확보
         yield return null;
+
+        // =================================================
+        // 컷씬용 UI/아바타 숨김 해제
+        // =================================================
+
+        SetCutsceneUIHidden(false);
 
         // =================================================
         // 5. 검정 -> 원래 게임 화면
@@ -1029,6 +1088,7 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
 
         RestoreOriginalXRTransform();
         RestoreResonanceConstraint();
+        SetCutsceneUIHidden(false);
     }
 
     private void OnDestroy()
@@ -1047,5 +1107,6 @@ public class Stage1XRCutsceneRigFollower : MonoBehaviour
 
         RestoreOriginalXRTransform();
         RestoreResonanceConstraint();
+        SetCutsceneUIHidden(false);
     }
 }

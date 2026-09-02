@@ -133,6 +133,63 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     }
 
 
+    // =================================================
+    // Tutorial Canvas
+    //
+    // 왼손 컨트롤러에 붙은 튜토리얼 패널. 컷씬 중에는 시야에서 치운다.
+    // 잠금 해제를 연출 스크립트 수명에 맡기지 않도록
+    // Locomotion Lock과 같은 이유로 리그가 상태를 들고 있다.
+    // =================================================
+
+    [Header("Cutscene UI")]
+    [Tooltip("연출 중 숨길 컨트롤러 UI. 비워두면 'TutorialCanvas' 이름으로 자동 탐색한다.")]
+    [SerializeField] private GameObject tutorialCanvas;
+
+    private bool tutorialCanvasHidden;
+
+    public bool IsTutorialCanvasHidden => tutorialCanvasHidden;
+
+    /// <summary>
+    /// 튜토리얼 패널을 숨기거나 되돌린다.
+    /// 원래 꺼져 있던 경우에는 건드리지 않고, 숨긴 경우에만 되돌린다.
+    /// </summary>
+    public void SetTutorialCanvasVisible(bool visible)
+    {
+        if (tutorialCanvas == null)
+        {
+            foreach (Transform child in GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == "TutorialCanvas")
+                {
+                    tutorialCanvas = child.gameObject;
+                    break;
+                }
+            }
+        }
+
+        if (tutorialCanvas == null)
+            return;
+
+        if (!visible)
+        {
+            if (tutorialCanvasHidden || !tutorialCanvas.activeSelf)
+                return;
+
+            tutorialCanvas.SetActive(false);
+            tutorialCanvasHidden = true;
+        }
+        else
+        {
+            if (!tutorialCanvasHidden)
+                return;
+
+            tutorialCanvas.SetActive(true);
+            tutorialCanvasHidden = false;
+        }
+    }
+
+
+
 
     #region INetworkRunnerCallbacks
     void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input)
@@ -255,9 +312,10 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
         //if (SceneManager.GetActiveScene().buildIndex != 2)
         //    return;
 
-        // 이전 씬의 연출이 이동을 잠근 채로 끝났더라도
-        // 새 씬에서는 반드시 풀린 상태로 시작한다.
+        // 이전 씬의 연출이 이동을 잠그거나 UI를 숨긴 채로 끝났더라도
+        // 새 씬에서는 반드시 정상 상태로 시작한다.
         SetLocomotionLocked(false);
+        SetTutorialCanvasVisible(true);
 
         StartCoroutine(MoveToSpawnPoint(runner));
     }

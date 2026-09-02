@@ -83,6 +83,10 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private bool lockLocomotion = true;
 
+    [Tooltip("컷씬 동안 왼손 컨트롤러의 TutorialCanvas를 숨긴다.")]
+    [SerializeField]
+    private bool hideTutorialCanvas = true;
+
     [Header("Debug")]
     [SerializeField]
     private bool xrReady;
@@ -268,6 +272,12 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         SetRemoteAvatarsVisible(false);
 
+        // 튜토리얼 패널은 먼저 치운다.
+        // PlantClearSequence가 MissionCleared를 발생시키면
+        // TutorialMissionManager_2 → UIPanel.ShowTutorial 경로로
+        // 컷씬 도중에 패널이 손에서 떠오르기 때문이다.
+        SetTutorialCanvasVisible(false);
+
         SaveOriginalXRTransform();
 
         // 1. 화면을 검게
@@ -306,6 +316,7 @@ public class Stage2SkyCutscene : MonoBehaviour
         resonance.Restore();
 
         SetRemoteAvatarsVisible(true);
+        SetTutorialCanvasVisible(true);
 
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);
@@ -400,6 +411,20 @@ public class Stage2SkyCutscene : MonoBehaviour
         }
     }
 
+
+    // =================================================
+    // 컨트롤러 UI
+    // =================================================
+
+    private void SetTutorialCanvasVisible(bool visible)
+    {
+        if (!hideTutorialCanvas || hardwareRig == null)
+            return;
+
+        hardwareRig.SetTutorialCanvasVisible(visible);
+    }
+
+
     // =================================================
     // 안전장치
     // =================================================
@@ -417,6 +442,7 @@ public class Stage2SkyCutscene : MonoBehaviour
         RestoreOriginalXRTransform();
         resonance.Restore();
         SetRemoteAvatarsVisible(true);
+        SetTutorialCanvasVisible(true);
 
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);

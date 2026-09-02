@@ -96,7 +96,7 @@ public class PlantClearSequence : MonoBehaviour
     // 컷씬이 없으면 PlaySequence가 한 번에 다 부른다.
     // =================================================
 
-    /// <summary>활성화 대상(Fish 등)을 켜다.</summary>
+    /// <summary>활성화 대상(Fish 등)을 켠다.</summary>
     public void ActivateObjects()
     {
         if (objectsToActivate == null)

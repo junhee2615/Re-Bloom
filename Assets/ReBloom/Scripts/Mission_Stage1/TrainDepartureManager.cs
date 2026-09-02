@@ -78,7 +78,56 @@ public class TrainDepartureManager : NetworkBehaviour
     private void Awake()
     {
         trainFloor = GetComponent<TrainFloor>();
+
+#if UNITY_EDITOR
+        WarnIfStaticBatched();
+#endif
     }
+
+#if UNITY_EDITOR
+    // 이동 대상에 Batching Static 렌더러가 남아 있으면
+    // 정적 배칭이 정점을 월드 좌표로 구워버려
+    // 트랜스폼을 옮겨도 화면이 따라오지 않는다.
+    // 조용히 망가지는 종류라 에디터에서 미리 경고한다.
+    private void WarnIfStaticBatched()
+    {
+        if (movingRoots == null)
+            return;
+
+        int batchedCount = 0;
+        string firstName = null;
+
+        foreach (Transform root in movingRoots)
+        {
+            if (root == null)
+                continue;
+
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                UnityEditor.StaticEditorFlags flags =
+                    UnityEditor.GameObjectUtility.GetStaticEditorFlags(renderer.gameObject);
+
+                if ((flags & UnityEditor.StaticEditorFlags.BatchingStatic) == 0)
+                    continue;
+
+                batchedCount++;
+
+                if (firstName == null)
+                    firstName = renderer.name;
+            }
+        }
+
+        if (batchedCount == 0)
+            return;
+
+        Debug.LogWarning(
+            "[TrainDepartureManager] 이동 대상에 Batching Static 렌더러가 " +
+            batchedCount + "개 있습니다(예: " + firstName + "). " +
+            "정적 배칭 때문에 배경이 화면상 움직이지 않습니다. " +
+            "해당 오브젝트의 Static 드롭다운에서 Batching Static을 꺼주세요.",
+            this);
+    }
+#endif
 
     /// <summary>호스트가 두 플레이어의 탑승을 확인했을 때 호출한다.</summary>
     public void BeginDeparture()
@@ -105,9 +154,10 @@ public class TrainDepartureManager : NetworkBehaviour
 
     private IEnumerator DepartureRoutine()
     {
-        // 달리는 열차 밖으로 이동/텔레포트하지 못하게 잠그다.
+        // 달리는 열차 밖으로 이동/텔레포트하지 못하게 잠근다.
         SetLocomotionLocked(true);
 
+        SetTutorialCanvasVisible(false);
         // 1. 문 닫힘 (TrainFloor의 기존 연출을 재사용)
         if (trainFloor != null)
             yield return StartCoroutine(trainFloor.CloseDoorsRoutine());
@@ -149,6 +199,7 @@ public class TrainDepartureManager : NetworkBehaviour
         //    (2차 안전망은 HardwareRig.OnSceneLoadDone)
         SetLocomotionLocked(false);
 
+        SetTutorialCanvasVisible(true);
         // 6. 호스트에 완료 보고
         RPC_ReportReady();
 
@@ -218,6 +269,35 @@ public class TrainDepartureManager : NetworkBehaviour
     }
 
 
+    // =================================================
+    // 컨트롤러 UI
+    //
+    // 열차 출발 연출 동안에는 플레이어가 제자리에 서 있으므로
+    // 상대 아바타는 그대로 두고(서로 보여야 한다)
+    // 튜토리얼 패널만 치운다.
+    // =================================================
+
+    [Header("컨트롤러 UI")]
+    [Tooltip("출발 연출 동안 왼손 컨트롤러의 TutorialCanvas를 숨긴다.")]
+    [SerializeField]
+    private bool hideTutorialCanvas = true;
+
+    private void SetTutorialCanvasVisible(bool visible)
+    {
+        if (!hideTutorialCanvas)
+            return;
+
+        if (hardwareRig == null)
+            hardwareRig = FindFirstObjectByType<HardwareRig>();
+
+        if (hardwareRig == null)
+            return;
+
+        hardwareRig.SetTutorialCanvasVisible(visible);
+    }
+
+
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_ReportReady()
     {
@@ -272,10 +352,14 @@ public class TrainDepartureManager : NetworkBehaviour
     // Fusion의 정식 정리 훅.
     // SimulationBehaviour가 OnDestroy를 이미 정의하고 있으므로
     // OnDestroy를 직접 선언하면 Fusion의 정리를 가려버린다.
+    // Fusion의 정식 정리 훅.
+    // SimulationBehaviour가 OnDestroy를 이미 정의하고 있으므로
+    // OnDestroy를 직접 선언하면 Fusion의 정리를 가려버린다.
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         base.Despawned(runner, hasState);
 
         SetLocomotionLocked(false);
+        SetTutorialCanvasVisible(true);
     }
 }
