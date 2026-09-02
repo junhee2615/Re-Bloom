@@ -19,7 +19,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
     [SerializeField] private float maxArrowRotation = 50f;
 
     [Header("Display")]
-    [SerializeField] private float verticalOffset = 50f;
+    [SerializeField] private float verticalOffset = 0f;
     [SerializeField] private float arrowScale = 3.0f;
     [SerializeField] private float textOffsetY = 70f;
 
