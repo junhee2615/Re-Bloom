@@ -2760,6 +2760,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3985754898174321797, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 123
+      objectReference: {fileID: 0}
     - target: {fileID: 7010249750224727932, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.24
@@ -2800,6 +2804,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7615684217721642154, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 123
+      objectReference: {fileID: 0}
     - target: {fileID: 7638872071163491782, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
       propertyPath: m_Name
       value: Stage2Sign_low
@@ -2808,11 +2816,20 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7638872071163491782, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 123
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+--- !u!4 &1042811738 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7010249750224727932, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+  m_PrefabInstance: {fileID: 1042811737}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1062511680 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7215969925609299884, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
@@ -4841,6 +4858,9 @@ MonoBehaviour:
   - {fileID: 3578282095247875138}
   - {fileID: 1887335084}
   - {fileID: 1755068787}
+  - {fileID: 1042811738}
+  - {fileID: 1995655493}
+  - {fileID: 2064725025}
   scrollDirection: {x: -1, y: 0, z: 0}
   delayAfterDoorClose: 1
   maxSpeed: 8
@@ -7920,3 +7940,4 @@ SceneRoots:
   - {fileID: 1288101681}
   - {fileID: 1028683572}
   - {fileID: 1103997583}
+  - {fileID: 1114619649}
