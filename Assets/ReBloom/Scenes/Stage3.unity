@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Colliders:
   - {fileID: 1316191196}
   m_InteractionLayers:
-    m_Bits: 1
+    m_Bits: 4294967295
   m_DistanceCalculationMode: 1
   m_SelectMode: 1
   m_FocusMode: 1
@@ -571,13 +571,13 @@ GameObject:
   - component: {fileID: 1335018525}
   - component: {fileID: 1335018524}
   - component: {fileID: 1335018523}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Riverbed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &1335018523
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -587,7 +587,7 @@ MeshRenderer:
   m_GameObject: {fileID: 1335018522}
   m_Enabled: 1
   m_CastShadows: 0
-  m_ReceiveShadows: 1
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
@@ -644,8 +644,8 @@ Transform:
   m_GameObject: {fileID: 1335018522}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 4.27}
+  m_LocalScale: {x: 2.3990402, y: 1, z: 0.5372087}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3846063778224516754}
@@ -660,6 +660,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1488010949}
   - component: {fileID: 1488010950}
+  - component: {fileID: 1488010953}
+  - component: {fileID: 1488010952}
+  - component: {fileID: 1488010951}
+  - component: {fileID: 1488010954}
   m_Layer: 0
   m_Name: Mission_RiverbedFlow
   m_TagString: Untagged
@@ -747,9 +751,62 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   dryDuration: 3
-  hapticLeadTime: 1.4
-  hapticSlowInterval: 0.55
-  hapticFastInterval: 0.07
+  hapticListener: {fileID: 1298673862}
+  hapticRange: 26
+  hapticFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.45
+      value: 0.1
+      inSlope: 0.5
+      outSlope: 0.5
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.72
+      value: 0.85
+      inSlope: 3.2
+      outSlope: 3.2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.8
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  hapticMaxAmplitude: 1
+  fakeHapticScale: 0
+  earPlateauThreshold: 0.95
   requiredStations:
   - {fileID: 1654761572}
   - {fileID: 878546074}
@@ -760,19 +817,19 @@ MonoBehaviour:
     fakeChance: 0
     window: 0.5
     interval: 4.5
-    approachDuration: 2.8
+    approachDuration: 5.6
     wetBaselineOnSuccess: 0.2
   - label: "2\uD68C\uCC28 \xB7 \uD398\uC774\uD06C \uB4F1\uC7A5"
     fakeChance: 0.4
     window: 0.35
     interval: 3.8
-    approachDuration: 2.4
+    approachDuration: 4.8
     wetBaselineOnSuccess: 0.45
   - label: "3\uD68C\uCC28 \xB7 \uC18C\uD1B5 \uC555\uBC15"
     fakeChance: 0.55
     window: 0.25
     interval: 3
-    approachDuration: 2
+    approachDuration: 4.2
     wetBaselineOnSuccess: 0.7
   assistAfterFailures: 3
   assistWindowBonus: 0.12
@@ -781,7 +838,7 @@ MonoBehaviour:
   debugKey: 32
   showDebugHud: 1
   logToConsole: 1
-  onHapticPulse:
+  onHapticIntensity:
     m_PersistentCalls:
       m_Calls: []
   onWaveResolved:
@@ -798,7 +855,139 @@ MonoBehaviour:
       m_Calls: []
   onMissionComplete:
     m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1488010954}
+        m_TargetAssemblyTypeName: ReBloom.Water.RisingWater, Assembly-CSharp
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  waveSeed: 12345
+--- !u!114 &1488010951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488010948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbc2f64d5180aab43bb80491c0aa103e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RiverbedRoleVisibility
+  patternLayerName: RiverbedPattern
+  hideForRole: 2
+  roleOverride: 0
+  targetCamera: {fileID: 0}
+  checkInterval: 0.4
+  logToConsole: 1
+--- !u!114 &1488010952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488010948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45293133e3fc1634386dff5dd2f590e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RiverbedEarHaptics
+  controller: {fileID: 1488010950}
+  onlyForRole: 2
+  roleOverride: 0
+  driveWhenRoleUnknown: 1
+  useLeftHand: 1
+  useRightHand: 1
+  pulseInterval: 0.05
+  pulseDuration: 0.07
+  minPerceptible: 0.06
+--- !u!114 &1488010953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488010948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0ffaa46efe144c49b85404c6914f2b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RiverbedTriggerInput
+  controller: {fileID: 1488010950}
+  useLeftHand: 1
+  useRightHand: 1
+  pressThreshold: 0.6
+  roleOverride: 0
+  onlyForRole: 0
+  logToConsole: 1
+--- !u!114 &1488010954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488010948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8886fe93b18434b48bbac0acb1cf74a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RisingWater
+  target: {fileID: 3846063778224516755}
+  hideUntilPlayed: 1
+  alsoActivate: []
+  startY: -1.26
+  endY: 0
+  useLocalPosition: 1
+  duration: 6
+  startDelay: 0.4
+  ease:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1.8
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.35
+      value: 0.62
+      inSlope: 1.4
+      outSlope: 1.4
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.08
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  onRiseStarted:
+    m_PersistentCalls:
       m_Calls: []
+  onRiseCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  logToConsole: 1
+  allowReplay: 0
 --- !u!1 &1654761571
 GameObject:
   m_ObjectHideFlags: 0
@@ -966,6 +1155,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1601890236809640431, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2474907787551816091, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.26
+      objectReference: {fileID: 0}
+    - target: {fileID: 3276588323064103610, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_InteractionLayers.m_Bits
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 4379743928231648254, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1050,6 +1251,11 @@ PrefabInstance:
 --- !u!4 &3846063778224516754 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4379743928231648254, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3846063778224516755 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2474907787551816091, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

@@ -90,15 +90,29 @@ namespace ReBloom.Water
         public float dryDuration = 3.0f;
 
         // ---------------------------------------------------------------
-        [Header("햅틱 (진짜 물결에만)")]
-        [Tooltip("판정 순간 기준 몇 초 전부터 진동이 올라오기 시작하는가")]
-        public float hapticLeadTime = 1.4f;
+        [Header("햅틱 — 거리 기반 연속 진동 (ear 전용)")]
+        [Tooltip("진동을 느끼는 기준점. 보통 ear 플레이어. 비우면 판정 지점을 쓴다")]
+        public Transform hapticListener;
 
-        [Tooltip("가장 느릴 때 펄스 간격 (초)")]
-        public float hapticSlowInterval = 0.55f;
+        [Tooltip("이 거리(m) 밖이면 진동이 없다")]
+        public float hapticRange = 26f;
 
-        [Tooltip("피크에서 펄스 간격 (초)")]
-        public float hapticFastInterval = 0.07f;
+        [Tooltip("가까움(0~1) 을 진동 세기(0~1) 로 바꾸는 곡선. 오른쪽 끝의 평탄 구간이 ear 의 판정 창이 된다")]
+        public AnimationCurve hapticFalloff = new AnimationCurve(
+            new Keyframe(0f, 0f, 0f, 0.15f),
+            new Keyframe(0.45f, 0.10f, 0.5f, 0.5f),
+            new Keyframe(0.72f, 0.85f, 3.2f, 3.2f),
+            new Keyframe(0.80f, 1f, 0f, 0f),
+            new Keyframe(1f, 1f, 0f, 0f));
+
+        [Tooltip("최대 진동 세기")]
+        [Range(0f, 1f)] public float hapticMaxAmplitude = 1f;
+
+        [Tooltip("페이크 물결의 진동 배율. 0 이면 아예 안 울린다")]
+        [Range(0f, 1f)] public float fakeHapticScale = 0f;
+
+        [Tooltip("진동 세기가 이 값 이상이면 ear 가 트리거를 눌러 성공할 수 있다 (평탄 구간)")]
+        [Range(0.5f, 1f)] public float earPlateauThreshold = 0.95f;
 
         // ---------------------------------------------------------------
         [Header("시작 조건 — 두 사람이 발판에 설 때")]
@@ -137,7 +151,7 @@ namespace ReBloom.Water
         // ---------------------------------------------------------------
         [Header("이벤트")]
         [Tooltip("진짜 물결의 진동 펄스. float = 세기 0~1. XR 햅틱에 연결")]
-        public FloatEvent onHapticPulse;
+        public FloatEvent onHapticIntensity;
 
         [Tooltip("물결 하나가 판정된 직후. int = WaveOutcome")]
         public IntEvent onWaveResolved;
@@ -399,7 +413,6 @@ namespace ReBloom.Water
             {
                 if (!ready)
                 {
-                    // 둘 다 서기 전까지 물결은 오지 않는다. 진행도는 유지된다
                     if (waveActive) { waveActive = false; crestGain = 0f; }
                     phase = Phase.Idle;
                     nextWaveTime = t + firstWaveDelay;
@@ -409,15 +422,25 @@ namespace ReBloom.Water
                     phase = Phase.Waiting;
                     nextWaveTime = t + firstWaveDelay;
                     if (onMissionStarted != null) onMissionStarted.Invoke();
-                    if (logToConsole) Debug.Log("[Riverbed] 두 사람이 자리에 섰다 — 미션 시작");
+                    if (logToConsole) Debug.Log("[Riverbed] both players are on their stools - mission start");
                 }
             }
 
-            if (phase == Phase.Waiting && t >= nextWaveTime)
-                SpawnWave();
+            // 안전망: 어떤 이유로든 물결 없이 Resolving 에 멈춰 있으면 대기로 돌려놓는다
+            if (phase == Phase.Resolving && !waveActive)
+            {
+                phase = Phase.Waiting;
+                RoundSetup rw = CurrentRound;
+                if (nextWaveTime <= t) nextWaveTime = t + (rw != null ? rw.interval : 4f);
+            }
+
+            if (phase == Phase.Waiting && t >= nextWaveTime) SpawnWave();
 
             if (waveActive) UpdateWave(t, dt);
             else crestGain = Mathf.MoveTowards(crestGain, 0f, dt * 3f);
+
+            UpdateHapticIntensity(dt);
+            if (onHapticIntensity != null) onHapticIntensity.Invoke(hapticIntensity);
 
             if (!waveActive && wetActive > wetBaseline)
             {
@@ -435,17 +458,36 @@ namespace ReBloom.Water
 
             ResolveJudgmentDistance();
 
+            waveIndex++;
             waveActive = true;
             waveInputTaken = false;
-            waveIsReal = Random.value >= r.fakeChance;
+            // 난수 대신 해시를 쓴다. 나중에 시드와 인덱스만 동기화하면
+            // 두 클라이언트가 같은 진짜/페이크 순서를 뽑게 된다
+            waveIsReal = Hash01(waveSeed + waveIndex) >= r.fakeChance;
             waveStartTime = Time.time;
             beatTime = waveStartTime + r.approachDuration;
-            hapticTimer = 0f;
             phase = Phase.WaveIncoming;
 
             if (logToConsole)
-                Debug.Log("[Riverbed] wave spawned (" + (waveIsReal ? "REAL" : "FAKE")
+                Debug.Log("[Riverbed] wave #" + waveIndex + " (" + (waveIsReal ? "REAL" : "FAKE")
                     + ") beat in " + r.approachDuration.ToString("F2") + "s");
+        }
+
+        [Header("물결 순서")]
+        [Tooltip("진짜/페이크 순서의 시드. 네트워크 동기화 때 이 값만 맞추면 양쪽이 같아진다")]
+        public int waveSeed = 12345;
+
+        int waveIndex;
+
+        static float Hash01(int n)
+        {
+            unchecked
+            {
+                uint x = (uint)(n * 747796405 + 2891336453);
+                x = ((x >> ((int)(x >> 28) + 4)) ^ x) * 277803737;
+                x = (x >> 22) ^ x;
+                return x / 4294967295f;
+            }
         }
 
         void UpdateWave(float t, float dt)
@@ -460,9 +502,11 @@ namespace ReBloom.Water
             wetActive = Mathf.Max(wetActive, Mathf.Clamp01(wetBaseline + 0.9f * Mathf.Clamp01(u * 1.6f)));
             crestGain = Mathf.MoveTowards(crestGain, 1f, dt * 5f);
 
-            if (waveIsReal) UpdateHaptics(t, dt);
-
-            if (!waveInputTaken && t > beatTime + CurrentWindow)
+            // 판정 창이 닫혔는데 입력이 없었다.
+            // mental 은 부 기준 창, ear 는 평탄 구간이 끝나면 기회가 사라진다
+            bool mentalWindowClosed = t > beatTime + CurrentWindow;
+            bool earWindowClosed = hapticIntensity < earPlateauThreshold;
+            if (!waveInputTaken && mentalWindowClosed && earWindowClosed)
             {
                 waveInputTaken = true;
                 if (waveIsReal) Resolve(WaveOutcome.Missed, t - beatTime);
@@ -471,23 +515,46 @@ namespace ReBloom.Water
             if (front > judgmentDistance + runoutDistance) EndWave();
         }
 
-        void UpdateHaptics(float t, float dt)
+        float hapticIntensity;
+
+        // 물결이 없을 때 마구 누르는 걸 한 번으로 묶기 위한 쿨다운
+        float lastEmptyPressTime = -99f;
+        const float emptyPressCooldown = 0.5f;
+
+        /// <summary>지금 ear 가 느끼는 진동 세기 0~1. 페이크 물결은 fakeHapticScale 만큼만 울린다.</summary>
+        public float CurrentHapticIntensity { get { return hapticIntensity; } }
+
+        /// <summary>진동이 평탄 구간에 들어왔는가. ear 는 이 동안 아무 때나 눌러도 성공한다.</summary>
+        public bool IsInEarWindow
         {
-            float timeToBeat = beatTime - t;
-            if (timeToBeat > hapticLeadTime || timeToBeat < -0.20f) return;
+            get { return waveActive && !waveInputTaken && hapticIntensity >= earPlateauThreshold; }
+        }
 
-            float k = Mathf.Clamp01(1f - Mathf.Clamp01(timeToBeat / Mathf.Max(hapticLeadTime, 0.01f)));
-            float interval = Mathf.Lerp(hapticSlowInterval, hapticFastInterval, k * k);
-
-            hapticTimer -= dt;
-            if (hapticTimer <= 0f)
+        void UpdateHapticIntensity(float dt)
+        {
+            if (!waveActive)
             {
-                hapticTimer = interval;
-                float strength = Mathf.Lerp(0.22f, 1f, k);
-                lastPulseStrength = strength;
-                lastPulseTime = t;
-                if (onHapticPulse != null) onHapticPulse.Invoke(strength);
+                hapticIntensity = Mathf.MoveTowards(hapticIntensity, 0f, dt * 4f);
+                return;
             }
+
+            Vector3 o = Origin;
+            Vector3 f = Flow;
+
+            // 듣는 사람의 흘름축 위치. 미지정이면 판정 지점을 쓴다
+            float listenerAxial = hapticListener != null
+                ? Vector3.Dot(hapticListener.position - o, f)
+                : judgmentDistance;
+
+            float d = Mathf.Abs(listenerAxial - front);
+            float proximity = 1f - Mathf.Clamp01(d / Mathf.Max(hapticRange, 0.01f));
+
+            float shaped = (hapticFalloff != null && hapticFalloff.length > 0)
+                ? hapticFalloff.Evaluate(proximity)
+                : proximity;
+
+            float scale = waveIsReal ? 1f : fakeHapticScale;
+            hapticIntensity = Mathf.Clamp01(shaped * hapticMaxAmplitude * scale);
         }
 
         void EndWave()
@@ -501,7 +568,12 @@ namespace ReBloom.Water
 
         // ---------------------------------------------------------------
         /// <summary>VR 입력에서 호출. 물결을 '지금'이라고 찍는 동작.</summary>
-        public void SubmitInput()
+        // role unknown (editor key) -> judged like mental
+        public void SubmitInput() { SubmitInput(Role.none); }
+
+        // mental : narrow window around the beat (they can see it)
+        // ear    : anywhere inside the haptic plateau (intensity alone cannot pinpoint the beat)
+        public void SubmitInput(Role role)
         {
             if (phase == Phase.Complete || phase == Phase.Idle) return;
 
@@ -509,18 +581,25 @@ namespace ReBloom.Water
 
             if (!waveActive || waveInputTaken)
             {
+                if (Time.time - lastEmptyPressTime < emptyPressCooldown) return;
+                lastEmptyPressTime = Time.time;
                 Resolve(WaveOutcome.FalseAlarm, 0f);
                 return;
             }
 
-            waveInputTaken = true;
             float err = t - beatTime;
+            waveInputTaken = true;
+
+            if (role == Role.ear)
+            {
+                if (!waveIsReal) { Resolve(WaveOutcome.FalseAlarm, err); return; }
+                if (hapticIntensity >= earPlateauThreshold) Resolve(WaveOutcome.Success, err);
+                else Resolve(err < 0f ? WaveOutcome.TooEarly : WaveOutcome.TooLate, err);
+                return;
+            }
 
             if (Mathf.Abs(err) <= CurrentWindow)
-            {
-                if (waveIsReal) Resolve(WaveOutcome.Success, err);
-                else Resolve(WaveOutcome.FalseAlarm, err);
-            }
+                Resolve(waveIsReal ? WaveOutcome.Success : WaveOutcome.FalseAlarm, err);
             else if (err < 0f) Resolve(WaveOutcome.TooEarly, err);
             else Resolve(WaveOutcome.TooLate, err);
         }
@@ -566,6 +645,17 @@ namespace ReBloom.Water
                     lastOutcomeText = "놓침 — 진짜 물결이었다";
                 else
                     lastOutcomeText = "헛침 — 진동이 없는 물결이었다";
+            }
+
+            // 물결이 없는 상태에서 판정이 난 경우(헛침 등) 여기서 대기 상태로 되돌린다.
+            // EndWave() 는 waveActive 가 true 일 때만 불리므로, 이게 없으면
+            // phase 가 Resolving 에 갇혀서 다음 물결이 영영 안 온다.
+            if (!waveActive && phase != Phase.Complete)
+            {
+                phase = Phase.Waiting;
+                RoundSetup rr = CurrentRound;
+                if (nextWaveTime <= Time.time)
+                    nextWaveTime = Time.time + (rr != null ? rr.interval : 4f);
             }
 
             if (logToConsole) Debug.Log("[Riverbed] " + outcome + " : " + lastOutcomeText);
