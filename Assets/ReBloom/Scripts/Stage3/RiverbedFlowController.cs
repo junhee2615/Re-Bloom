@@ -394,6 +394,61 @@ namespace ReBloom.Water
             PushGlobals();
         }
 
+        // ---------------- 네트워크 연동 ----------------
+
+        [Header("네트워크")]
+        [Tooltip("켜지면 물결 생성과 성공 판정을 호스트가 지휘한다. RiverbedMissionNet 이 자동으로 켜고 끈다")]
+        public bool networkDriven;
+
+        float netApproach = 2.4f;
+
+        public static float Hash01Public(int n) { return Hash01(n); }
+
+        public void BeginNetworkMission()
+        {
+            phase = Phase.Waiting;
+            if (onMissionStarted != null) onMissionStarted.Invoke();
+            if (logToConsole) Debug.Log("[Riverbed] network mission start");
+        }
+
+        public void PlayNetworkWave(int index, bool isReal, float approachDuration)
+        {
+            ResolveJudgmentDistance();
+
+            waveIndex = index;
+            waveIsReal = isReal;
+            netApproach = Mathf.Max(0.1f, approachDuration);
+            waveActive = true;
+            waveInputTaken = false;
+            waveStartTime = Time.time;
+            beatTime = waveStartTime + netApproach;
+            phase = Phase.WaveIncoming;
+
+            if (logToConsole)
+                Debug.Log("[Riverbed] net wave #" + index + " (" + (isReal ? "REAL" : "FAKE") + ")");
+        }
+
+        public void ApplyNetworkSuccess(int count, float baseline)
+        {
+            successCount = count;
+            consecutiveFailures = 0;
+            wetBaseline = Mathf.Max(wetBaseline, baseline);
+            roundIndex = Mathf.Clamp(count, 0, Mathf.Max(0, rounds.Count - 1));
+            lastOutcomeText = "성공 " + count + " / " + rounds.Count;
+            lastOutcomeTime = Time.time;
+            if (onRoundCleared != null) onRoundCleared.Invoke(count);
+        }
+
+        public void ApplyNetworkComplete()
+        {
+            phase = Phase.Complete;
+            wetBaseline = Mathf.Max(wetBaseline, 0.7f);
+            lastOutcomeText = "물길이 이어졌다";
+            lastOutcomeTime = Time.time;
+            if (onMissionComplete != null) onMissionComplete.Invoke();
+        }
+
+
         void Update()
         {
 #if ENABLE_LEGACY_INPUT_MANAGER
@@ -402,39 +457,43 @@ namespace ReBloom.Water
             float t = Time.time;
             float dt = Time.deltaTime;
 
-            bool ready = StationsReady();
-            if (ready != stationsReadyCached)
+            // 네트워크 모드에서는 호스트가 시작과 물결 생성을 지휘한다.
+            // 여기서는 받은 물결을 그리기만 한다.
+            if (!networkDriven)
             {
-                stationsReadyCached = ready;
-                if (onStationsChanged != null) onStationsChanged.Invoke(ready);
-            }
-
-            if (phase != Phase.Complete)
-            {
-                if (!ready)
+                bool ready = StationsReady();
+                if (ready != stationsReadyCached)
                 {
-                    if (waveActive) { waveActive = false; crestGain = 0f; }
-                    phase = Phase.Idle;
-                    nextWaveTime = t + firstWaveDelay;
+                    stationsReadyCached = ready;
+                    if (onStationsChanged != null) onStationsChanged.Invoke(ready);
                 }
-                else if (phase == Phase.Idle)
+
+                if (phase != Phase.Complete)
+                {
+                    if (!ready)
+                    {
+                        if (waveActive) { waveActive = false; crestGain = 0f; }
+                        phase = Phase.Idle;
+                        nextWaveTime = t + firstWaveDelay;
+                    }
+                    else if (phase == Phase.Idle)
+                    {
+                        phase = Phase.Waiting;
+                        nextWaveTime = t + firstWaveDelay;
+                        if (onMissionStarted != null) onMissionStarted.Invoke();
+                        if (logToConsole) Debug.Log("[Riverbed] both players are on their stools - mission start");
+                    }
+                }
+
+                if (phase == Phase.Resolving && !waveActive)
                 {
                     phase = Phase.Waiting;
-                    nextWaveTime = t + firstWaveDelay;
-                    if (onMissionStarted != null) onMissionStarted.Invoke();
-                    if (logToConsole) Debug.Log("[Riverbed] both players are on their stools - mission start");
+                    RoundSetup rw = CurrentRound;
+                    if (nextWaveTime <= t) nextWaveTime = t + (rw != null ? rw.interval : 4f);
                 }
-            }
 
-            // 안전망: 어떤 이유로든 물결 없이 Resolving 에 멈춰 있으면 대기로 돌려놓는다
-            if (phase == Phase.Resolving && !waveActive)
-            {
-                phase = Phase.Waiting;
-                RoundSetup rw = CurrentRound;
-                if (nextWaveTime <= t) nextWaveTime = t + (rw != null ? rw.interval : 4f);
+                if (phase == Phase.Waiting && t >= nextWaveTime) SpawnWave();
             }
-
-            if (phase == Phase.Waiting && t >= nextWaveTime) SpawnWave();
 
             if (waveActive) UpdateWave(t, dt);
             else crestGain = Mathf.MoveTowards(crestGain, 0f, dt * 3f);
@@ -493,8 +552,9 @@ namespace ReBloom.Water
         void UpdateWave(float t, float dt)
         {
             RoundSetup r = CurrentRound;
-            float approach = r != null ? r.approachDuration : 2.4f;
-            float u = approach > 0.01f ? (t - waveStartTime) / approach : 1f;
+            float approach = networkDriven ? netApproach : (r != null ? r.approachDuration : 2.4f);
+            if (approach < 0.01f) approach = 2.4f;
+            float u = (t - waveStartTime) / approach;
 
             if (u <= 1f) front = frontShape.Evaluate(Mathf.Clamp01(u)) * judgmentDistance;
             else front = judgmentDistance + (t - beatTime) * exitSpeed;
@@ -502,14 +562,13 @@ namespace ReBloom.Water
             wetActive = Mathf.Max(wetActive, Mathf.Clamp01(wetBaseline + 0.9f * Mathf.Clamp01(u * 1.6f)));
             crestGain = Mathf.MoveTowards(crestGain, 1f, dt * 5f);
 
-            // 판정 창이 닫혔는데 입력이 없었다.
-            // mental 은 부 기준 창, ear 는 평탄 구간이 끝나면 기회가 사라진다
             bool mentalWindowClosed = t > beatTime + CurrentWindow;
             bool earWindowClosed = hapticIntensity < earPlateauThreshold;
             if (!waveInputTaken && mentalWindowClosed && earWindowClosed)
             {
                 waveInputTaken = true;
-                if (waveIsReal) Resolve(WaveOutcome.Missed, t - beatTime);
+                if (waveIsReal && !networkDriven) Resolve(WaveOutcome.Missed, t - beatTime);
+                else if (waveIsReal) { lastOutcomeText = "놓침"; lastOutcomeTime = Time.time; }
             }
 
             if (front > judgmentDistance + runoutDistance) EndWave();
@@ -583,6 +642,7 @@ namespace ReBloom.Water
             {
                 if (Time.time - lastEmptyPressTime < emptyPressCooldown) return;
                 lastEmptyPressTime = Time.time;
+                if (networkDriven) { lastOutcomeText = "헛침"; lastOutcomeTime = Time.time; return; }
                 Resolve(WaveOutcome.FalseAlarm, 0f);
                 return;
             }
@@ -590,6 +650,29 @@ namespace ReBloom.Water
             float err = t - beatTime;
             waveInputTaken = true;
 
+            // 네트워크 모드: 자기 화면과 진동 기준으로만 판정하고 호스트에 보고한다.
+            // 성공 선언은 호스트가 두 사람의 보고를 모아서 한다.
+            if (networkDriven)
+            {
+                bool netHit = waveIsReal && (role == Role.ear
+                    ? hapticIntensity >= earPlateauThreshold
+                    : Mathf.Abs(err) <= CurrentWindow);
+
+                if (netHit)
+                {
+                    lastOutcomeText = "맞추었다 - 상대를 기다리는 중";
+                    RiverbedMissionNet.ReportLocalHit(waveIndex);
+                }
+                else
+                {
+                    lastOutcomeText = !waveIsReal
+                        ? "헛침 - 진동이 없는 물결"
+                        : (err < 0f ? "너무 빠름" : "너무 늦음");
+                }
+                lastOutcomeTime = Time.time;
+                if (onWaveResolved != null) onWaveResolved.Invoke(netHit ? 0 : 4);
+                return;
+            }
             if (role == Role.ear)
             {
                 if (!waveIsReal) { Resolve(WaveOutcome.FalseAlarm, err); return; }

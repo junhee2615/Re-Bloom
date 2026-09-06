@@ -15,27 +15,6 @@ public class Stage2CutsceneShot
     public float holdDuration = 4f;
 }
 
-/// <summary>
-/// Stage2 수생식물 미션 완료 연출.
-///
-/// PlantClearSequence가 세 효과를 한 프레임에 전부 터뜨리던 것을,
-/// 컷씬이 각 컷에서 하나씩 발동시키도록 소유권을 가져온다.
-///
-///   1) SkyCamera  : 페이드인 → 스카이박스 3초 크로스페이드를 "보여준다"
-///   2) TreeCamera : 페이드인 → 식생 채도 복원 5초를 "보여준다"
-///   3) FishCamera : 검은 화면에서 물고기를 켜고 → 페이드인
-///
-/// 컷 사이는 검은 페이드로 끊는다. VR에서 시점이 순간이동해도 편안하고,
-/// 검은 구간에서 다음 효과를 준비할 수 있어 타이밍도 정확해진다.
-///
-/// 시점 이동은 Stage1XRCutsceneRigFollower와 같은 방식이다. 카메라가 플레이어를
-/// 따라오는 게 아니라, XR Origin을 매 LateUpdate 옮겨 HMD가 컷 카메라 위치에
-/// 오도록 맞춘다. 부모 설정도 물리도 없다.
-///
-/// 재생은 각 피어 로컬에서 일어난다. 트리거(연꽃 복원)가 이미 RPC로 동기화되어
-/// 있어 두 피어가 거의 동시에 시작하고, 끝나고 씬 전환도 없어 약간의 드리프트는
-/// 문제가 되지 않는다.
-/// </summary>
 public class Stage2SkyCutscene : MonoBehaviour
 {
     [Header("컷 (재생 순서: 하늘 → 식생 → 물고기)")]
