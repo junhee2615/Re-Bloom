@@ -443,8 +443,69 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8879328576759840386, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3846063778224516759}
   m_SourcePrefab: {fileID: 100100000, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+--- !u!1 &3846063778224516754 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8879328576759840386, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3846063778224516755 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5646382811316774156, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3846063778224516754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8886fe93b18434b48bbac0acb1cf74a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RisingWater
+--- !u!114 &3846063778224516756 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2234108121150902963, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3846063778224516754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 783ed5f3622d33047a0148b50c0accd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RiverbedFlowController
+--- !u!4 &3846063778224516757 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7201210779409526323, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3846063778224516758 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8691416017558280032, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3846063778224516759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3846063778224516754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5c461528bcc4d74fa89ca188ad047e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RiverbedMissionNet
+  controller: {fileID: 3846063778224516756}
+  risingWater: {fileID: 3846063778224516755}
+  standPoints:
+  - {fileID: 3846063778224516758}
+  - {fileID: 3846063778224516757}
+  standRadius: 1.6
+  firstWaveDelay: 2.5
+  logToConsole: 1
+  soloFallback: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
