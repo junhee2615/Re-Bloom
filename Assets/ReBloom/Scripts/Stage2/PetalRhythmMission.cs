@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 public class PetalRhythmMission : MonoBehaviour
@@ -49,6 +50,15 @@ public class PetalRhythmMission : MonoBehaviour
 
     // 연출 트리거
     public static event System.Action Revived;
+
+    [Header("복원 연출")]
+    [Tooltip("이 플랜트가 복원될 때 한 번 호출된다. RPC 로 두 플레이어 모두에서 실행된다. 나비 활성화 같은 개별 연출을 여기 연결한다.")]
+    [SerializeField] private UnityEvent onRevived;
+
+    public UnityEvent OnRevived { get { return onRevived; } }
+
+    // 중복 호출 방지
+    private bool revivedFired;
 
 
     // plantId → 인스턴스. 네트워크 RPC(NetworkPlayer.Rpc_RevivePlant)가 id 로 찾아 로컬 복원
@@ -168,6 +178,13 @@ private void PlayTouchSound()
 
         // 완료 연출 코디네이터(PlantClearSequence)가 3개 클리어를 감지하도록 알림
         Revived?.Invoke();
+
+        // 이 플랜트 전용 연출 (나비 활성화 등). 한 번만 터진다
+        if (!revivedFired)
+        {
+            revivedFired = true;
+            if (onRevived != null) onRevived.Invoke();
+        }
     }
 
     // 횟수가 맞고, 간격이 requiredMatchRatio 이상 맞으면 성공.

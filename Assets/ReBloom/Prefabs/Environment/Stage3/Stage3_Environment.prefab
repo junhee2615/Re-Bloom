@@ -1078,7 +1078,6 @@ GameObject:
   - component: {fileID: 3344482104876015540}
   - component: {fileID: 2466273475045391640}
   - component: {fileID: 9142894162062115099}
-  - component: {fileID: 3114815576062654031}
   - component: {fileID: 7813938545272905121}
   m_Layer: 0
   m_Name: Stool
@@ -1096,7 +1095,7 @@ Transform:
   m_GameObject: {fileID: 666746864408957690}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 15.22, y: 2.044, z: 18.59}
+  m_LocalPosition: {x: 43.98, y: 2.044, z: 18.59}
   m_LocalScale: {x: 1.9, y: 0.36, z: 1.9}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1181,28 +1180,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!64 &3114815576062654031
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666746864408957690}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &7813938545272905121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1217,7 +1194,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea
   m_InteractionManager: {fileID: 0}
   m_Colliders:
-  - {fileID: 3114815576062654031}
+  - {fileID: 9142894162062115099}
   m_InteractionLayers:
     m_Bits: 4294967295
   m_DistanceCalculationMode: 1
@@ -1859,7 +1836,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   requiredTag: 
-  debugForceOccupied: 0
+  debugForceOccupied: 1
   onOccupiedChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -5607,7 +5584,7 @@ Transform:
   m_GameObject: {fileID: 2540896383257176164}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 15.22, y: 2.044, z: 9.325}
+  m_LocalPosition: {x: 43.98, y: 2.044, z: 9.325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13650,8 +13627,8 @@ Transform:
   m_GameObject: {fileID: 7062910143312109046}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.07, z: 3.14}
-  m_LocalScale: {x: 2.3990402, y: 1, z: 0.5372087}
+  m_LocalPosition: {x: 28.759998, y: 0.18, z: 0.63}
+  m_LocalScale: {x: 2.3990402, y: 1, z: 0.71260214}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4379743928231648254}
@@ -15554,7 +15531,7 @@ Transform:
   m_GameObject: {fileID: 8119411932611279131}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -43.17, y: 2.044, z: 9.325}
+  m_LocalPosition: {x: -14.409998, y: 2.044, z: 9.325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15572,7 +15549,6 @@ GameObject:
   - component: {fileID: 515122288089185802}
   - component: {fileID: 8699760547792642445}
   - component: {fileID: 5554349873529677070}
-  - component: {fileID: 1811684440979367927}
   - component: {fileID: 4163012946032918761}
   m_Layer: 0
   m_Name: Stool
@@ -15590,7 +15566,7 @@ Transform:
   m_GameObject: {fileID: 8166618848843132700}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 15.22, y: 2.044, z: 0.06}
+  m_LocalPosition: {x: 43.98, y: 2.044, z: 0.06}
   m_LocalScale: {x: 1.9, y: 0.36, z: 1.9}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -15675,28 +15651,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!64 &1811684440979367927
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8166618848843132700}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &4163012946032918761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15711,7 +15665,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea
   m_InteractionManager: {fileID: 0}
   m_Colliders:
-  - {fileID: 1811684440979367927}
+  - {fileID: 5554349873529677070}
   m_InteractionLayers:
     m_Bits: 4294967295
   m_DistanceCalculationMode: 1
@@ -17679,7 +17633,7 @@ Transform:
   m_GameObject: {fileID: 8879328576759840386}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -30, y: 1, z: 10}
+  m_LocalPosition: {x: -1.2399998, y: 1, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

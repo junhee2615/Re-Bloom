@@ -87,7 +87,21 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private bool hideTutorialCanvas = true;
 
-    [Header("Debug")]
+        [Header("사운드")]
+    [Tooltip("컷씬이 재생되는 동안 반복 재생할 새소리 클립.")]
+    [SerializeField]
+    private AudioClip birdSound;
+
+    [Tooltip("새소리를 재생할 AudioSource. 비워두면 이 오브젝트에 하나 만들어 쓴다.")]
+    [SerializeField]
+    private AudioSource birdSoundSource;
+
+    [Tooltip("새소리 볼륨.")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float birdSoundVolume = 0.6f;
+
+[Header("Debug")]
     [SerializeField]
     private bool xrReady;
 
@@ -267,6 +281,8 @@ public class Stage2SkyCutscene : MonoBehaviour
     {
         isPlaying = true;
 
+        StartBirdSound();
+
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(true);
 
@@ -328,7 +344,9 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         isPlaying = false;
 
-        Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
+                StopBirdSound();
+
+Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
 
         CutsceneFinished?.Invoke();
     }
@@ -424,6 +442,48 @@ public class Stage2SkyCutscene : MonoBehaviour
         hardwareRig.SetTutorialCanvasVisible(visible);
     }
 
+    // =================================================
+    // 사운드
+    // =================================================
+
+    private void StartBirdSound()
+    {
+        if (birdSoundSource == null)
+        {
+            if (birdSound == null)
+                return;
+
+            birdSoundSource = gameObject.AddComponent<AudioSource>();
+            birdSoundSource.playOnAwake = false;
+            birdSoundSource.spatialBlend = 0f;
+        }
+
+        if (birdSound != null)
+            birdSoundSource.clip = birdSound;
+
+        if (birdSoundSource.clip == null)
+        {
+            Debug.LogWarning(
+                "[Stage2SkyCutscene] 새소리 클립이 비어 있어 재생하지 않습니다.",
+                this);
+
+            return;
+        }
+
+        birdSoundSource.loop = true;
+        birdSoundSource.volume = birdSoundVolume;
+        birdSoundSource.Play();
+    }
+
+    private void StopBirdSound()
+    {
+        if (birdSoundSource == null || !birdSoundSource.isPlaying)
+            return;
+
+        birdSoundSource.Stop();
+    }
+
+
 
     // =================================================
     // 안전장치
@@ -438,6 +498,8 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         isPlaying = false;
         currentShot = null;
+
+        StopBirdSound();
 
         RestoreOriginalXRTransform();
         resonance.Restore();
