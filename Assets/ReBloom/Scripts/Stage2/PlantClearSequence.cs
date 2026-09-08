@@ -17,7 +17,7 @@ public class PlantClearSequence : MonoBehaviour
     [Header("스카이박스 머티리얼 (Sunset)")]
     [SerializeField] private Material sunsetSkybox;
     [Tooltip("스카이박스 전환 페이드 시간(초)")]
-    [SerializeField] private float skyboxFadeDuration = 3f;
+    [SerializeField] private float skyboxFadeDuration = 7f;
 
 
     [Header("안개 색")]

@@ -713,6 +713,37 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1415137966447154, guid: d10e13372d41b754cb05474680f880e5, type: 3}
   m_PrefabInstance: {fileID: 460162406}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &485755888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 485755889}
+  m_Layer: 0
+  m_Name: SkyCamera_End
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &485755889
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485755888}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.12898614, y: -0.23396632, z: -0.03159287, w: 0.9631325}
+  m_LocalPosition: {x: 7.11, y: 0.88, z: -19.45}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1071458362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &510166036 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1041021549191263747, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -833,19 +864,81 @@ MonoBehaviour:
   waterStartY: -0.81
   waterEndY: 0.30696
   waterRiseDuration: 5
---- !u!134 &570038743
-PhysicsMaterial:
+--- !u!1 &591497906
+GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 591497907}
+  - component: {fileID: 591497908}
+  m_Layer: 0
+  m_Name: TeleporterCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &591497907
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 591497906}
   serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
+  m_LocalRotation: {x: 0.0702584, y: 0.13800412, z: -0.009811578, w: 0.9878879}
+  m_LocalPosition: {x: 34.048733, y: -14.624611, z: -3.3921509}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1071458362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &591497908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 591497906}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 60.000004
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
 --- !u!1 &718945647
 GameObject:
   m_ObjectHideFlags: 0
@@ -1059,6 +1152,37 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &847556576
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 847556577}
+  m_Layer: 0
+  m_Name: TreeCamera_End
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &847556577
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847556576}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.14401576, y: 0.7434836, z: 0.17000605, w: -0.6305471}
+  m_LocalPosition: {x: 0.71, y: -15.28, z: -42.77}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1071458362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &952046572
 GameObject:
   m_ObjectHideFlags: 0
@@ -1515,8 +1639,13 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1590983931}
+  - {fileID: 485755889}
   - {fileID: 1032535376}
+  - {fileID: 847556577}
   - {fileID: 1281578739}
+  - {fileID: 2029874718}
+  - {fileID: 591497907}
+  - {fileID: 1691594591}
   - {fileID: 952046573}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1534,13 +1663,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Stage2SkyCutscene
   skyShot:
     shotCamera: {fileID: 1590983932}
-    holdDuration: 4.5
+    endPoint: {fileID: 485755889}
+    moveDuration: 4
+    holdDuration: 2
   treeShot:
     shotCamera: {fileID: 1032535377}
-    holdDuration: 6
+    endPoint: {fileID: 847556577}
+    moveDuration: 4
+    holdDuration: 2
   fishShot:
     shotCamera: {fileID: 1281578740}
-    holdDuration: 3.5
+    endPoint: {fileID: 2029874718}
+    moveDuration: 4
+    holdDuration: 2
+  teleporterShot:
+    shotCamera: {fileID: 591497908}
+    endPoint: {fileID: 1691594591}
+    moveDuration: 4
+    holdDuration: 2
+  teleporterVfxObjects:
+  - {fileID: 1117688898}
+  - {fileID: 1117688897}
+  smoothCameraMovement: 1
   fadeDuration: 0.6
   blackHold: 0.2
   followYaw: 1
@@ -1555,6 +1699,16 @@ MonoBehaviour:
   birdSoundVolume: 0.6
   xrReady: 0
   isPlaying: 0
+--- !u!1 &1117688897 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8615315163185348379, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1117688898 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5053229886886296385, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 7609589794507034517}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1161677863 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6336465025957761842, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -2148,6 +2302,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
   m_PrefabInstance: {fileID: 1979704983}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1691594590
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1691594591}
+  m_Layer: 0
+  m_Name: TeleporterCamera_End
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1691594591
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1691594590}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.0702584, y: 0.13800412, z: -0.009811578, w: 0.9878879}
+  m_LocalPosition: {x: 35.17186, y: -15.210516, z: 0.549284}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1071458362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1693559471
 GameObject:
   m_ObjectHideFlags: 0
@@ -2791,9 +2976,40 @@ MonoBehaviour:
   - {fileID: 510166038}
   aquaticStaticRoot: {fileID: 510166036}
   sunsetSkybox: {fileID: 2100000, guid: 44d0573bf6d91e447b62f3aff840f2ae, type: 2}
-  skyboxFadeDuration: 3
+  skyboxFadeDuration: 5
   cutscene: {fileID: 1071458363}
   fogColor: {r: 0.29411766, g: 0.26666668, b: 0.20784314, a: 1}
+--- !u!1 &2029874717
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2029874718}
+  m_Layer: 0
+  m_Name: FishCamera_End
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2029874718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029874717}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.4049095, y: 0.04015851, z: -0.017789895, w: -0.9133012}
+  m_LocalPosition: {x: 14.69, y: -19.18, z: -37.11}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1071458362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2111301668 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7363933340057808103, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
@@ -3524,6 +3740,10 @@ PrefabInstance:
     - target: {fileID: 4946687152756803588, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5053229886886296385, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5094604865253873253, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: SortKey
@@ -4272,6 +4492,10 @@ PrefabInstance:
       value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 8435900503874292082, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8615315163185348379, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}

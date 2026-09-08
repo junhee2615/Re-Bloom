@@ -1,31 +1,68 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
 
 /// <summary>
-/// 하나의 컷 = 시점 + 유지 시간.
+/// 하나의 컷 = 시작 시점 + 종료 지점 + 이동 시간 + 유지 시간.
+/// End Point가 없으면 기존처럼 고정된 시점으로 재생한다.
 /// </summary>
 [System.Serializable]
 public class Stage2CutsceneShot
 {
-    [Tooltip("이 컷의 시점이 될 Cinemachine 카메라. 위치와 Yaw만 사용한다.")]
+    [Tooltip("이 컷의 시작 시점이 될 Cinemachine 카메라.")]
     public CinemachineCamera shotCamera;
 
-    [Tooltip("페이드인이 끝난 뒤 이 컷을 유지하는 시간(초).")]
-    public float holdDuration = 4f;
+    [Tooltip("카메라가 천천히 이동해서 도착할 지점. 비워두면 고정 카메라로 재생한다.")]
+    public Transform endPoint;
+
+    [Tooltip("시작 위치에서 End Point까지 이동하는 시간(초).")]
+    public float moveDuration = 4f;
+
+    [Tooltip("이동이 끝난 뒤 해당 시점을 유지하는 시간(초).")]
+    public float holdDuration = 1f;
 }
 
 public class Stage2SkyCutscene : MonoBehaviour
 {
-    [Header("컷 (재생 순서: 하늘 → 식생 → 물고기)")]
+    [Header("컷 (재생 순서: 하늘 → 식생 → 물고기 → 텔레포터)")]
     [SerializeField]
-    private Stage2CutsceneShot skyShot = new Stage2CutsceneShot { holdDuration = 4.5f };
+    private Stage2CutsceneShot skyShot = new Stage2CutsceneShot
+    {
+        moveDuration = 4.5f,
+        holdDuration = 1f
+    };
 
     [SerializeField]
-    private Stage2CutsceneShot treeShot = new Stage2CutsceneShot { holdDuration = 6f };
+    private Stage2CutsceneShot treeShot = new Stage2CutsceneShot
+    {
+        moveDuration = 6f,
+        holdDuration = 1f
+    };
 
     [SerializeField]
-    private Stage2CutsceneShot fishShot = new Stage2CutsceneShot { holdDuration = 3.5f };
+    private Stage2CutsceneShot fishShot = new Stage2CutsceneShot
+    {
+        moveDuration = 3.5f,
+        holdDuration = 1f
+    };
+
+    [SerializeField]
+    private Stage2CutsceneShot teleporterShot = new Stage2CutsceneShot
+    {
+        moveDuration = 4f,
+        holdDuration = 1f
+    };
+
+    [Header("텔레포터 VFX")]
+    [Tooltip("텔레포터 컷의 Fade In이 끝난 뒤 활성화할 VFX 오브젝트들.")]
+    [SerializeField]
+    private List<GameObject> teleporterVfxObjects = new List<GameObject>();
+
+    [Header("카메라 이동")]
+    [Tooltip("카메라 이동에 Ease In/Out을 적용한다.")]
+    [SerializeField]
+    private bool smoothCameraMovement = true;
 
     [Header("페이드")]
     [Tooltip("컷 전환 한 방향의 페이드 시간(초).")]
@@ -41,7 +78,7 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private bool followYaw = true;
 
-    [Tooltip("상하 각도(Pitch)까지 강제한다. HMD와 싸우며 멀미를 유발하므로 권장하지 않는다.")]
+    [Tooltip("상하 각도(Pitch)까지 강제한다. VR 멀미 가능성이 있으므로 권장하지 않는다.")]
     [SerializeField]
     private bool followPitch = false;
 
@@ -54,7 +91,7 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private bool disableBuiltinFog = true;
 
-    [Tooltip("컷씬 동안 상대 플레이어의 아바타를 숨긴다. 두 사람이 같은 시점에 겹쳐 있게 되므로 켜두는 편이 좋다.")]
+    [Tooltip("컷씬 동안 상대 플레이어의 아바타를 숨긴다.")]
     [SerializeField]
     private bool hideRemoteAvatars = true;
 
@@ -66,7 +103,7 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private bool hideTutorialCanvas = true;
 
-        [Header("사운드")]
+    [Header("사운드")]
     [Tooltip("컷씬이 재생되는 동안 반복 재생할 새소리 클립.")]
     [SerializeField]
     private AudioClip birdSound;
@@ -80,14 +117,17 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private float birdSoundVolume = 0.6f;
 
-[Header("Debug")]
+    [Header("Debug")]
     [SerializeField]
     private bool xrReady;
 
     [SerializeField]
     private bool isPlaying;
 
-    /// <summary>컷씬이 완전히 끝났을 때 1회.</summary>
+    /// <summary>
+    /// 컷씬이 완전히 끝났을 때 1회 발생.
+    /// 이후 텔레포터 실제 사용 활성화에도 활용할 수 있다.
+    /// </summary>
     public static event System.Action CutsceneFinished;
 
     // =================================================
@@ -104,7 +144,10 @@ public class Stage2SkyCutscene : MonoBehaviour
     private readonly ResonanceCutsceneOverride resonance =
         new ResonanceCutsceneOverride();
 
-    private Transform currentShot;
+    // 현재 컷의 가상 카메라 Transform
+    private Vector3 currentShotPosition;
+    private Quaternion currentShotRotation;
+    private bool hasCurrentShot;
 
     private Vector3 originalXROriginPosition;
     private Quaternion originalXROriginRotation;
@@ -112,7 +155,9 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     public bool IsPlaying => isPlaying;
 
-    /// <summary>XR 리그가 준비되어 컷씬을 재생할 수 있는 상태인지.</summary>
+    /// <summary>
+    /// XR 리그가 준비되어 컷씬을 재생할 수 있는 상태인지.
+    /// </summary>
     public bool CanPlay => xrReady && !isPlaying;
 
     // =================================================
@@ -177,15 +222,19 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!isPlaying || currentShot == null)
+        if (!isPlaying || !hasCurrentShot)
             return;
 
         ApplyShotTransform();
     }
 
+    /// <summary>
+    /// 현재 계산된 컷 위치에 실제 XR Head가 오도록
+    /// XR Origin을 보정한다.
+    /// </summary>
     private void ApplyShotTransform()
     {
-        if (currentShot == null ||
+        if (!hasCurrentShot ||
             xrOrigin == null ||
             xrHead == null)
         {
@@ -194,13 +243,13 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         if (followPitch)
         {
-            xrOrigin.rotation = currentShot.rotation;
+            xrOrigin.rotation = currentShotRotation;
         }
         else if (followYaw)
         {
             Vector3 targetForward =
                 Vector3.ProjectOnPlane(
-                    currentShot.forward,
+                    currentShotRotation * Vector3.forward,
                     Vector3.up);
 
             if (targetForward.sqrMagnitude > 0.001f)
@@ -212,9 +261,21 @@ public class Stage2SkyCutscene : MonoBehaviour
             }
         }
 
-        // 실제 HMD 위치를 컷 카메라 위치에 맞춘다.
+        // 실제 HMD 위치가 현재 컷 위치와 일치하도록
+        // XR Origin을 보정한다.
         xrOrigin.position +=
-            currentShot.position - xrHead.position;
+            currentShotPosition - xrHead.position;
+    }
+
+    private void SetCurrentShotTransform(
+        Vector3 position,
+        Quaternion rotation)
+    {
+        currentShotPosition = position;
+        currentShotRotation = rotation;
+        hasCurrentShot = true;
+
+        ApplyShotTransform();
     }
 
     private void SaveOriginalXRTransform()
@@ -245,7 +306,7 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     /// <summary>
     /// PlantClearSequence가 호출한다.
-    /// 재생을 시작했으면 true. false면 호출 측이 기존처럼 즉시 효과를 적용해야 한다.
+    /// 재생을 시작했으면 true.
     /// </summary>
     public bool TryPlay(PlantClearSequence sequence)
     {
@@ -266,45 +327,45 @@ public class Stage2SkyCutscene : MonoBehaviour
             hardwareRig.SetLocomotionLocked(true);
 
         SetRemoteAvatarsVisible(false);
-
-        // 튜토리얼 패널은 먼저 치운다.
-        // PlantClearSequence가 MissionCleared를 발생시키면
-        // TutorialMissionManager_2 → UIPanel.ShowTutorial 경로로
-        // 컷씬 도중에 패널이 손에서 떠오르기 때문이다.
         SetTutorialCanvasVisible(false);
 
         SaveOriginalXRTransform();
 
-        // 1. 화면을 검게
+        // 1. 먼저 화면을 검게 만든다.
         yield return FadeOutRoutine();
 
-        // 2. 검은 상태에서 안개/포스트FX 제거
+        // 2. 검은 상태에서 안개/포스트 FX 제거
         if (disableResonance || disableBuiltinFog)
             resonance.Disable(disableBuiltinFog);
 
-        // 안개 색은 지금 바꿔둔다. 안개가 다시 켜질 때 반영된다.
         sequence.ApplyFogColor();
 
-        // 3. 하늘 — 화면이 보인 뒤 스카이박스 전환을 시작해서 "보여준다"
+        // 3. 하늘 복원
         yield return PlayShot(
             skyShot,
             sequence.StartSkyboxFade,
             false);
 
-        // 4. 식생 — 화면이 보인 뒤 채도 복원을 시작한다
+        // 4. 식생 복원
         yield return PlayShot(
             treeShot,
             sequence.ReviveVegetation,
             false);
 
-        // 5. 물고기 — 검은 화면에서 켜고, 이미 있는 상태로 보여준다
+        // 5. 물고기 활성화
         yield return PlayShot(
             fishShot,
             sequence.ActivateObjects,
             true);
 
-        // 6. 복귀 (아직 검은 화면)
-        currentShot = null;
+        // 6. 텔레포터 VFX 컷
+        yield return PlayShot(
+            teleporterShot,
+            ActivateTeleporterVfx,
+            false);
+
+        // 7. 모든 컷 종료 후 원래 플레이어 위치 복귀
+        hasCurrentShot = false;
 
         RestoreOriginalXRTransform();
 
@@ -316,23 +377,34 @@ public class Stage2SkyCutscene : MonoBehaviour
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);
 
-        // 위치/효과 반영에 한 프레임
+        // 위치/효과 반영
         yield return null;
 
+        // 원래 플레이어 시점으로 Fade In
         yield return FadeInRoutine();
 
         isPlaying = false;
 
-                StopBirdSound();
+        StopBirdSound();
 
-Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
+        Debug.Log(
+            "[Stage2SkyCutscene] 컷씬 종료",
+            this);
 
         CutsceneFinished?.Invoke();
     }
 
     /// <summary>
-    /// 한 컷: (검은 화면에서) 시점 이동 → 페이드인 → 효과 → 유지 → 페이드아웃.
-    /// effectDuringBlack이 true면 효과를 페이드인 전에 발동한다.
+    /// 한 컷:
+    ///
+    /// 검은 화면
+    /// → 시작 위치 배치
+    /// → Fade In
+    /// → 환경 효과 시작
+    /// → 시작점에서 End Point까지 천천히 이동
+    /// → 이동 중 Fade Out
+    ///
+    /// End Point가 없으면 기존처럼 고정 카메라로 재생한다.
     /// </summary>
     private IEnumerator PlayShot(
         Stage2CutsceneShot shot,
@@ -345,32 +417,139 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
                 "[Stage2SkyCutscene] 컷 카메라가 비어 있어 효과만 적용하고 넘어갑니다.",
                 this);
 
-            if (onShotEffect != null)
-                onShotEffect();
-
+            onShotEffect?.Invoke();
             yield break;
         }
 
-        // 검은 화면에서 시점 이동
-        currentShot = shot.shotCamera.transform;
-        ApplyShotTransform();
+        Transform startPoint = shot.shotCamera.transform;
 
-        if (effectDuringBlack && onShotEffect != null)
-            onShotEffect();
+        Vector3 startPosition = startPoint.position;
+        Quaternion startRotation = startPoint.rotation;
+
+        // 검은 화면에서 시작 위치로 이동
+        SetCurrentShotTransform(
+            startPosition,
+            startRotation);
+
+        // 물고기처럼 화면이 보이기 전에 활성화해야 하는 효과
+        if (effectDuringBlack)
+            onShotEffect?.Invoke();
 
         if (blackHold > 0f)
             yield return new WaitForSeconds(blackHold);
 
+        // 화면 표시
         yield return FadeInRoutine();
 
-        if (!effectDuringBlack && onShotEffect != null)
-            onShotEffect();
+        // 하늘/식생처럼 화면이 보인 후 변화 시작
+        if (!effectDuringBlack)
+            onShotEffect?.Invoke();
 
+        // End Point가 있으면 실제 카메라 이동
+        if (shot.endPoint != null &&
+            shot.moveDuration > 0f)
+        {
+            Vector3 endPosition =
+                shot.endPoint.position;
+
+            Quaternion endRotation =
+                shot.endPoint.rotation;
+
+            float elapsed = 0f;
+            float visibleDuration =
+                Mathf.Max(0f, shot.moveDuration) +
+                Mathf.Max(0f, shot.holdDuration);
+            float totalMoveDuration =
+                visibleDuration + Mathf.Max(0f, fadeDuration);
+            Coroutine fadeOut = null;
+
+            while (elapsed < totalMoveDuration)
+            {
+                elapsed += Time.deltaTime;
+
+                float t =
+                    Mathf.Clamp01(
+                        elapsed / totalMoveDuration);
+
+                if (fadeOut == null && elapsed >= visibleDuration)
+                    fadeOut = StartCoroutine(FadeOutRoutine());
+
+                // 부드러운 Ease In / Ease Out
+                if (smoothCameraMovement)
+                {
+                    t = Mathf.SmoothStep(
+                        0f,
+                        1f,
+                        t);
+                }
+
+                Vector3 position =
+                    Vector3.Lerp(
+                        startPosition,
+                        endPosition,
+                        t);
+
+                Quaternion rotation =
+                    Quaternion.Slerp(
+                        startRotation,
+                        endRotation,
+                        t);
+
+                SetCurrentShotTransform(
+                    position,
+                    rotation);
+
+                yield return null;
+            }
+
+            if (fadeOut != null)
+                yield return fadeOut;
+
+            // 오차 없이 정확한 종료 위치 보장
+            SetCurrentShotTransform(
+                endPosition,
+                endRotation);
+
+            yield break;
+        }
+        else
+        {
+            // End Point가 없으면 기존 holdDuration 동안
+            // 고정 카메라로 유지
+            if (shot.holdDuration > 0f)
+                yield return new WaitForSeconds(
+                    shot.holdDuration);
+
+            yield return FadeOutRoutine();
+            yield break;
+        }
+
+        // 이동 완료 후 잠시 보여주기
         if (shot.holdDuration > 0f)
-            yield return new WaitForSeconds(shot.holdDuration);
+        {
+            yield return new WaitForSeconds(
+                shot.holdDuration);
+        }
 
+        // 다음 컷으로 넘어가기 전에 검게
         yield return FadeOutRoutine();
     }
+
+
+    private void ActivateTeleporterVfx()
+    {
+        if (teleporterVfxObjects == null)
+            return;
+
+        foreach (GameObject vfxObject in teleporterVfxObjects)
+        {
+            if (vfxObject != null)
+                vfxObject.SetActive(true);
+        }
+    }
+    // =================================================
+    // Fade
+    // =================================================
 
     private IEnumerator FadeOutRoutine()
     {
@@ -401,13 +580,15 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
 
         foreach (NetworkPlayer player in NetworkPlayer.All)
         {
-            if (player == null || player.IsLocalNetworkRig)
+            if (player == null ||
+                player.IsLocalNetworkRig)
+            {
                 continue;
+            }
 
             player.SetAvatarVisible(visible);
         }
     }
-
 
     // =================================================
     // 컨트롤러 UI
@@ -415,8 +596,11 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
 
     private void SetTutorialCanvasVisible(bool visible)
     {
-        if (!hideTutorialCanvas || hardwareRig == null)
+        if (!hideTutorialCanvas ||
+            hardwareRig == null)
+        {
             return;
+        }
 
         hardwareRig.SetTutorialCanvasVisible(visible);
     }
@@ -432,7 +616,9 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
             if (birdSound == null)
                 return;
 
-            birdSoundSource = gameObject.AddComponent<AudioSource>();
+            birdSoundSource =
+                gameObject.AddComponent<AudioSource>();
+
             birdSoundSource.playOnAwake = false;
             birdSoundSource.spatialBlend = 0f;
         }
@@ -456,13 +642,14 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
 
     private void StopBirdSound()
     {
-        if (birdSoundSource == null || !birdSoundSource.isPlaying)
+        if (birdSoundSource == null ||
+            !birdSoundSource.isPlaying)
+        {
             return;
+        }
 
         birdSoundSource.Stop();
     }
-
-
 
     // =================================================
     // 안전장치
@@ -476,12 +663,13 @@ Debug.Log("[Stage2SkyCutscene] 컷씬 종료", this);
         StopAllCoroutines();
 
         isPlaying = false;
-        currentShot = null;
+        hasCurrentShot = false;
 
         StopBirdSound();
 
         RestoreOriginalXRTransform();
         resonance.Restore();
+
         SetRemoteAvatarsVisible(true);
         SetTutorialCanvasVisible(true);
 
