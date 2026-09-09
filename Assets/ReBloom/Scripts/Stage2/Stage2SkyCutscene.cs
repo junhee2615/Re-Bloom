@@ -117,6 +117,51 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private float birdSoundVolume = 0.6f;
 
+    [Header("Stage2 클리어 컷씬 사운드")]
+    [Tooltip("Stage1 Timeline의 WorldRestore에 사용된 동일한 AudioClip.")]
+    [SerializeField]
+    private AudioClip worldRestoreClip;
+
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float worldRestoreVolume = 0.55f;
+
+    [Tooltip("컷씬 전체에 반복 재생할 바람 Ambient 클립.")]
+    [SerializeField]
+    private AudioClip windClip;
+
+    [Tooltip("런타임에 생성하는 Wind AudioSource의 기본 볼륨. Inspector Source를 연결하면 Source 볼륨을 유지한다.")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float windVolume = 0.15f;
+
+    [Tooltip("Fish Shot 동안 반복 재생할 물고기 헤엄/물 움직임 클립.")]
+    [SerializeField]
+    private AudioClip fishSwimClip;
+
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float fishSwimVolume = 0.35f;
+
+    [Tooltip("Teleporter VFX 활성화 순간 1회 재생할 클립.")]
+    [SerializeField]
+    private AudioClip teleporterActivateClip;
+
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float teleporterActivateVolume = 0.6f;
+
+    [Tooltip("Stage2 Ambient 루프용 AudioSource. 비워두면 이 오브젝트에 하나 만들어 쓴다.")]
+    [SerializeField]
+    private AudioSource cutsceneAmbientSource;
+
+    [Tooltip("Stage2 효과음 원샷/루프용 AudioSource. 비워두면 이 오브젝트에 하나 만들어 쓴다.")]
+    [SerializeField]
+    private AudioSource cutsceneEffectSource;
+
+    [Tooltip("Sky 복원 시작 후 WorldRestore 효과음이 재생되기까지의 지연 시간")]
+    [SerializeField] private float worldRestoreDelay = 3f;
+
     [Header("Debug")]
     [SerializeField]
     private bool xrReady;
@@ -143,7 +188,6 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     private readonly ResonanceCutsceneOverride resonance =
         new ResonanceCutsceneOverride();
-
     // 현재 컷의 가상 카메라 Transform
     private Vector3 currentShotPosition;
     private Quaternion currentShotRotation;
@@ -322,6 +366,7 @@ public class Stage2SkyCutscene : MonoBehaviour
         isPlaying = true;
 
         StartBirdSound();
+        StartCutsceneAmbient();
 
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(true);
@@ -343,8 +388,8 @@ public class Stage2SkyCutscene : MonoBehaviour
         // 3. 하늘 복원
         yield return PlayShot(
             skyShot,
-            sequence.StartSkyboxFade,
-            false);
+            () => StartSkyRestore(sequence),
+            true);
 
         // 4. 식생 복원
         yield return PlayShot(
@@ -356,7 +401,10 @@ public class Stage2SkyCutscene : MonoBehaviour
         yield return PlayShot(
             fishShot,
             sequence.ActivateObjects,
-            true);
+            true,
+            StartFishSwimSound);
+
+        StopFishSwimSound();
 
         // 6. 텔레포터 VFX 컷
         yield return PlayShot(
@@ -386,6 +434,7 @@ public class Stage2SkyCutscene : MonoBehaviour
         isPlaying = false;
 
         StopBirdSound();
+        StopCutsceneAudio();
 
         Debug.Log(
             "[Stage2SkyCutscene] 컷씬 종료",
@@ -409,7 +458,8 @@ public class Stage2SkyCutscene : MonoBehaviour
     private IEnumerator PlayShot(
         Stage2CutsceneShot shot,
         System.Action onShotEffect,
-        bool effectDuringBlack)
+        bool effectDuringBlack,
+        System.Action onShotVisible = null)
     {
         if (shot == null || shot.shotCamera == null)
         {
@@ -440,6 +490,8 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         // 화면 표시
         yield return FadeInRoutine();
+
+        onShotVisible?.Invoke();
 
         // 하늘/식생처럼 화면이 보인 후 변화 시작
         if (!effectDuringBlack)
@@ -546,6 +598,16 @@ public class Stage2SkyCutscene : MonoBehaviour
             if (vfxObject != null)
                 vfxObject.SetActive(true);
         }
+
+        PlayCutsceneOneShot(
+            teleporterActivateClip,
+            teleporterActivateVolume);
+    }
+
+    private void StartSkyRestore(PlantClearSequence sequence)
+    {
+        sequence.StartSkyboxFade();
+        StartCoroutine(PlayWorldRestoreDelayed());
     }
     // =================================================
     // Fade
@@ -609,6 +671,91 @@ public class Stage2SkyCutscene : MonoBehaviour
     // 사운드
     // =================================================
 
+    private void StartCutsceneAmbient()
+    {
+        if (windClip == null)
+            return;
+
+        bool createdSource = false;
+
+        if (cutsceneAmbientSource == null)
+        {
+            cutsceneAmbientSource = gameObject.AddComponent<AudioSource>();
+            cutsceneAmbientSource.playOnAwake = false;
+            cutsceneAmbientSource.spatialBlend = 0f;
+            createdSource = true;
+        }
+
+        cutsceneAmbientSource.Stop();
+        cutsceneAmbientSource.clip = windClip;
+        cutsceneAmbientSource.loop = true;
+
+        if (createdSource)
+            cutsceneAmbientSource.volume = windVolume;
+
+        cutsceneAmbientSource.Play();
+    }
+
+    private void StartFishSwimSound()
+    {
+        if (fishSwimClip == null)
+            return;
+
+        if (cutsceneEffectSource == null)
+        {
+            cutsceneEffectSource = gameObject.AddComponent<AudioSource>();
+            cutsceneEffectSource.playOnAwake = false;
+            cutsceneEffectSource.spatialBlend = 0f;
+        }
+
+        cutsceneEffectSource.Stop();
+        cutsceneEffectSource.clip = fishSwimClip;
+        cutsceneEffectSource.loop = true;
+        cutsceneEffectSource.volume = fishSwimVolume;
+        cutsceneEffectSource.Play();
+    }
+
+    private void StopFishSwimSound()
+    {
+        if (cutsceneEffectSource == null ||
+            cutsceneEffectSource.clip != fishSwimClip)
+        {
+            return;
+        }
+
+        cutsceneEffectSource.Stop();
+        cutsceneEffectSource.clip = null;
+    }
+
+    private void PlayCutsceneOneShot(
+        AudioClip clip,
+        float volume)
+    {
+        if (clip == null)
+            return;
+
+        if (cutsceneEffectSource == null)
+        {
+            cutsceneEffectSource = gameObject.AddComponent<AudioSource>();
+            cutsceneEffectSource.playOnAwake = false;
+            cutsceneEffectSource.spatialBlend = 0f;
+        }
+
+        cutsceneEffectSource.volume = volume;
+        cutsceneEffectSource.PlayOneShot(clip);
+    }
+
+    private void StopCutsceneAudio()
+    {
+        StopFishSwimSound();
+
+        if (cutsceneAmbientSource != null)
+            cutsceneAmbientSource.Stop();
+
+        if (cutsceneEffectSource != null)
+            cutsceneEffectSource.Stop();
+    }
+
     private void StartBirdSound()
     {
         if (birdSoundSource == null)
@@ -657,15 +804,15 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     private void OnDisable()
     {
+        StopAllCoroutines();
+        StopBirdSound();
+        StopCutsceneAudio();
+
         if (!isPlaying)
             return;
 
-        StopAllCoroutines();
-
         isPlaying = false;
         hasCurrentShot = false;
-
-        StopBirdSound();
 
         RestoreOriginalXRTransform();
         resonance.Restore();
@@ -680,5 +827,24 @@ public class Stage2SkyCutscene : MonoBehaviour
     private void OnDestroy()
     {
         resonance.Restore();
+    }
+
+    private IEnumerator PlayWorldRestoreDelayed()
+    {
+        if (worldRestoreClip == null)
+            yield break;
+
+        if (worldRestoreDelay > 0f)
+            yield return new WaitForSeconds(worldRestoreDelay);
+
+        if (cutsceneEffectSource == null)
+        {
+            cutsceneEffectSource = gameObject.AddComponent<AudioSource>();
+            cutsceneEffectSource.playOnAwake = false;
+            cutsceneEffectSource.spatialBlend = 0f;
+        }
+
+        cutsceneEffectSource.volume = worldRestoreVolume;
+        cutsceneEffectSource.PlayOneShot(worldRestoreClip);
     }
 }
