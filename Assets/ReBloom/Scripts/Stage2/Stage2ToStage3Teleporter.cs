@@ -56,12 +56,12 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
 
     private void OnEnable()
     {
-        Stage2SkyCutscene.CutsceneFinished += OnStage2CutsceneFinished;
+        Stage2TeleporterCutscene.CutsceneFinished += OnStage2CutsceneFinished;
     }
 
     private void OnDisable()
     {
-        Stage2SkyCutscene.CutsceneFinished -= OnStage2CutsceneFinished;
+        Stage2TeleporterCutscene.CutsceneFinished -= OnStage2CutsceneFinished;
     }
 
     private void OnStage2CutsceneFinished()

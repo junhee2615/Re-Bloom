@@ -203,6 +203,73 @@ MonoBehaviour:
   fadeDuration: 1
   clientWaitTimeout: 8
   nextSceneName: Stage3
+--- !u!1 &293672157
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 293672159}
+  - component: {fileID: 293672158}
+  m_Layer: 0
+  m_Name: Stage2TeleporterCutscene_Setup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &293672158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 293672157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfd6535cac87186449d9334c5baa92f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stage2TeleporterCutscene
+  teleporterShot:
+    shotCamera: {fileID: 591497908}
+    endPoint: {fileID: 1691594591}
+    moveDuration: 4
+    holdDuration: 2
+  teleporterVfxObjects:
+  - {fileID: 1117688898}
+  - {fileID: 1117688897}
+  teleporterActivateClip: {fileID: 8300000, guid: 7a3c33f82b48d6e4999244bba62a9e78, type: 3}
+  teleporterActivateVolume: 0.4
+  effectSource: {fileID: 0}
+  smoothCameraMovement: 1
+  fadeDuration: 0.6
+  blackHold: 0.2
+  followYaw: 1
+  followPitch: 0
+  disableResonance: 1
+  disableBuiltinFog: 1
+  hideRemoteAvatars: 1
+  lockLocomotion: 1
+  hideTutorialCanvas: 1
+  xrReady: 0
+  isPlaying: 0
+--- !u!4 &293672159
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 293672157}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 30.08443, y: 1.69464, z: 49.63255}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &395063640
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,14 +1743,6 @@ MonoBehaviour:
     endPoint: {fileID: 2029874718}
     moveDuration: 4
     holdDuration: 2
-  teleporterShot:
-    shotCamera: {fileID: 591497908}
-    endPoint: {fileID: 1691594591}
-    moveDuration: 4
-    holdDuration: 2
-  teleporterVfxObjects:
-  - {fileID: 1117688898}
-  - {fileID: 1117688897}
   smoothCameraMovement: 1
   fadeDuration: 0.6
   blackHold: 0.2
@@ -1703,8 +1762,6 @@ MonoBehaviour:
   windVolume: 0.6
   fishSwimClip: {fileID: 8300000, guid: faba2329f35e1b74a96ffabf57cd662c, type: 3}
   fishSwimVolume: 0.4
-  teleporterActivateClip: {fileID: 8300000, guid: 7a3c33f82b48d6e4999244bba62a9e78, type: 3}
-  teleporterActivateVolume: 0.3
   cutsceneAmbientSource: {fileID: 0}
   cutsceneEffectSource: {fileID: 0}
   worldRestoreDelay: 2
@@ -4656,3 +4713,4 @@ SceneRoots:
   - {fileID: 395063642}
   - {fileID: 2015647331}
   - {fileID: 1071458362}
+  - {fileID: 293672159}

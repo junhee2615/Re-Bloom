@@ -25,7 +25,7 @@ public class Stage2CutsceneShot
 
 public class Stage2SkyCutscene : MonoBehaviour
 {
-    [Header("컷 (재생 순서: 하늘 → 식생 → 물고기 → 텔레포터)")]
+    [Header("컷 (재생 순서: 하늘 → 식생 → 물고기)")]
     [SerializeField]
     private Stage2CutsceneShot skyShot = new Stage2CutsceneShot
     {
@@ -46,18 +46,6 @@ public class Stage2SkyCutscene : MonoBehaviour
         moveDuration = 3.5f,
         holdDuration = 1f
     };
-
-    [SerializeField]
-    private Stage2CutsceneShot teleporterShot = new Stage2CutsceneShot
-    {
-        moveDuration = 4f,
-        holdDuration = 1f
-    };
-
-    [Header("텔레포터 VFX")]
-    [Tooltip("텔레포터 컷의 Fade In이 끝난 뒤 활성화할 VFX 오브젝트들.")]
-    [SerializeField]
-    private List<GameObject> teleporterVfxObjects = new List<GameObject>();
 
     [Header("카메라 이동")]
     [Tooltip("카메라 이동에 Ease In/Out을 적용한다.")]
@@ -143,14 +131,6 @@ public class Stage2SkyCutscene : MonoBehaviour
     [SerializeField]
     private float fishSwimVolume = 0.35f;
 
-    [Tooltip("Teleporter VFX 활성화 순간 1회 재생할 클립.")]
-    [SerializeField]
-    private AudioClip teleporterActivateClip;
-
-    [Range(0f, 1f)]
-    [SerializeField]
-    private float teleporterActivateVolume = 0.6f;
-
     [Tooltip("Stage2 Ambient 루프용 AudioSource. 비워두면 이 오브젝트에 하나 만들어 쓴다.")]
     [SerializeField]
     private AudioSource cutsceneAmbientSource;
@@ -168,12 +148,6 @@ public class Stage2SkyCutscene : MonoBehaviour
 
     [SerializeField]
     private bool isPlaying;
-
-    /// <summary>
-    /// 컷씬이 완전히 끝났을 때 1회 발생.
-    /// 이후 텔레포터 실제 사용 활성화에도 활용할 수 있다.
-    /// </summary>
-    public static event System.Action CutsceneFinished;
 
     // =================================================
     // Runtime
@@ -406,13 +380,7 @@ public class Stage2SkyCutscene : MonoBehaviour
 
         StopFishSwimSound();
 
-        // 6. 텔레포터 VFX 컷
-        yield return PlayShot(
-            teleporterShot,
-            ActivateTeleporterVfx,
-            false);
-
-        // 7. 모든 컷 종료 후 원래 플레이어 위치 복귀
+        // 6. 모든 컷 종료 후 원래 플레이어 위치 복귀
         hasCurrentShot = false;
 
         RestoreOriginalXRTransform();
@@ -440,7 +408,6 @@ public class Stage2SkyCutscene : MonoBehaviour
             "[Stage2SkyCutscene] 컷씬 종료",
             this);
 
-        CutsceneFinished?.Invoke();
     }
 
     /// <summary>
@@ -587,22 +554,6 @@ public class Stage2SkyCutscene : MonoBehaviour
         yield return FadeOutRoutine();
     }
 
-
-    private void ActivateTeleporterVfx()
-    {
-        if (teleporterVfxObjects == null)
-            return;
-
-        foreach (GameObject vfxObject in teleporterVfxObjects)
-        {
-            if (vfxObject != null)
-                vfxObject.SetActive(true);
-        }
-
-        PlayCutsceneOneShot(
-            teleporterActivateClip,
-            teleporterActivateVolume);
-    }
 
     private void StartSkyRestore(PlantClearSequence sequence)
     {
