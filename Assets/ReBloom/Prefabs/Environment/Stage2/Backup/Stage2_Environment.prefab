@@ -2362,6 +2362,7 @@ MonoBehaviour:
   moveDistance: 30
   maxSpeed: 8
   acceleration: 2
+  nextSceneName: Stage2
 --- !u!114 &7258050305519521295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28995,6 +28996,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1124970459234779049}
     m_Modifications:
+    - target: {fileID: 841498034715095662, guid: 60db60270fc2cb348b5526dff366efc8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2992632880332895518, guid: 60db60270fc2cb348b5526dff366efc8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3111722314615326011, guid: 60db60270fc2cb348b5526dff366efc8, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 4263403639615409876, guid: 60db60270fc2cb348b5526dff366efc8, type: 3}
       propertyPath: m_Name
       value: AliveStump

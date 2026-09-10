@@ -31,11 +31,7 @@ public class NetworkPlayer : NetworkBehaviour
     public static NetworkPlayer LocalInstance { get; private set; }
 
 
-        /// <summary>
-    /// 이 플레이어의 Role(mental / ear).
-    /// 서버가 스폰 직전에 확정하며 모든 클라이언트에 동기화된다.
-    /// (PlayerSpawner.SpawnPlayer -> AssignRole)
-    /// </summary>
+    // player의 role 부여(Role 스크립트)
     [Networked] public Role AssignedRole { get; private set; }
 
     /// <summary>이 기기 로컬 플레이어의 Role. 아직 스폰 전이면 null.</summary>
@@ -255,7 +251,12 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
             hardwareRig.rightHandTransform.rotation);
     }
 
-    private void SetAvatarVisible(bool visible)
+    /// <summary>
+    /// 이 플레이어의 아바타 렌더러를 켜거나 끈다.
+    /// 로컬 플레이어는 Spawned에서 이미 숨겨져 있으므로,
+    /// 외부(컷씬 등)에서는 원격 플레이어에만 사용할 것.
+    /// </summary>
+    public void SetAvatarVisible(bool visible)
     {
         if (baseAvatar == null)
             return;
@@ -269,16 +270,7 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
     }
 
 
-    /// <summary>
-    /// (Host 전용) 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스트한다.
-    /// Host 는 상태 권한을 가지므로 RPC 를 보낼 수 있고, InvokeLocal 로 자기 자신도 실행된다.
-    /// </summary>
-    /// <summary>
-    /// 지정 플랜트의 색 복원을 두 플레이어 모두에게 브로드캐스한다.
-    /// 역할(mental/ear)과 접속 모드(Host/Client)는 로비에서 따로 정해지므로
-    /// mental 플레이어가 클라이언트일 수 있다. Host 모드에서 클라이언트는
-    /// 자기 아바타에 대해서도 StateAuthority가 없으므로, 권한자를 거쳐 중계한다.
-    /// </summary>
+    // 수생식물 재생
 public void RequestRevivePlant(int plantId)
     {
         // mental이 Host든 Client든 상관없이 두 플레이어 모두에게 복원을 전파한다.
@@ -308,4 +300,49 @@ public void RequestRevivePlant(int plantId)
     {
         PetalRhythmMission.ReviveById(plantId);
     }
+
+    // 씬 안에 NetworkObject 따로 두지 않고 플레이어 오브젝트를 통로로 씀
+    /// <summary>로컬 플레이어가 이번 물결을 맞추었다고 호스트에 보고한다.</summary>
+    public void RequestRiverbedHit(int waveIndex, int role)
+    {
+        if (HasNetworkStateAuthority)
+            ReBloom.Water.RiverbedMissionNet.HostReceiveHit(waveIndex, (Role)role);
+        else
+            Rpc_RequestRiverbedHit(waveIndex, role);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_RequestRiverbedHit(int waveIndex, int role, RpcInfo info = default)
+    {
+        ReBloom.Water.RiverbedMissionNet.HostReceiveHit(waveIndex, (Role)role);
+    }
+
+    // 물결 미션 시작 여부
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_RiverbedStart()
+    {
+        ReBloom.Water.RiverbedMissionNet.LocalStart();
+    }
+
+    // 진짜 물결인지 아닌지
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_RiverbedWave(int waveIndex, int isReal, float approachDuration)
+    {
+        ReBloom.Water.RiverbedMissionNet.LocalPlayWave(waveIndex, isReal != 0, approachDuration);
+    }
+
+    // 성공 횟수 세기(ear, mental 둘 다 클리어)
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_RiverbedSuccess(int successCount, float wetBaseline)
+    {
+        ReBloom.Water.RiverbedMissionNet.LocalApplySuccess(successCount, wetBaseline);
+    }
+
+    // 물결 미션 성공
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_RiverbedComplete()
+    {
+        ReBloom.Water.RiverbedMissionNet.LocalComplete();
+    }
+
 }

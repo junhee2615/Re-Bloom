@@ -23,14 +23,14 @@ public class DebugSceneSkipper : MonoBehaviour
     [SerializeField] private float fadeDuration = 0.5f;
 
     [SerializeField, Tooltip("비워두면 씬에서 자동으로 찾는다. Stage1에서는 TrainFloor 오브젝트에 있다.")]
-    private CutscenePlayer cutscenePlayer;
+    private TrainDepartureManager departureManager;
 
     private bool loadTriggered;
 
     // private void Start()
     // {
-    //     if (cutscenePlayer == null)
-    //         cutscenePlayer = FindFirstObjectByType<CutscenePlayer>();
+    //     if (departureManager == null)
+    //         departureManager = FindFirstObjectByType<TrainDepartureManager>();
     // }
 
 
@@ -62,18 +62,18 @@ public class DebugSceneSkipper : MonoBehaviour
             return;
         }
 
-        // if (cutscenePlayer == null)
-        //     cutscenePlayer = FindFirstObjectByType<CutscenePlayer>();
+        // if (departureManager == null)
+        //     departureManager = FindFirstObjectByType<TrainDepartureManager>();
 
-        if (cutscenePlayer == null)
+        if (departureManager == null)
         {
-            Debug.LogWarning("[DebugSceneSkipper] 씬에서 CutscenePlayer를 찾지 못했습니다. Stage1의 TrainFloor 오브젝트를 확인하세요.", this);
+            Debug.LogWarning("[DebugSceneSkipper] 씬에서 TrainDepartureManager를 찾지 못했습니다. Stage1의 TrainFloor 오브젝트를 확인하세요.", this);
             return;
         }
 
         loadTriggered = true;
-        Debug.Log("[DebugSceneSkipper] 컷신을 강제로 시작합니다.", this);
-        cutscenePlayer.BeginCutscene();
+        Debug.Log("[DebugSceneSkipper] 열차 출발 연출을 강제로 시작합니다.", this);
+        departureManager.BeginDeparture();
     }
 
     // private IEnumerator SkipRoutine(NetworkRunner runner) // beginCutscene?

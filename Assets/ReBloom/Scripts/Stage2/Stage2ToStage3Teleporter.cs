@@ -40,6 +40,7 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
 
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
+    [Networked] private NetworkBool IsUnlocked { get; set; }
     [Networked] private NetworkBool IsActivated { get; set; }
 
     private ScreenFade screenFade;
@@ -51,6 +52,22 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
     private void Start()
     {
         ResolveBoardingZone();
+    }
+
+    private void OnEnable()
+    {
+        Stage2TeleporterCutscene.CutsceneFinished += OnStage2CutsceneFinished;
+    }
+
+    private void OnDisable()
+    {
+        Stage2TeleporterCutscene.CutsceneFinished -= OnStage2CutsceneFinished;
+    }
+
+    private void OnStage2CutsceneFinished()
+    {
+        if (HasStateAuthority)
+            IsUnlocked = true;
     }
 
     private void ResolveBoardingZone()
@@ -73,7 +90,7 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-        if (!HasStateAuthority)
+        if (!HasStateAuthority || !IsUnlocked)
             return;
 
         UpdateBoardingState();

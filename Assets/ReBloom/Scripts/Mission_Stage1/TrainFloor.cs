@@ -19,11 +19,11 @@ public class TrainFloor : NetworkBehaviour
     public AudioClip doorCloseClip;
     public Transform doorRight;
     public Transform doorLeft;
-    private CutscenePlayer cutscenePlayer;
+        private TrainDepartureManager departureManager;
 
     private void Start()
     {
-        cutscenePlayer = GetComponent<CutscenePlayer>();
+                departureManager = GetComponent<TrainDepartureManager>();
         ResolveBoardingZone();
     }
 
@@ -56,8 +56,12 @@ public class TrainFloor : NetworkBehaviour
         {
             IsActivated = true;
 
-            if (cutscenePlayer != null)
-                cutscenePlayer.BeginCutscene();
+            if (departureManager != null)
+                departureManager.BeginDeparture();
+            else
+                Debug.LogError(
+                    "[TrainFloor] TrainDepartureManager를 찾지 못해 Stage2로 넘어갈 수 없습니다.",
+                    this);
         }
     }
 

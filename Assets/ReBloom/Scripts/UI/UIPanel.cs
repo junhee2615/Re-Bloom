@@ -8,6 +8,7 @@ public class UIPanel : MonoBehaviour
 {
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
+    [SerializeField] private float fadeDuration = 0.3f;
 
     [Header("Texts")]
     [SerializeField] private TMP_Text missionText;
@@ -32,10 +33,18 @@ public class UIPanel : MonoBehaviour
     private bool previousXButton;
 
     private Coroutine firstTutorialCoroutine;
+    private Coroutine fadeCoroutine;
     private bool isFirstTutorial = true;
+    private bool isPanelVisible;
+    private CanvasGroup panelCanvasGroup;
 
     private void Awake()
     {
+        panelCanvasGroup = panelRoot.GetComponent<CanvasGroup>();
+        if (panelCanvasGroup == null)
+            panelCanvasGroup = panelRoot.AddComponent<CanvasGroup>();
+
+        panelCanvasGroup.alpha = 0f;
         panelRoot.SetActive(false);
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
         TutorialMissionManager_2.TutorialChanged += OnTutorialChanged_2;
@@ -58,7 +67,7 @@ public class UIPanel : MonoBehaviour
         {
             if (xButton && !previousXButton)
             {
-                panelRoot.SetActive(!panelRoot.activeSelf);
+                SetPanelVisible(!isPanelVisible);
             }
 
             previousXButton = xButton;
@@ -151,7 +160,42 @@ public class UIPanel : MonoBehaviour
         }
 
         // 새 미션이 시작되면 패널 다시 표시
-        panelRoot.SetActive(true);
+        SetPanelVisible(true);
+    }
+
+    private void SetPanelVisible(bool visible)
+    {
+        isPanelVisible = visible;
+
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
+
+        fadeCoroutine = StartCoroutine(FadePanel(visible));
+    }
+
+    private IEnumerator FadePanel(bool visible)
+    {
+        if (visible)
+            panelRoot.SetActive(true);
+
+        float startAlpha = panelCanvasGroup.alpha;
+        float targetAlpha = visible ? 1f : 0f;
+        float duration = Mathf.Max(fadeDuration, 0.001f);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            panelCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+            yield return null;
+        }
+
+        panelCanvasGroup.alpha = targetAlpha;
+
+        if (!visible)
+            panelRoot.SetActive(false);
+
+        fadeCoroutine = null;
     }
 
     private void OnDestroy()

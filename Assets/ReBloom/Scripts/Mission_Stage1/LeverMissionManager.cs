@@ -79,8 +79,13 @@ public class LeverMissionManager : NetworkBehaviour
         SubscribeCutsceneEvent();
     }
 
-    private void OnDestroy()
+    // Fusion의 정식 정리 훅.
+    // SimulationBehaviour가 OnDestroy를 이미 선언하고 있어서
+    // OnDestroy를 직접 선언하면 Fusion의 정리가 호출되지 않는다.
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
+        base.Despawned(runner, hasState);
+
         UnsubscribeCutsceneEvent();
     }
 

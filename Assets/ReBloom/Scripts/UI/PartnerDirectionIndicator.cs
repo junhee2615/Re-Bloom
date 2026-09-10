@@ -13,21 +13,24 @@ public class PartnerDirectionIndicator : MonoBehaviour
     [SerializeField] private RectTransform indicatorRoot;
     [SerializeField] private RectTransform arrowRectTransform;
     [SerializeField] private TMP_Text distanceText;
+    [SerializeField] private CanvasGroup indicatorCanvasGroup;
 
     [Header("Settings")]
     [SerializeField] private float hideDistance = 2.5f;
     [SerializeField] private float maxArrowRotation = 50f;
 
     [Header("Display")]
-    [SerializeField] private float verticalOffset = 50f;
-    [SerializeField] private float arrowScale = 3.0f;
+    [SerializeField] private float verticalOffset = 0f;
+    [SerializeField] private float arrowScale = 0.7f;
     [SerializeField] private float textOffsetY = 70f;
+    [SerializeField] private float fadeDuration = 0.3f;
 
     [Header("Development Test")]
     [SerializeField] private bool testMode;
     [SerializeField] private Transform testTarget;
 
     private const float VerySmallValue = 0.001f;
+    private bool shouldBeVisible;
 
     public void SetLocalCamera(Camera camera)
     {
@@ -53,11 +56,23 @@ public class PartnerDirectionIndicator : MonoBehaviour
     {
         ResolveLocalCamera();
         if (indicatorRoot != null)
-            indicatorRoot.gameObject.SetActive(false);
+        {
+            if (indicatorCanvasGroup == null)
+                indicatorCanvasGroup = indicatorRoot.GetComponent<CanvasGroup>();
+
+            if (indicatorCanvasGroup == null)
+                indicatorCanvasGroup = indicatorRoot.gameObject.AddComponent<CanvasGroup>();
+
+            indicatorRoot.gameObject.SetActive(true);
+            indicatorCanvasGroup.alpha = 0f;
+            indicatorCanvasGroup.interactable = false;
+            indicatorCanvasGroup.blocksRaycasts = false;
+        }
     }
 
     private void Update()
     {
+        UpdateFade();
         ResolveLocalCamera();
 
         if (localCamera == null || indicatorRoot == null || arrowRectTransform == null)
@@ -67,7 +82,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
         {
             if (testTarget == null)
             {
-                indicatorRoot.gameObject.SetActive(false);
+                SetIndicatorVisible(false);
                 return;
             }
 
@@ -76,11 +91,11 @@ public class PartnerDirectionIndicator : MonoBehaviour
 
             if (distance <= hideDistance)
             {
-                indicatorRoot.gameObject.SetActive(false);
+                SetIndicatorVisible(false);
                 return;
             }
 
-            indicatorRoot.gameObject.SetActive(true);
+            SetIndicatorVisible(true);
 
             if (distanceText != null)
                 distanceText.text = distance.ToString("F1") + "m";
@@ -92,7 +107,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
         NetworkPlayer remotePlayer = FindRemotePlayer();
         if (remotePlayer == null || remotePlayer.PlayerTransform == null)
         {
-            indicatorRoot.gameObject.SetActive(false);
+            SetIndicatorVisible(false);
             return;
         }
 
@@ -101,16 +116,55 @@ public class PartnerDirectionIndicator : MonoBehaviour
 
         if (distanceFromNetwork <= hideDistance)
         {
-            indicatorRoot.gameObject.SetActive(false);
+            SetIndicatorVisible(false);
             return;
         }
 
-        indicatorRoot.gameObject.SetActive(true);
+        SetIndicatorVisible(true);
 
         if (distanceText != null)
             distanceText.text = distanceFromNetwork.ToString("F1") + "m";
 
         UpdateIndicatorPosition(toRemoteFromNetwork, distanceFromNetwork);
+    }
+
+    private void SetIndicatorVisible(bool visible)
+    {
+        shouldBeVisible = visible;
+
+        if (indicatorRoot != null && !indicatorRoot.gameObject.activeSelf)
+            indicatorRoot.gameObject.SetActive(true);
+
+        if (indicatorCanvasGroup != null && visible)
+        {
+            indicatorCanvasGroup.interactable = true;
+            indicatorCanvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    private void UpdateFade()
+    {
+        if (indicatorRoot == null)
+            return;
+
+        if (indicatorCanvasGroup == null)
+            indicatorCanvasGroup = indicatorRoot.GetComponent<CanvasGroup>();
+
+        if (indicatorCanvasGroup == null)
+            indicatorCanvasGroup = indicatorRoot.gameObject.AddComponent<CanvasGroup>();
+
+        float duration = Mathf.Max(fadeDuration, VerySmallValue);
+        float targetAlpha = shouldBeVisible ? 1f : 0f;
+        indicatorCanvasGroup.alpha = Mathf.MoveTowards(
+            indicatorCanvasGroup.alpha,
+            targetAlpha,
+            Time.deltaTime / duration);
+
+        if (!shouldBeVisible && indicatorCanvasGroup.alpha <= 0f)
+        {
+            indicatorCanvasGroup.interactable = false;
+            indicatorCanvasGroup.blocksRaycasts = false;
+        }
     }
 
     private void ResolveLocalCamera()
@@ -174,9 +228,9 @@ public class PartnerDirectionIndicator : MonoBehaviour
             arrowRectTransform.anchorMax = max;
 
             arrowRectTransform.anchoredPosition = Vector2.zero;
-            arrowRectTransform.localScale = new Vector3(arrowScale, arrowScale, 1f);
+            arrowRectTransform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
-            float finalRotation = clampedYaw - 90f;
+            float finalRotation = clampedYaw;
             arrowRectTransform.localRotation = Quaternion.Euler(0f, 0f, -finalRotation);
         }
 
@@ -190,7 +244,7 @@ public class PartnerDirectionIndicator : MonoBehaviour
             if (horizontalDirection.sqrMagnitude < VerySmallValue)
             {
                 if (arrowRectTransform != null)
-                    arrowRectTransform.localRotation = Quaternion.Euler(0f, 0f, -90f);
+                    arrowRectTransform.localRotation = Quaternion.identity;
             }
         }
     }

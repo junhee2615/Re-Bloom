@@ -146,7 +146,7 @@ public class PartnerDirectionIndicatorBootstrap : MonoBehaviour
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.sizeDelta = new Vector2(220f, 120f);
-        rect.anchoredPosition = new Vector2(0f, -90f);
+        rect.anchoredPosition = new Vector2(0f, 0f);
 
         return root;
     }

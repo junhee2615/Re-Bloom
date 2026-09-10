@@ -474,13 +474,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7593992481125287870}
+  - component: {fileID: 2389146639119183994}
   m_Layer: 0
   m_Name: Fish
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7593992481125287870
 Transform:
   m_ObjectHideFlags: 0
@@ -506,6 +507,38 @@ Transform:
   - {fileID: 320463250667767734}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2389146639119183994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3761195625623972319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ea19b31e67d51244830e57ff8c22957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FishSchoolSwim
+  minSpeed: 0.15
+  maxSpeed: 0.45
+  wanderRadius: 2.5
+  targetReachDistance: 0.25
+  minTargetChangeTime: 2
+  maxTargetChangeTime: 5
+  turnSpeed: 1.8
+  swimWiggleAngle: 7
+  minSwimWiggleSpeed: 0.7
+  maxSwimWiggleSpeed: 1.4
+  swimRollAngle: 2
+  verticalBobAmount: 0.03
+  verticalBobSpeed: 1.5
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 2147483648
+  groundClearance: 0.15
+  groundCheckHeight: 2
+  obstacleCheckDistance: 0.45
+  obstacleCheckRadius: 0.08
 --- !u!1 &4270114864076367993
 GameObject:
   m_ObjectHideFlags: 0
