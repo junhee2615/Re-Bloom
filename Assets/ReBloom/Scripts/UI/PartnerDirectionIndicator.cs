@@ -23,6 +23,8 @@ public class PartnerDirectionIndicator : MonoBehaviour
     [SerializeField] private float verticalOffset = 0f;
     [SerializeField] private float arrowScale = 0.7f;
     [SerializeField] private float textOffsetY = 70f;
+    [SerializeField] private float arcHorizontalRadius = 140f;
+    [SerializeField] private float arcVerticalRadius = 70f;
     [SerializeField] private float fadeDuration = 0.3f;
 
     [Header("Development Test")]
@@ -211,23 +213,22 @@ public class PartnerDirectionIndicator : MonoBehaviour
         float yaw = Mathf.Atan2(localDirection.x, Mathf.Max(localDirection.z, VerySmallValue)) * Mathf.Rad2Deg;
         float clampedYaw = Mathf.Clamp(yaw, -90f, 90f);
 
-        float directionT = Mathf.InverseLerp(-90f, 90f, clampedYaw);
-        directionT = Mathf.SmoothStep(0f, 1f, directionT);
-
         if (indicatorRoot != null)
             indicatorRoot.anchoredPosition = new Vector2(0f, verticalOffset);
 
         if (arrowRectTransform != null)
         {
-            Vector2 min = arrowRectTransform.anchorMin;
-            Vector2 max = arrowRectTransform.anchorMax;
-            float anchorX = Mathf.Lerp(0f, 1f, directionT);
-            min.x = anchorX;
-            max.x = anchorX;
-            arrowRectTransform.anchorMin = min;
-            arrowRectTransform.anchorMax = max;
+            float yawRadians = clampedYaw * Mathf.Deg2Rad;
+            Vector2 textPosition = distanceText != null
+                ? distanceText.rectTransform.anchoredPosition
+                : Vector2.zero;
+            Vector2 arcOffset = new Vector2(
+                Mathf.Sin(yawRadians) * arcHorizontalRadius,
+                Mathf.Cos(yawRadians) * arcVerticalRadius);
 
-            arrowRectTransform.anchoredPosition = Vector2.zero;
+            arrowRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            arrowRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            arrowRectTransform.anchoredPosition = textPosition + arcOffset;
             arrowRectTransform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
             float finalRotation = clampedYaw;
