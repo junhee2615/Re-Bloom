@@ -38,12 +38,10 @@ namespace ReBloom.Solar
         [Range(0f, 1f)] public float minGain = 0.05f;
 
         [Header("조작감 과장 — 실제 반사와 다르다")]
-        [Tooltip("켜면 햇빛의 '판 앞뒤' 성분을 지우고 반사를 계산한다. 판이 수평이면 빔이 위로 서고, " +
-                 "앞뒤 기울기에 빔이 대칭으로 반응한다(앞으로 기울면 앞으로, 뒤로 기울면 뒤로). 조명은 그대로다.")]
-        public bool symmetricTilt;
-        [Tooltip("판 기울기가 빔에 반영되는 배율. 1 = 실제 반사(판 1° → 빔 약 2°). " +
-                 "키우면 조금만 기울여도 빔이 크게 꺾인다. 첫 반사에만 적용되고 체인의 다음 거울은 실제 반사다.")]
-        [Min(0f)] public float tiltGain = 1f;
+        [Tooltip("앞으로 기울일 때(앞이 내려갈 때) 기울기가 빔에 반영되는 배율. 1 = 실제 반사")]
+        [Min(0f)] public float tiltGainForward = 1f;
+        [Tooltip("뒤로 기울일 때(뒤가 내려갈 때) 배율. 1 = 실제 반사.")]
+        [Min(0f)] public float tiltGainBack = 1f;
 
         [Header("시각화")]
         [Tooltip("빔을 그릴 LineRenderer. 없어도 계산은 동작한다.")]
@@ -118,25 +116,17 @@ namespace ReBloom.Solar
             Vector3 normal = Normal;
 
             // ── 게임용 과장. 실제 반사가 아니라 조작감을 위한 손질이다. ──
-            // 왜 필요한가: 실제 반사는 대칭의 중심이 "판이 햇빛을 정면으로 되받는 각도"라서,
-            // 해가 비스듬하면 판 수평(0°)에서 빔이 이미 한쪽으로 크게 치우쳐 있다. 그러면 한쪽으로
-            // 기울이면 빔이 내려오고 반대로 기울이면 하늘로만 올라가 조작 범위 절반이 죽는다.
-            if (symmetricTilt)
+            // 배율을 앞뒤로 따로 둔다. 느린 쪽(앞)만 키우면 양쪽 다 판 끝 근처에서 수평이 되고,
+            // 예민한 쪽(뒤)은 실제 반사 그대로 두어 판 뒤로 내리꽂히거나 꺼지는 일을 피한다.
+            Vector3 axis = Vector3.Cross(Vector3.up, normal);
+            if (axis.sqrMagnitude > 1e-8f)
             {
-                // 판의 경첩 축(right)에 수직인 수평 방향 = 판이 기우는 앞뒤 방향.
-                // 햇빛에서 이 성분을 지우면 판이 수평일 때 빔이 위로 서고, ±기울기에 대칭이 된다.
-                // 좌우(x) 성분은 남겨 두므로 빔이 옆으로 밀리는 양은 그대로다 — 어긋난 배치가 그대로 맞는다.
-                Vector3 forward = Vector3.Cross(Surface.right, Vector3.up);
-                Vector3 flat = incoming - Vector3.Dot(incoming, forward.normalized) * forward.normalized;
-                if (flat.sqrMagnitude > 1e-6f) incoming = flat.normalized;
-            }
+                // 판이 앞으로 기울었는지 뒤로 기울었는지 — 법선이 판의 수평 앞 방향 쪽을 보면 앞.
+                Vector3 levelForward = Vector3.Cross(Surface.right, Vector3.up);
+                float gain = Vector3.Dot(normal, levelForward) >= 0f ? tiltGainForward : tiltGainBack;
 
-            if (!Mathf.Approximately(tiltGain, 1f))
-            {
-                // 수평에서 벗어난 각도를 배율만큼 과장한 법선으로 반사한다.
-                Vector3 axis = Vector3.Cross(Vector3.up, normal);
-                if (axis.sqrMagnitude > 1e-8f)
-                    normal = Quaternion.AngleAxis(Vector3.Angle(Vector3.up, normal) * tiltGain, axis.normalized) * Vector3.up;
+                if (!Mathf.Approximately(gain, 1f))
+                    normal = Quaternion.AngleAxis(Vector3.Angle(Vector3.up, normal) * gain, axis.normalized) * Vector3.up;
             }
 
             // 판이 광원을 향한 정도. 뒷면으로 받으면 0.
