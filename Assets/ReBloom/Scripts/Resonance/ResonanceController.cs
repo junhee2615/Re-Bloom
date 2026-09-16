@@ -60,7 +60,11 @@ public sealed class ResonanceController : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            // 씬마다 놓인 Global Volume 에도 이 컴포넌트가 붙어 있다.
+            // gameObject 를 지우면 같은 오브젝트의 Volume 까지 함께 사라져
+            // 그 씬의 포스트 프로세싱이 통째 날아간다 (화면이 하얗게 뜨는 원인).
+            // 중복된 컨트롤러 컴포넌트만 제거하고 오브젝트와 Volume 은 남긴다.
+            Destroy(this);
             return;
         }
 
