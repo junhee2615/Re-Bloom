@@ -2385,6 +2385,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02b5b088be2b32e4d889cdfca0626a0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyCharacterSelectTarget
+  characterOutline: {fileID: 1418682224}
   selectionEffect: {fileID: 1546897373}
   selectionGlyphRenderer: {fileID: 2014868786}
   glyphFadeDuration: 0.3
@@ -4429,6 +4430,7 @@ GameObject:
   - component: {fileID: 834439193}
   - component: {fileID: 834439192}
   - component: {fileID: 834439191}
+  - component: {fileID: 834439195}
   m_Layer: 7
   m_Name: Base (1)
   m_TagString: Untagged
@@ -4513,6 +4515,25 @@ Transform:
   - {fileID: 1596137697}
   m_Father: {fileID: 481104362}
   m_LocalEulerAnglesHint: {x: 0, y: 150, z: 0}
+--- !u!114 &834439195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 834439190}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
+  outlineMode: 1
+  outlineColor: {r: 0.5983935, g: 3.1194968, b: 1.4492661, a: 1}
+  outlineWidth: 4
+  precomputeOutline: 0
+  allowPlayerLayer: 1
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &840177611
 GameObject:
   m_ObjectHideFlags: 0
@@ -7078,6 +7099,7 @@ GameObject:
   - component: {fileID: 1418682222}
   - component: {fileID: 1418682221}
   - component: {fileID: 1418682220}
+  - component: {fileID: 1418682224}
   m_Layer: 7
   m_Name: Base
   m_TagString: Untagged
@@ -7162,6 +7184,25 @@ Transform:
   - {fileID: 474895736}
   m_Father: {fileID: 481104362}
   m_LocalEulerAnglesHint: {x: 0, y: -150, z: 0}
+--- !u!114 &1418682224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418682219}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
+  outlineMode: 1
+  outlineColor: {r: 0.5983935, g: 3.1194968, b: 1.4492661, a: 1}
+  outlineWidth: 4
+  precomputeOutline: 0
+  allowPlayerLayer: 1
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &1442013180
 GameObject:
   m_ObjectHideFlags: 0
@@ -17977,6 +18018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02b5b088be2b32e4d889cdfca0626a0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyCharacterSelectTarget
+  characterOutline: {fileID: 834439195}
   selectionEffect: {fileID: 1527652941}
   selectionGlyphRenderer: {fileID: 1212918214}
   glyphFadeDuration: 0.3

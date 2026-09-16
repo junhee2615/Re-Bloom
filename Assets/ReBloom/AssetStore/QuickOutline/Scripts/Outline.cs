@@ -68,6 +68,13 @@ public class Outline : MonoBehaviour {
   + "Precompute disabled: Per-vertex calculations are performed at runtime in Awake(). This may cause a pause for large meshes.")]
   private bool precomputeOutline;
 
+  // Re:Bloom: Stage에서는 플레이어 아바타(Player 레이어)를 관통해 외곽선이 보이지 않도록
+  // Player 레이어 Renderer를 기본적으로 제외한다. Lobby 캐릭터처럼 Player 레이어인 오브젝트에
+  // 외곽선을 그려야 할 때만 이 옵션을 켠다.
+  [SerializeField, Tooltip("Re:Bloom: 기본(false)은 Player 레이어 Renderer를 외곽선 대상에서 제외한다. "
+  + "Lobby 캐릭터처럼 Player 레이어 오브젝트에 외곽선을 그려야 할 때만 켠다.")]
+  private bool allowPlayerLayer;
+
   [SerializeField, HideInInspector]
   private List<Mesh> bakeKeys = new List<Mesh>();
 
@@ -100,11 +107,9 @@ public class Outline : MonoBehaviour {
   }
 
   void OnEnable() {
-    int playerLayer = LayerMask.NameToLayer("Player");
-
     foreach (var renderer in renderers) {
 
-      if (renderer.gameObject.layer == playerLayer) continue;
+      if (ShouldSkipRenderer(renderer)) continue;
 
       // Append outline shaders
       var materials = renderer.sharedMaterials.ToList();
@@ -142,11 +147,9 @@ public class Outline : MonoBehaviour {
   }
 
   void OnDisable() {
-    int playerLayer = LayerMask.NameToLayer("Player");
-
     foreach (var renderer in renderers) {
 
-      if (renderer.gameObject.layer == playerLayer) continue;
+      if (ShouldSkipRenderer(renderer)) continue;
 
       // Remove outline shaders
       var materials = renderer.sharedMaterials.ToList();
@@ -163,6 +166,14 @@ public class Outline : MonoBehaviour {
     // Destroy material instances
     Destroy(outlineMaskMaterial);
     Destroy(outlineFillMaterial);
+  }
+
+  // Re:Bloom: OnEnable/OnDisable이 같은 기준으로 Renderer를 걸러야
+  // 추가한 Mask/Fill 머티리얼이 제거되지 않고 남는 일이 없다.
+  bool ShouldSkipRenderer(Renderer renderer) {
+    if (allowPlayerLayer) return false;
+
+    return renderer.gameObject.layer == LayerMask.NameToLayer("Player");
   }
 
   void Bake() {

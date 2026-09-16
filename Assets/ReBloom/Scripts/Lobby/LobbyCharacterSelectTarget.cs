@@ -18,8 +18,12 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 /// Hover 연출 (UI Ray Hover에만 반응, Near-Far 등 다른 Interactor는 무시):
 /// - 형제 오브젝트(Base_end_1)의 Animator에 IsHovered=true/false.
 ///   (LobbyCharacterAnimator.controller: Idle ⇄ Thinking)
-/// - Inspector에 연결한 발밑 Selection Effect(ParticleSystem)를 Play / StopEmitting.
-/// - Inspector에 연결한 Glyph(Quad Renderer)를 알파 Fade In/Out 하고, Hover 중에는 천천히 회전시킨다.
+/// - 캐릭터 루트(Base / Base (1))의 QuickOutline `Outline` 컴포넌트를 enabled ON/OFF.
+///   색·두께는 Inspector 값을 그대로 쓰고 코드는 켜고 끄기만 한다.
+///
+/// Confirm 연출용으로 보존 (Hover에서는 호출하지 않음):
+/// - Selection Effect(ParticleSystem) Play / StopEmitting.
+/// - Glyph(Quad Renderer) 알파 Fade In/Out + 회전.
 ///
 /// Glyph 알파 처리 메모:
 /// - Mental/Ear가 같은 LobbySelectionGlyph.mat(URP/Unlit, Transparent)을 공유하므로
@@ -38,7 +42,11 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     private static readonly int BaseColorId =
         Shader.PropertyToID("_BaseColor");
 
-    [Header("Selection Effect")]
+    [Header("Hover Outline")]
+    [SerializeField, Tooltip("캐릭터 루트(Base / Base (1))의 QuickOutline Outline 컴포넌트. 비워 두면 부모에서 자동으로 찾는다.")]
+    private Outline characterOutline;
+
+    [Header("Selection Effect (Confirm용, Hover에서는 사용하지 않음)")]
     [SerializeField, Tooltip("발밑 파동 이펙트. Mental: MentalSelectionEffect/ActivateCircle, Ear: EarSelectionEffect/ActivateCircle")]
     private ParticleSystem selectionEffect;
 
@@ -84,6 +92,21 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
                 this);
         }
 
+        // Outline은 캐릭터 루트(부모)에 붙어 있다. Inspector 연결이 없으면 부모에서 찾는다.
+        // (QuickOutline의 Outline은 전역 네임스페이스. 이 파일은 UnityEngine.UI를 쓰지 않으므로 충돌 없음.)
+        if (characterOutline == null && transform.parent != null)
+            characterOutline = transform.parent.GetComponent<Outline>();
+
+        if (characterOutline == null)
+        {
+            Debug.LogWarning(
+                "[Lobby Character] Outline 컴포넌트를 찾지 못해 Hover 외곽선을 표시할 수 없습니다.",
+                this);
+        }
+
+        // 시작 시 외곽선은 꺼 둔다.
+        SetOutline(false);
+
         // Play On Awake가 켜져 있어도 Hover 전에는 돌지 않도록 시작 시 정리한다.
         StopSelectionEffect(ParticleSystemStopBehavior.StopEmittingAndClear);
 
@@ -110,6 +133,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
         hoveringUIRay = null;
         SetHovered(false);
+        SetOutline(false);
 
         // 비활성화될 때는 남은 파동까지 즉시 정리한다.
         StopSelectionEffect(ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -157,8 +181,8 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         {
             hoveringUIRay = ray;
             SetHovered(true);
-            PlaySelectionEffect();
-            ShowGlyph();
+            SetOutline(true);
+            // Selection Effect / Glyph는 Confirm 단계에서 사용하므로 Hover에서는 호출하지 않는다.
         }
     }
 
@@ -174,13 +198,13 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         }
     }
 
-    // UI Ray 캐시를 버리면서 애니메이션과 이펙트도 원래 상태로 되돌린다.
+    // UI Ray 캐시를 버리면서 애니메이션과 외곽선도 원래 상태로 되돌린다.
+    // (Hover Exit, UI Ray 비활성 감지 등 Hover를 강제로 정리하는 모든 경로가 여기를 거친다.)
     private void ClearHoveringUIRay()
     {
         hoveringUIRay = null;
         SetHovered(false);
-        StopSelectionEffect(ParticleSystemStopBehavior.StopEmitting);
-        HideGlyph();
+        SetOutline(false);
     }
 
     private void SetHovered(bool hovered)
@@ -189,6 +213,16 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
             return;
 
         characterAnimator.SetBool(IsHoveredHash, hovered);
+    }
+
+    // QuickOutline은 enabled 토글만으로 Mask/Fill 머티리얼을 붙였다 뗀다. 색·두께는 Inspector 값 그대로.
+    private void SetOutline(bool enabled)
+    {
+        if (characterOutline == null)
+            return;
+
+        if (characterOutline.enabled != enabled)
+            characterOutline.enabled = enabled;
     }
 
     private static bool IsUIRayInteractor(IXRInteractor interactor, out XRRayInteractor ray)
