@@ -18,7 +18,7 @@ using UnityEngine;
 /// 부착 오브젝트는 NetworkObject여야 한다(씬 베이크). 감지 영역은 트리거 Collider를
 /// 쓰거나 boardingZone에 직접 지정하면 된다.
 /// </summary>
-public class Stage2ToStage3Teleporter : NetworkBehaviour
+public class Stage2ToStage3T : NetworkBehaviour
 {
     [Header("감지 영역")]
     [Tooltip("두 플레이어 탑승을 판정할 영역. 비우면 이 오브젝트의 트리거 Collider를 자동 사용한다.")]
@@ -172,7 +172,7 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
         if (screenFade != null)
             yield return StartCoroutine(screenFade.FadeOut(fadeDuration));
         else
-            Debug.LogWarning("[Stage2ToStage3Teleporter] ScreenFade를 찾지 못했습니다. 페이드 없이 진행합니다.");
+            Debug.LogWarning("[Stage2ToStage3T] ScreenFade를 찾지 못했습니다. 페이드 없이 진행합니다.");
 
         RPC_ReportFaded();
 
@@ -212,7 +212,7 @@ public class Stage2ToStage3Teleporter : NetworkBehaviour
 
         if (next == SceneRef.None)
         {
-            Debug.LogError($"[Stage2ToStage3Teleporter] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            Debug.LogError($"[Stage2ToStage3T] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
             return;
         }
 
