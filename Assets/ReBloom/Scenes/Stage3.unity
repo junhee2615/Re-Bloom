@@ -328,6 +328,9 @@ MonoBehaviour:
   waterfrontSpawnPoint: {fileID: 462404573}
   delayBeforeTransition: 3
   fadeDuration: 1
+  glassDoor: {fileID: 0}
+  doorRotateAngle: 100
+  doorRotateDuration: 1.5
 --- !u!1 &618764029
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,7 +514,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &795704458
 Light:
   m_ObjectHideFlags: 0
@@ -1045,6 +1048,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1120339743846772046, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: sun
+      value: 
+      objectReference: {fileID: 1373043206}
     - target: {fileID: 1905840926404618095, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
@@ -1061,13 +1068,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3944663232450550549, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: debugForceOccupied
-      value: 0
-    - target: {fileID: 1120339743846772046, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: sun
-      value: 
-      objectReference: {fileID: 1373043206}
     - target: {fileID: 3805301633693628875, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: sun
       value: 
@@ -1075,6 +1075,10 @@ PrefabInstance:
     - target: {fileID: 3805301633693628875, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: hitMask.m_Bits
       value: 2147491191
+      objectReference: {fileID: 0}
+    - target: {fileID: 3944663232450550549, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: debugForceOccupied
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4379743928231648254, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_LocalPosition.x
