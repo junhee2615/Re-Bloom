@@ -33,6 +33,12 @@ public class LobbyManager : NetworkBehaviour
     [SerializeField, Tooltip("선택 완료 후 씬을 로드하기까지 기다릴 시간(초). 상대가 무엇을 골랐는지 볼 시간을 준다.")]
     private float startDelaySeconds = 2f;
 
+    [SerializeField, Tooltip("씬을 로드하기 직전 화면을 검게 덮는 시간(초). 모든 플레이어의 ScreenFade에 같은 값이 적용된다.")]
+    private float sceneFadeDuration = 1f;
+
+    // Fade Out 코루틴이 마지막 프레임까지 끝나도록 로드 전에 조금 더 기다린다.
+    private const float SceneFadeExtraWait = 0.1f;
+
     [Header("선택됨 표시")]
     [SerializeField, Tooltip("역할이 선택되면 버튼을 이 색으로 바꾼다. 두 플레이어 모두에게 똑같이 보인다.")]
     private Color takenColor = new Color(0.55f, 0.55f, 0.55f, 1f);
@@ -52,6 +58,13 @@ public class LobbyManager : NetworkBehaviour
     private Coroutine _startRoutine;
     private RoleButtonVisual _mentalVisual;
     private RoleButtonVisual _earVisual;
+
+    // 씬 전환 페이드. ScreenFade는 Persistent XR Rig(Main Camera 아래)에 있어 각 피어가 자기 것을 쓴다.
+    private ScreenFade _screenFade;
+    private Coroutine _fadeRoutine;
+
+    // Host 전용: Fade 시작 RPC를 보낸 뒤 전환이 취소되면 화면을 되돌려야 하는지.
+    private bool _fadeRequested;
 
     public override void Spawned()
     {
@@ -189,6 +202,9 @@ public class LobbyManager : NetworkBehaviour
 
         StopCoroutine(_startRoutine);
         _startRoutine = null;
+
+        // 이미 화면을 검게 덮기 시작했다면 모든 피어의 화면을 되돌린다.
+        RestoreSceneFadeIfRequested();
     }
 
     private IEnumerator LoadNextSceneAfterDelay()
@@ -203,6 +219,22 @@ public class LobbyManager : NetworkBehaviour
             yield break;
         }
 
+        // 모든 피어(Host 포함)의 화면을 검게 덮은 뒤 로드한다.
+        // 다음 씬의 Fade In은 ScreenFade가 sceneLoaded에서 자동으로 처리한다.
+        _fadeRequested = true;
+        Rpc_BeginSceneFade();
+
+        if (sceneFadeDuration > 0f)
+            yield return new WaitForSeconds(sceneFadeDuration + SceneFadeExtraWait);
+
+        // 페이드 중에 선택이 깨졌으면(이탈 등) 출발하지 않고 화면을 되돌린다.
+        if (!IsSelectionComplete())
+        {
+            RestoreSceneFadeIfRequested();
+            _startRoutine = null;
+            yield break;
+        }
+
         SceneRef nextScene = NetworkManager.Instance != null
             ? NetworkManager.Instance.GetSceneRef(nextSceneName)
             : SceneRef.None;
@@ -210,12 +242,82 @@ public class LobbyManager : NetworkBehaviour
         if (nextScene == SceneRef.None)
         {
             Debug.LogError($"[LobbyManager] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            RestoreSceneFadeIfRequested();
             _startRoutine = null;
             yield break;
         }
 
+        _fadeRequested = false;
+
         Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{nextSceneName}' 로드.");
         Runner.LoadScene(nextScene);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene Fade (모든 피어)
+    // ------------------------------------------------------------------
+
+    // Host가 Fade 시작을 알린 뒤 전환이 취소되었을 때 호출한다. (Host 전용)
+    private void RestoreSceneFadeIfRequested()
+    {
+        if (!_fadeRequested || !HasStateAuthority)
+            return;
+
+        _fadeRequested = false;
+        Rpc_RestoreSceneFade();
+    }
+
+    /// <summary>Host → 모든 피어: 각자 자기 ScreenFade로 화면을 검게 덮는다.</summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_BeginSceneFade()
+    {
+        PlayLocalScreenFade(fadeOut: true);
+    }
+
+    /// <summary>Host → 모든 피어: 전환이 취소되어 화면을 다시 밝힌다.</summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_RestoreSceneFade()
+    {
+        PlayLocalScreenFade(fadeOut: false);
+    }
+
+    private void PlayLocalScreenFade(bool fadeOut)
+    {
+        ScreenFade screenFade = ResolveScreenFade();
+
+        if (screenFade == null)
+        {
+            Debug.LogWarning("[LobbyManager] ScreenFade를 찾지 못했습니다. 페이드 없이 진행합니다.", this);
+            return;
+        }
+
+        if (_fadeRoutine != null)
+        {
+            StopCoroutine(_fadeRoutine);
+            _fadeRoutine = null;
+        }
+
+        float duration = Mathf.Max(sceneFadeDuration, 0f);
+
+        _fadeRoutine = StartCoroutine(
+            fadeOut ? screenFade.FadeOut(duration) : screenFade.FadeIn(duration));
+    }
+
+    // Persistent XR Rig의 Main Camera 아래 ScreenFadeCanvas를 쓴다. (컷씬 스크립트와 같은 방식)
+    private ScreenFade ResolveScreenFade()
+    {
+        if (_screenFade != null)
+            return _screenFade;
+
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+            _screenFade = mainCamera.GetComponentInChildren<ScreenFade>(true);
+
+        if (_screenFade == null)
+            _screenFade = FindFirstObjectByType<ScreenFade>(FindObjectsInactive.Include);
+
+        return _screenFade;
     }
 
     /// <summary>세션에서 나간 플레이어가 잡고 있던 역할을 놓아 준다.</summary>

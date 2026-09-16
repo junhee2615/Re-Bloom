@@ -19,7 +19,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 /// 상태:
 /// - Idle     : Hover 가능. UI Ray Hover 중이면 Thinking + Outline.
 /// - Pending  : Confirmation UI가 열린 상태. Ray가 UI로 옮겨 가 hoverExited가 와도 Thinking/Outline 유지.
-/// - Selected : Confirm 완료. Thinking/Outline OFF, Glyph + Selection Effect 재생.
+/// - Selected : Confirm 완료. Thankful 1회 재생, Outline 유지, DetailPanel OFF, Glyph + Selection Effect 재생.
 ///
 /// Trigger(UI Press)는 Idle + 입력 잠금 아님 + Role 지정 상태에서만 SelectRequested 이벤트를 발행한다.
 /// 실제 확인/취소와 LobbyManager 호출은 LobbyCharacterConfirmationUI가 담당한다.
@@ -289,7 +289,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         TryResumeHover();
     }
 
-    /// <summary>Confirm. Thankful 1회 재생, Outline/DetailPanel OFF, Glyph + Selection Effect 재생.</summary>
+    /// <summary>Confirm. Thankful 1회 재생, Outline 유지, DetailPanel OFF, Glyph + Selection Effect 재생.</summary>
     public void PlaySelectedEffect()
     {
         // 두 번 호출되어도 Thankful이 다시 트리거되지 않게 한다.
@@ -300,7 +300,9 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         hoveringUIRay = null;
 
         PlaySelectedAnimation();
-        SetOutline(false);
+
+        // 선택된 캐릭터는 씬이 넘어갈 때까지 외곽선을 유지한다. (Thankful 마지막 포즈에서도 ON)
+        SetOutline(true);
         HideDetailPanel();
 
         ShowGlyph();
@@ -536,9 +538,10 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         if (selectionEffect == null)
             return;
 
-        // StopEmitting 상태에서 다시 Play하면 방출이 재개된다. 이미 재생 중이면 그대로 둔다.
-        if (!selectionEffect.isEmitting)
-            selectionEffect.Play(true);
+        // Burst(Time 0) 방식이라 이미 재생 중이어도 시간을 0으로 되돌려야 Burst가 다시 나온다.
+        // 매번 Clear 후 재시작해 선택 순간에 Burst가 확실히 1회 발생하게 한다.
+        selectionEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        selectionEffect.Play(true);
     }
 
     private void StopSelectionEffect(ParticleSystemStopBehavior stopBehavior)

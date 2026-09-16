@@ -192,17 +192,12 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         if (messageText != null)
             messageText.text = GetMessage(currentTarget.Role);
 
-        // 버튼은 Fade In이 끝난 뒤에만 눌리게 한다.
-        SetCanvasGroupInteractable(false);
+        // 열리는 즉시 입력을 받는다. (Fade In 중 첫 Trigger가 유실되지 않도록) alpha만 페이드한다.
         SetCanvasActive(true);
-        StartFade(1f, fadeInDuration, OnFadeInComplete);
+        SetCanvasGroupInteractable(true);
+        StartFade(1f, fadeInDuration, null);
 
         Debug.Log($"[Lobby Confirmation] Open - role={currentTarget.Role}", this);
-    }
-
-    private void OnFadeInComplete()
-    {
-        SetCanvasGroupInteractable(true);
     }
 
     /// <summary>취소 버튼. 창을 Fade Out한 뒤 대상을 Idle로 되돌리고 다시 캐릭터를 고를 수 있게 한다.</summary>
