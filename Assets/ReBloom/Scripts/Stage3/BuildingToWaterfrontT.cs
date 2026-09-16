@@ -6,8 +6,8 @@ using System.Collections;
 // 바닥에 깔린 Collider 영역에 두 플레이어 다 들어오면 됨
 // delayBeforeTransition(기본 3초) 후에 화면 페이드아웃, WaterfrontToBuilding 텔레포터로 이동
 // - 감지: TrainFloor와 동일하게 Host(StateAuthority)가 매 틱 각 플레이어 몸통 위치를
-// 영역 AABB(+수직 허용치)로 검사한다. (트리거 이벤트가 아니라 영역 판정)
-// - 페이드인: 씬 로드 시 ScreenFade가 자동으로 FadeIn 한다.
+// 영역 AABB(+수직 허용치)로 검사
+// - 페이드인: 씬 로드 시 ScreenFade가 자동으로 FadeIn
 
 public class BuildingToWaterfrontT : NetworkBehaviour
 {
@@ -17,9 +17,13 @@ public class BuildingToWaterfrontT : NetworkBehaviour
     [Header("이동 위치")]
     [SerializeField] private Transform waterfrontSpawnPoint;
     [Header("타이밍(초)")]
-    [SerializeField] private float delayBeforeTransition = 3f;
+    [SerializeField] private float delayBeforeTransition = 3f; // 딜레이 시간
     [SerializeField] private float fadeDuration = 1f; // 페이드아웃 시간
-    
+    [Header("유리문")]
+    [SerializeField] private Transform glassDoor; // 유리문
+    [SerializeField] private float doorRotateAngle = 100f; // 각도
+    [SerializeField] private float doorRotateDuration = 1.5f;
+
 
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
@@ -134,7 +138,10 @@ public class BuildingToWaterfrontT : NetworkBehaviour
         if (screenFade == null)
             screenFade = FindFirstObjectByType<ScreenFade>();
 
-        // 1. 페이드아웃
+        // 1. 유리문 닫기
+        yield return StartCoroutine(RotateDoor());
+
+        // 2. 페이드아웃
         if (screenFade != null)
         {
             yield return StartCoroutine(
@@ -142,13 +149,13 @@ public class BuildingToWaterfrontT : NetworkBehaviour
             );
         }
 
-        // 2. 두 플레이어 이동
+        // 3. 두 플레이어 이동
         if (HasStateAuthority)
         {
             TeleportPlayers();
         }
 
-        // 모든 피어에서 페이드인
+        // 4. 모든 피어에서 페이드인
         if (screenFade != null)
         {
             yield return StartCoroutine(
@@ -156,7 +163,7 @@ public class BuildingToWaterfrontT : NetworkBehaviour
             );
         }
 
-        // 다음 이동을 다시 사용할 수 있도록 초기화
+        // 5. 다음 이동을 다시 사용할 수 있도록 초기화
         if (HasStateAuthority)
         {
             IsActivated = false;
@@ -167,6 +174,30 @@ public class BuildingToWaterfrontT : NetworkBehaviour
     {
         if (waterfrontSpawnPoint == null) { return; }
         RPC_TeleportPlayers(waterfrontSpawnPoint.position, waterfrontSpawnPoint.rotation);
+    }
+
+    private IEnumerator RotateDoor()
+    {
+        if (glassDoor == null)
+            yield break;
+
+        Quaternion startRotation = glassDoor.rotation;
+        Quaternion targetRotation = startRotation * Quaternion.Euler(0f, doorRotateAngle, 0f);
+
+        float elapsed = 0f;
+
+        while (elapsed < doorRotateDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / doorRotateDuration);
+            // 부드럽게 회전
+            t = Mathf.SmoothStep(0f, 1f, t); 
+
+            glassDoor.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+            yield return null;
+        }
+        glassDoor.rotation = targetRotation;
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
