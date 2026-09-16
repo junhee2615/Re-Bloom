@@ -53,6 +53,10 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     private static readonly int IsHoveredHash =
         Animator.StringToHash("IsHovered");
 
+    // LobbyCharacterAnimator.controller: Any State → Thankful (Trigger), Thankful → Idle (Exit Time)
+    private static readonly int SelectedHash =
+        Animator.StringToHash("Selected");
+
     private static readonly int BaseColorId =
         Shader.PropertyToID("_BaseColor");
 
@@ -285,18 +289,36 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         TryResumeHover();
     }
 
-    /// <summary>Confirm. Thinking/Outline을 끄고 Glyph + Selection Effect를 재생한다.</summary>
+    /// <summary>Confirm. Thankful 1회 재생, Outline/DetailPanel OFF, Glyph + Selection Effect 재생.</summary>
     public void PlaySelectedEffect()
     {
+        // 두 번 호출되어도 Thankful이 다시 트리거되지 않게 한다.
+        if (state == SelectState.Selected)
+            return;
+
         state = SelectState.Selected;
         hoveringUIRay = null;
 
-        SetHovered(false);
+        PlaySelectedAnimation();
         SetOutline(false);
         HideDetailPanel();
 
         ShowGlyph();
         PlaySelectionEffect();
+    }
+
+    // Thankful 트리거와 IsHovered=false를 같은 프레임에 넣는다.
+    // Any State → Thankful 전환이 상태 전환(Thinking → Idle)보다 우선 평가되므로
+    // Thinking에서 Idle을 거치지 않고 바로 Thankful로 들어가고, Thankful이 끝난 뒤에는
+    // IsHovered가 false라 Idle에 머문다(Thinking으로 돌아가지 않음).
+    private void PlaySelectedAnimation()
+    {
+        if (characterAnimator == null)
+            return;
+
+        characterAnimator.ResetTrigger(SelectedHash);
+        characterAnimator.SetTrigger(SelectedHash);
+        characterAnimator.SetBool(IsHoveredHash, false);
     }
 
     /// <summary>
