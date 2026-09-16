@@ -51,6 +51,10 @@ public class Mission1ClearCutscene : MonoBehaviour
     [SerializeField]
     private float cleanWaterFadeOutDuration = 1.0f;
 
+    // Shot1 정화 시점에 Dirty → Clean 물소리 Cross Fade 시간
+    [SerializeField]
+    private float waterCrossFadeDuration = 1.0f;
+
     [SerializeField] private AudioClip purificationClip;
 
     [SerializeField, Range(0f, 1f)]
@@ -81,6 +85,7 @@ public class Mission1ClearCutscene : MonoBehaviour
     private AudioSource purificationSource;
 
     private Coroutine cleanWaterVolumeCoroutine;
+    private Coroutine waterCrossFadeCoroutine;
 
     // 컷씬 시작 시 XR Origin > PhysicsHands 아래의
     // 모든 Renderer를 런타임에 찾아 저장한다.
@@ -412,7 +417,7 @@ public class Mission1ClearCutscene : MonoBehaviour
 
                 PlayPurificationSound();
 
-                PlayCleanWaterLoop();
+                StartWaterCrossFade();
 
                 cleanMaterialApplied = true;
 
@@ -450,7 +455,7 @@ public class Mission1ClearCutscene : MonoBehaviour
 
             PlayPurificationSound();
 
-            PlayCleanWaterLoop();
+            StartWaterCrossFade();
 
             yield return
                 FadeInRoutine(
@@ -676,6 +681,8 @@ public class Mission1ClearCutscene : MonoBehaviour
     {
         EnsureWaterAudioSources();
 
+        StopWaterCrossFade(false);
+
         cleanWaterSource.Stop();
 
         if (dirtyWaterClip == null)
@@ -697,27 +704,147 @@ public class Mission1ClearCutscene : MonoBehaviour
     }
 
 
-    private void PlayCleanWaterLoop()
+    // Shot1 정화 시점: Dirty Water는 현재 볼륨 → 0,
+    // Clean Water는 0 → cleanWaterStartVolume으로
+    // 같은 시간 동안 동시에 Cross Fade한다.
+    private void StartWaterCrossFade()
     {
         EnsureWaterAudioSources();
 
-        dirtyWaterSource.Stop();
-
-        if (cleanWaterClip == null)
+        if (waterCrossFadeCoroutine != null)
         {
-            cleanWaterSource.Stop();
-            return;
+            StopCoroutine(
+                waterCrossFadeCoroutine);
+
+            waterCrossFadeCoroutine =
+                null;
         }
 
-        cleanWaterSource.clip =
-            cleanWaterClip;
-
-        cleanWaterSource.volume =
-            cleanWaterStartVolume;
-
-        if (!cleanWaterSource.isPlaying)
+        // Clean Water는 Stop하지 않고 volume 0에서 시작
+        if (cleanWaterClip != null)
         {
-            cleanWaterSource.Play();
+            cleanWaterSource.clip =
+                cleanWaterClip;
+
+            cleanWaterSource.volume =
+                0f;
+
+            if (!cleanWaterSource.isPlaying)
+            {
+                cleanWaterSource.Play();
+            }
+        }
+        else
+        {
+            cleanWaterSource.Stop();
+        }
+
+        waterCrossFadeCoroutine =
+            StartCoroutine(
+                CrossFadeWaterLoops(
+                    Mathf.Max(
+                        waterCrossFadeDuration,
+                        0f)));
+    }
+
+
+    private IEnumerator CrossFadeWaterLoops(
+        float duration)
+    {
+        bool fadeDirty =
+            dirtyWaterSource != null &&
+            dirtyWaterSource.isPlaying;
+
+        bool fadeClean =
+            cleanWaterSource != null &&
+            cleanWaterClip != null;
+
+        float dirtyStartVolume =
+            fadeDirty
+                ? dirtyWaterSource.volume
+                : 0f;
+
+        if (duration > 0f)
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+
+                float t =
+                    Mathf.Clamp01(
+                        elapsed / duration);
+
+                // 두 AudioSource를 같은 t로 동시에 보간
+                if (fadeDirty)
+                {
+                    dirtyWaterSource.volume =
+                        Mathf.Lerp(
+                            dirtyStartVolume,
+                            0f,
+                            t);
+                }
+
+                if (fadeClean)
+                {
+                    cleanWaterSource.volume =
+                        Mathf.Lerp(
+                            0f,
+                            cleanWaterStartVolume,
+                            t);
+                }
+
+                yield return null;
+            }
+        }
+
+        FinishWaterCrossFade();
+
+        waterCrossFadeCoroutine =
+            null;
+    }
+
+
+    // Cross Fade 종료 상태로 즉시 정리:
+    // Dirty Water만 Stop, Clean Water는 cleanWaterStartVolume 유지
+    private void FinishWaterCrossFade()
+    {
+        if (dirtyWaterSource != null)
+        {
+            dirtyWaterSource.volume =
+                0f;
+
+            dirtyWaterSource.Stop();
+
+            dirtyWaterSource.volume =
+                dirtyWaterVolume;
+        }
+
+        if (cleanWaterSource != null &&
+            cleanWaterClip != null)
+        {
+            cleanWaterSource.volume =
+                cleanWaterStartVolume;
+        }
+    }
+
+
+    private void StopWaterCrossFade(
+        bool finish)
+    {
+        if (waterCrossFadeCoroutine == null)
+            return;
+
+        StopCoroutine(
+            waterCrossFadeCoroutine);
+
+        waterCrossFadeCoroutine =
+            null;
+
+        if (finish)
+        {
+            FinishWaterCrossFade();
         }
     }
 
@@ -740,6 +867,10 @@ public class Mission1ClearCutscene : MonoBehaviour
     private void StartCleanWaterVolumeRise(
         float duration)
     {
+        // Cross Fade가 아직 진행 중이면 종료 상태로 정리한 뒤
+        // cleanWaterStartVolume → cleanWaterVolume 상승 시작
+        StopWaterCrossFade(true);
+
         if (cleanWaterVolumeCoroutine != null)
         {
             StopCoroutine(
@@ -870,20 +1001,7 @@ public class Mission1ClearCutscene : MonoBehaviour
 
     private void StopWaterAudio()
     {
-        if (dirtyWaterSource != null)
-        {
-            dirtyWaterSource.Stop();
-        }
-
-        if (cleanWaterSource != null)
-        {
-            cleanWaterSource.Stop();
-        }
-
-        if (purificationSource != null)
-        {
-            purificationSource.Stop();
-        }
+        StopWaterCrossFade(false);
 
         if (cleanWaterVolumeCoroutine != null)
         {
@@ -892,6 +1010,27 @@ public class Mission1ClearCutscene : MonoBehaviour
 
             cleanWaterVolumeCoroutine =
                 null;
+        }
+
+        if (dirtyWaterSource != null)
+        {
+            dirtyWaterSource.Stop();
+
+            dirtyWaterSource.volume =
+                dirtyWaterVolume;
+        }
+
+        if (cleanWaterSource != null)
+        {
+            cleanWaterSource.Stop();
+
+            cleanWaterSource.volume =
+                cleanWaterStartVolume;
+        }
+
+        if (purificationSource != null)
+        {
+            purificationSource.Stop();
         }
     }
 
