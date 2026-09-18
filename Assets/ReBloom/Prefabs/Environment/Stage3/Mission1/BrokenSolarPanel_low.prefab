@@ -4997,6 +4997,9 @@ PrefabInstance:
       addedObject: {fileID: 8697068732299842200}
     - targetCorrespondingSourceObject: {fileID: -4496312228613482899, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 4471120390215587361}
+    - targetCorrespondingSourceObject: {fileID: -4496312228613482899, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 6131851944386464417}
     - targetCorrespondingSourceObject: {fileID: 3334185812359465625, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
@@ -5936,11 +5939,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
-  surface: {fileID: 0}
-  normalAxis: 0
-  halfExtents: {x: 1.59, y: 0.96}
-  twoSided: 0
-  reflectance: 1
   broken: 1
 --- !u!114 &8697068732299842200
 MonoBehaviour:
@@ -5959,6 +5957,27 @@ MonoBehaviour:
   onRepaired:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4471120390215587361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6318105318117705075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec3caf178d02ff5418673363dbc95d04, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarPanelTilt
+  maxPitch: 35
+  maxRoll: 0
+  fullDeflectionDistance: 0.4
+  smoothTime: 0.25
+  occupantRole: 0
+  standProbe: 0.5
+  debugManualTilt: 0
+  debugForward: 0
+  debugRight: 0
 --- !u!64 &6131851944386464417
 MeshCollider:
   m_ObjectHideFlags: 0

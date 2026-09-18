@@ -18,7 +18,7 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField, Min(0f)] private float minDistance = 2f;
     [SerializeField, Min(0f)] private float distanceResponseSpeed = 6f;
     [Tooltip("공명 거리를 벗어난 상태가 이만큼 연속으로 유지돼야 제약이 다시 걸린다. 그 전에 돌아오면 타이머는 0으로 리셋된다. 0이면 넘는 즉시 걸린다.")]
-    [SerializeField, Min(0f)] private float reengageGraceSeconds = 2f;
+    [SerializeField, Min(0f)] private float reengageGraceSeconds = 5f;
     [Tooltip("거리 계산과 Fog 적용값을 매 프레임 출력합니다. 원인 확인 후 끄세요.")]
     [SerializeField] private bool logDistanceCalculation;
 
@@ -41,6 +41,14 @@ public sealed class ResonanceController : MonoBehaviour
 
     // 공명 거리를 벗어난 채로 지난 시간. 돌아오면 0으로 리셋된다.
     private float overDistanceElapsed;
+
+    /// <summary>지금 공명 제약이 풀려 있는가(로컬 캐시, 네트워크 상태를 따른다).</summary>
+    public bool IsConstraintReleased => isConstraintReleased;
+
+    /// <summary>
+    /// 거리 이탈 누적 비율 0~1. 1에 닿으면 제약이 되돌아간다. 해제 상태가 아니거나 거리 안이면 0.
+    /// </summary>
+    public float ReengageProgress => reengageGraceSeconds > 0f ? overDistanceElapsed / reengageGraceSeconds : 0f;
 
     // 마지막으로 적용한 역할 게이트. 역할이 늦게 확정되는 것을 따라잡기 위해 캐시한다.
     private bool appliedVisualGate;
