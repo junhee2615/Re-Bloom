@@ -55,6 +55,17 @@ public class LobbyManager : NetworkBehaviour
     /// <summary>ear를 고른 플레이어. 아무도 안 골랐으면 PlayerRef.None.</summary>
     [Networked] public PlayerRef EarOwner { get; set; }
 
+    /// <summary>
+    /// 개발용 Stage 선택 오버라이드. 0 = Inspector의 nextSceneName 사용, 1/2/3 = Stage1/2/3.
+    /// Host만 값을 쓰고 [Networked]라 두 플레이어가 같은 목적지를 본다.
+    /// </summary>
+    [Networked] public int NextSceneOverride { get; set; }
+
+    /// <summary>현재 기준으로 실제 이동하게 될 씬 이름. Stage Select UI 표시용.</summary>
+    public string CurrentNextSceneName => ResolveNextSceneName();
+
+    private const int MaxStageIndex = 3;
+
     private Coroutine _startRoutine;
     private RoleButtonVisual _mentalVisual;
     private RoleButtonVisual _earVisual;
@@ -76,6 +87,7 @@ public class LobbyManager : NetworkBehaviour
         {
             MentalOwner = PlayerRef.None;
             EarOwner = PlayerRef.None;
+            NextSceneOverride = 0;
             RoleAssignments.Clear();
         }
 
@@ -128,6 +140,69 @@ public class LobbyManager : NetworkBehaviour
             sender = Runner.LocalPlayer;
 
         ApplySelect(sender, role);
+    }
+
+    // ------------------------------------------------------------------
+    // 개발용 Stage 선택 (Stage Select UI에서 호출)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// 다음 씬 오버라이드를 요청한다. 0 = 기본(nextSceneName), 1/2/3 = Stage1/2/3.
+    /// Host는 바로 반영하고, Client는 RPC로 Host에 전달한다. 즉시 씬을 이동하지는 않는다.
+    /// </summary>
+    public void RequestNextSceneOverride(int stageIndex)
+    {
+        if (stageIndex < 0 || stageIndex > MaxStageIndex)
+        {
+            Debug.LogWarning($"[LobbyManager] 잘못된 Stage 인덱스({stageIndex})입니다. 0~{MaxStageIndex}만 허용합니다.", this);
+            return;
+        }
+
+        if (Runner == null || Object == null || !Object.IsValid)
+        {
+            Debug.LogWarning("[LobbyManager] 아직 네트워크에 연결되지 않아 Stage 선택을 보낼 수 없습니다.", this);
+            return;
+        }
+
+        if (HasStateAuthority)
+        {
+            ApplyNextSceneOverride(stageIndex);
+            return;
+        }
+
+        Rpc_SetNextSceneOverride(stageIndex);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_SetNextSceneOverride(int stageIndex)
+    {
+        ApplyNextSceneOverride(stageIndex);
+    }
+
+    // Host 전용. 최종 값은 항상 여기서 결정된다.
+    private void ApplyNextSceneOverride(int stageIndex)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (stageIndex < 0 || stageIndex > MaxStageIndex)
+            stageIndex = 0;
+
+        NextSceneOverride = stageIndex;
+
+        Debug.Log($"[LobbyManager] 다음 씬 오버라이드 = {stageIndex} ('{ResolveNextSceneName()}').", this);
+    }
+
+    /// <summary>실제 로드할 씬 이름. Runner.LoadScene 직전에 호출해 그 시점의 오버라이드를 반영한다.</summary>
+    private string ResolveNextSceneName()
+    {
+        switch (NextSceneOverride)
+        {
+            case 1: return "Stage1";
+            case 2: return "Stage2";
+            case 3: return "Stage3";
+            default: return nextSceneName;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -235,13 +310,16 @@ public class LobbyManager : NetworkBehaviour
             yield break;
         }
 
+        // 로드 직전에 결정한다. (Stage Select 오버라이드가 대기 중에 바뀌어도 반영)
+        string sceneToLoad = ResolveNextSceneName();
+
         SceneRef nextScene = NetworkManager.Instance != null
-            ? NetworkManager.Instance.GetSceneRef(nextSceneName)
+            ? NetworkManager.Instance.GetSceneRef(sceneToLoad)
             : SceneRef.None;
 
         if (nextScene == SceneRef.None)
         {
-            Debug.LogError($"[LobbyManager] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            Debug.LogError($"[LobbyManager] 씬 '{sceneToLoad}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
             RestoreSceneFadeIfRequested();
             _startRoutine = null;
             yield break;
@@ -249,7 +327,7 @@ public class LobbyManager : NetworkBehaviour
 
         _fadeRequested = false;
 
-        Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{nextSceneName}' 로드.");
+        Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{sceneToLoad}' 로드.");
         Runner.LoadScene(nextScene);
     }
 
