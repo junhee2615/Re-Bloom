@@ -338,7 +338,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RightRayModeToggle
   teleportInteractor: {fileID: 9000355448505213438}
   uiInteractor: {fileID: 2131151941425606325}
-  startWithUIMode: 0
+  startWithUIMode: 1
 --- !u!82 &5563912379767233885
 AudioSource:
   m_ObjectHideFlags: 0
@@ -7929,11 +7929,15 @@ MonoBehaviour:
   indicatorRoot: {fileID: 7844690651685493659}
   arrowRectTransform: {fileID: 2336968906832250115}
   distanceText: {fileID: 774207200606997390}
+  indicatorCanvasGroup: {fileID: 0}
   hideDistance: 2.5
   maxArrowRotation: 50
   verticalOffset: 320
   arrowScale: 1
   textOffsetY: 70
+  arcHorizontalRadius: 140
+  arcVerticalRadius: 70
+  fadeDuration: 0.3
   testMode: 0
   testTarget: {fileID: 0}
 --- !u!1 &8549541773006943530
@@ -8254,6 +8258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIPanel
   panelRoot: {fileID: 9146772469149021953}
+  fadeDuration: 0.3
   missionText: {fileID: 7880755873897102416}
   titleText: {fileID: 5781261306730225827}
   descriptionText: {fileID: 3247467413983124077}
@@ -9867,6 +9872,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 1092850076803188865}
     m_Modifications:
     - target: {fileID: 2761784063978902503, guid: c1800acf6366418a9b5f610249000331, type: 3}
+      propertyPath: m_LineType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2761784063978902503, guid: c1800acf6366418a9b5f610249000331, type: 3}
       propertyPath: m_Handedness
       value: 2
       objectReference: {fileID: 0}
@@ -9888,7 +9897,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2761784063978902503, guid: c1800acf6366418a9b5f610249000331, type: 3}
       propertyPath: m_InteractionLayers.m_Bits
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2761784063978902503, guid: c1800acf6366418a9b5f610249000331, type: 3}
       propertyPath: m_BlockUIOnInteractableSelection

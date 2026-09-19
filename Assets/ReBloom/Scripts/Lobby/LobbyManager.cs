@@ -33,6 +33,12 @@ public class LobbyManager : NetworkBehaviour
     [SerializeField, Tooltip("선택 완료 후 씬을 로드하기까지 기다릴 시간(초). 상대가 무엇을 골랐는지 볼 시간을 준다.")]
     private float startDelaySeconds = 2f;
 
+    [SerializeField, Tooltip("씬을 로드하기 직전 화면을 검게 덮는 시간(초). 모든 플레이어의 ScreenFade에 같은 값이 적용된다.")]
+    private float sceneFadeDuration = 1f;
+
+    // Fade Out 코루틴이 마지막 프레임까지 끝나도록 로드 전에 조금 더 기다린다.
+    private const float SceneFadeExtraWait = 0.1f;
+
     [Header("선택됨 표시")]
     [SerializeField, Tooltip("역할이 선택되면 버튼을 이 색으로 바꾼다. 두 플레이어 모두에게 똑같이 보인다.")]
     private Color takenColor = new Color(0.55f, 0.55f, 0.55f, 1f);
@@ -49,9 +55,27 @@ public class LobbyManager : NetworkBehaviour
     /// <summary>ear를 고른 플레이어. 아무도 안 골랐으면 PlayerRef.None.</summary>
     [Networked] public PlayerRef EarOwner { get; set; }
 
+    /// <summary>
+    /// 개발용 Stage 선택 오버라이드. 0 = Inspector의 nextSceneName 사용, 1/2/3 = Stage1/2/3.
+    /// Host만 값을 쓰고 [Networked]라 두 플레이어가 같은 목적지를 본다.
+    /// </summary>
+    [Networked] public int NextSceneOverride { get; set; }
+
+    /// <summary>현재 기준으로 실제 이동하게 될 씬 이름. Stage Select UI 표시용.</summary>
+    public string CurrentNextSceneName => ResolveNextSceneName();
+
+    private const int MaxStageIndex = 3;
+
     private Coroutine _startRoutine;
     private RoleButtonVisual _mentalVisual;
     private RoleButtonVisual _earVisual;
+
+    // 씬 전환 페이드. ScreenFade는 Persistent XR Rig(Main Camera 아래)에 있어 각 피어가 자기 것을 쓴다.
+    private ScreenFade _screenFade;
+    private Coroutine _fadeRoutine;
+
+    // Host 전용: Fade 시작 RPC를 보낸 뒤 전환이 취소되면 화면을 되돌려야 하는지.
+    private bool _fadeRequested;
 
     public override void Spawned()
     {
@@ -63,6 +87,7 @@ public class LobbyManager : NetworkBehaviour
         {
             MentalOwner = PlayerRef.None;
             EarOwner = PlayerRef.None;
+            NextSceneOverride = 0;
             RoleAssignments.Clear();
         }
 
@@ -115,6 +140,69 @@ public class LobbyManager : NetworkBehaviour
             sender = Runner.LocalPlayer;
 
         ApplySelect(sender, role);
+    }
+
+    // ------------------------------------------------------------------
+    // 개발용 Stage 선택 (Stage Select UI에서 호출)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// 다음 씬 오버라이드를 요청한다. 0 = 기본(nextSceneName), 1/2/3 = Stage1/2/3.
+    /// Host는 바로 반영하고, Client는 RPC로 Host에 전달한다. 즉시 씬을 이동하지는 않는다.
+    /// </summary>
+    public void RequestNextSceneOverride(int stageIndex)
+    {
+        if (stageIndex < 0 || stageIndex > MaxStageIndex)
+        {
+            Debug.LogWarning($"[LobbyManager] 잘못된 Stage 인덱스({stageIndex})입니다. 0~{MaxStageIndex}만 허용합니다.", this);
+            return;
+        }
+
+        if (Runner == null || Object == null || !Object.IsValid)
+        {
+            Debug.LogWarning("[LobbyManager] 아직 네트워크에 연결되지 않아 Stage 선택을 보낼 수 없습니다.", this);
+            return;
+        }
+
+        if (HasStateAuthority)
+        {
+            ApplyNextSceneOverride(stageIndex);
+            return;
+        }
+
+        Rpc_SetNextSceneOverride(stageIndex);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_SetNextSceneOverride(int stageIndex)
+    {
+        ApplyNextSceneOverride(stageIndex);
+    }
+
+    // Host 전용. 최종 값은 항상 여기서 결정된다.
+    private void ApplyNextSceneOverride(int stageIndex)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        if (stageIndex < 0 || stageIndex > MaxStageIndex)
+            stageIndex = 0;
+
+        NextSceneOverride = stageIndex;
+
+        Debug.Log($"[LobbyManager] 다음 씬 오버라이드 = {stageIndex} ('{ResolveNextSceneName()}').", this);
+    }
+
+    /// <summary>실제 로드할 씬 이름. Runner.LoadScene 직전에 호출해 그 시점의 오버라이드를 반영한다.</summary>
+    private string ResolveNextSceneName()
+    {
+        switch (NextSceneOverride)
+        {
+            case 1: return "Stage1";
+            case 2: return "Stage2";
+            case 3: return "Stage3";
+            default: return nextSceneName;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -189,6 +277,9 @@ public class LobbyManager : NetworkBehaviour
 
         StopCoroutine(_startRoutine);
         _startRoutine = null;
+
+        // 이미 화면을 검게 덮기 시작했다면 모든 피어의 화면을 되돌린다.
+        RestoreSceneFadeIfRequested();
     }
 
     private IEnumerator LoadNextSceneAfterDelay()
@@ -203,19 +294,108 @@ public class LobbyManager : NetworkBehaviour
             yield break;
         }
 
-        SceneRef nextScene = NetworkManager.Instance != null
-            ? NetworkManager.Instance.GetSceneRef(nextSceneName)
-            : SceneRef.None;
+        // 모든 피어(Host 포함)의 화면을 검게 덮은 뒤 로드한다.
+        // 다음 씬의 Fade In은 ScreenFade가 sceneLoaded에서 자동으로 처리한다.
+        _fadeRequested = true;
+        Rpc_BeginSceneFade();
 
-        if (nextScene == SceneRef.None)
+        if (sceneFadeDuration > 0f)
+            yield return new WaitForSeconds(sceneFadeDuration + SceneFadeExtraWait);
+
+        // 페이드 중에 선택이 깨졌으면(이탈 등) 출발하지 않고 화면을 되돌린다.
+        if (!IsSelectionComplete())
         {
-            Debug.LogError($"[LobbyManager] 씬 '{nextSceneName}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            RestoreSceneFadeIfRequested();
             _startRoutine = null;
             yield break;
         }
 
-        Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{nextSceneName}' 로드.");
+        // 로드 직전에 결정한다. (Stage Select 오버라이드가 대기 중에 바뀌어도 반영)
+        string sceneToLoad = ResolveNextSceneName();
+
+        SceneRef nextScene = NetworkManager.Instance != null
+            ? NetworkManager.Instance.GetSceneRef(sceneToLoad)
+            : SceneRef.None;
+
+        if (nextScene == SceneRef.None)
+        {
+            Debug.LogError($"[LobbyManager] 씬 '{sceneToLoad}'을 찾을 수 없습니다. Build Profiles > Scene List를 확인하세요.", this);
+            RestoreSceneFadeIfRequested();
+            _startRoutine = null;
+            yield break;
+        }
+
+        _fadeRequested = false;
+
+        Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{sceneToLoad}' 로드.");
         Runner.LoadScene(nextScene);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene Fade (모든 피어)
+    // ------------------------------------------------------------------
+
+    // Host가 Fade 시작을 알린 뒤 전환이 취소되었을 때 호출한다. (Host 전용)
+    private void RestoreSceneFadeIfRequested()
+    {
+        if (!_fadeRequested || !HasStateAuthority)
+            return;
+
+        _fadeRequested = false;
+        Rpc_RestoreSceneFade();
+    }
+
+    /// <summary>Host → 모든 피어: 각자 자기 ScreenFade로 화면을 검게 덮는다.</summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_BeginSceneFade()
+    {
+        PlayLocalScreenFade(fadeOut: true);
+    }
+
+    /// <summary>Host → 모든 피어: 전환이 취소되어 화면을 다시 밝힌다.</summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void Rpc_RestoreSceneFade()
+    {
+        PlayLocalScreenFade(fadeOut: false);
+    }
+
+    private void PlayLocalScreenFade(bool fadeOut)
+    {
+        ScreenFade screenFade = ResolveScreenFade();
+
+        if (screenFade == null)
+        {
+            Debug.LogWarning("[LobbyManager] ScreenFade를 찾지 못했습니다. 페이드 없이 진행합니다.", this);
+            return;
+        }
+
+        if (_fadeRoutine != null)
+        {
+            StopCoroutine(_fadeRoutine);
+            _fadeRoutine = null;
+        }
+
+        float duration = Mathf.Max(sceneFadeDuration, 0f);
+
+        _fadeRoutine = StartCoroutine(
+            fadeOut ? screenFade.FadeOut(duration) : screenFade.FadeIn(duration));
+    }
+
+    // Persistent XR Rig의 Main Camera 아래 ScreenFadeCanvas를 쓴다. (컷씬 스크립트와 같은 방식)
+    private ScreenFade ResolveScreenFade()
+    {
+        if (_screenFade != null)
+            return _screenFade;
+
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+            _screenFade = mainCamera.GetComponentInChildren<ScreenFade>(true);
+
+        if (_screenFade == null)
+            _screenFade = FindFirstObjectByType<ScreenFade>(FindObjectsInactive.Include);
+
+        return _screenFade;
     }
 
     /// <summary>세션에서 나간 플레이어가 잡고 있던 역할을 놓아 준다.</summary>

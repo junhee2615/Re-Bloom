@@ -29,6 +29,7 @@ public class WaterMissionManager : MonoBehaviour
     [Tooltip("클리어 시 활성화할 오브젝트들.")]
     [SerializeField] private List<GameObject> objectsToActivate = new List<GameObject>();
     [SerializeField] private Transform dirtyToCleanWaterRoot;
+    [SerializeField] private Mission1ClearCutscene mission1ClearCutscene;
     /// <summary>수로 정화 미션(MISSION 1) 완료. 모든 머신에서 로컬로 1회 발행된다.</summary>
     public static event System.Action MissionCleared;
 
@@ -121,14 +122,27 @@ public class WaterMissionManager : MonoBehaviour
         foreach (GameObject go in objectsToActivate) // 지정 오브젝트 활성화
             if (go != null) go.SetActive(true);
         
-        if (dirtyToCleanWaterRoot != null) // 물 정화 (DirtyToCleanWater → M_CleanWater)
-            foreach (WaterPurify wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>())
-                wp.StartPurify();
-        
-        // 물 차오르기 (5초 연출)
-        if (cleanWater != null)
-            StartCoroutine(RiseWater());
+        bool cutsceneStarted =
+            mission1ClearCutscene != null &&
+            mission1ClearCutscene.TryPlay(NotifyMissionCleared);
 
+        if (!cutsceneStarted)
+        {
+            if (dirtyToCleanWaterRoot != null) // 물 정화 (DirtyToCleanWater → M_CleanWater)
+                foreach (WaterPurify wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>())
+                    wp.StartPurify();
+
+            if (cleanWater != null)
+                StartCoroutine(RiseWater());
+
+            NotifyMissionCleared();
+        }
+
+        return;
+    }
+
+    private void NotifyMissionCleared()
+    {
         // 튜토리얼 진행 알림 (TutorialMissionManager_2가 구독)
         MissionCleared?.Invoke();
     }
