@@ -228,11 +228,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
-  surface: {fileID: 0}
-  normalAxis: 0
-  halfExtents: {x: 1.59, y: 0.96}
-  twoSided: 0
-  reflectance: 1
   broken: 0
 --- !u!114 &8556535060835092060
 MonoBehaviour:
@@ -386,8 +381,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 301545550e36f0241958f74d612706c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarBeam
-  sun: {fileID: 0}
-  origin: {fileID: 0}
   maxDistance: 60
   hitMask:
     serializedVersion: 2
@@ -396,7 +389,6 @@ MonoBehaviour:
   minGain: 0.05
   tiltGainForward: 1.8
   tiltGainBack: 1.2
-  line: {fileID: 2048807197179715499}
 --- !u!64 &3682245615501268640
 MeshCollider:
   m_ObjectHideFlags: 0

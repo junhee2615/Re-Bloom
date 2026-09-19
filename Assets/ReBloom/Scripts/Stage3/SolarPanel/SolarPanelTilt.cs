@@ -13,6 +13,9 @@ namespace ReBloom.Solar
     /// 판은 <b>올라서 있는 동안에만</b> 움직인다. 내려오면 수평으로 돌아가지 않고
     /// 마지막 각도 그대로 남는다 — 맞춰 놓은 각도가 유지돼야 다음 판으로 넘어갈 수 있다.
     ///
+    /// 같은 오브젝트에 <see cref="SolarReflector"/>가 있고 <see cref="SolarReflector.broken"/>이면 밟아도 움직이지 않는다.
+    /// 수리되는 순간부터 조절할 수 있다 — 고장 패널이 살아나면 정상 패널처럼 된다.
+    ///
     /// 물리를 쓰지 않고 "선 위치 → 각도"를 직접 매핑한다. 이유가 둘이다.
     ///  - CharacterController는 Rigidbody를 밀지 않아 물리로 만들면 힘을 직접 줘야 하고,
     ///    네트워크 물리와 섞이면 튀는 동작을 잡기 어렵다.
@@ -65,6 +68,9 @@ namespace ReBloom.Solar
         // 밟는 면. 이 콜라이더에 맞아야 올라선 것으로 본다.
         Collider deck;
 
+        // 같은 오브젝트의 거울. 고장이면 잠근다. 없으면(거울 아닌 판) 항상 움직인다.
+        SolarReflector reflector;
+
         // 정규화된 현재 기울기 (-1..1). x = 앞뒤, y = 좌우.
         Vector2 current;
         Vector2 velocity;
@@ -72,6 +78,7 @@ namespace ReBloom.Solar
         void Awake()
         {
             restYaw = YawOnly(transform.rotation);
+            reflector = GetComponent<SolarReflector>();
 
             deck = GetComponent<Collider>();
             if (deck == null)
@@ -83,6 +90,13 @@ namespace ReBloom.Solar
 
         void Update()
         {
+            // 고장난 판은 밟아도 움직이지 않는다. 각도는 배치된 그대로 남는다.
+            if (reflector != null && reflector.broken)
+            {
+                IsOccupied = false;
+                return;
+            }
+
             Vector2 target;
 
             if (debugManualTilt)
