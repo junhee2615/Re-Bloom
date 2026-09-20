@@ -698,7 +698,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1373043204}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41439575, y: -0.83912146, z: 0.3111292, w: 0.16537848}
+  m_LocalRotation: {x: 0.40610954, y: -0.82803077, z: 0.34530714, w: 0.17379045}
   m_LocalPosition: {x: 8.55, y: 85.14, z: -41.97}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1099,6 +1099,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7146819004974341702, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.b
+      value: 0.6185983
+      objectReference: {fileID: 0}
+    - target: {fileID: 7146819004974341702, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.g
+      value: 0.8678978
+      objectReference: {fileID: 0}
+    - target: {fileID: 7146819004974341702, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8699211011718871939, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: hitMask.m_Bits
       value: 2147491191
@@ -1198,3 +1210,4 @@ SceneRoots:
   - {fileID: 1740867299}
   - {fileID: 1539875647}
   - {fileID: 802586104}
+  - {fileID: 2138010515}
