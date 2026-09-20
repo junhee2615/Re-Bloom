@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
+  faceAngleTolerance: 15
   broken: 0
 --- !u!114 &8556535060835092060
 MonoBehaviour:
@@ -331,7 +332,7 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 0.8666667, b: 0.61960787, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
