@@ -4,6 +4,10 @@
 //   → LineRenderer.colorGradient(꼬리 알파 0 → 머리 알파 1)가 실제 투명도로 반영된다.
 // - rgb = (BaseColor.rgb + EmissionColor.rgb) × VertexColor.rgb,  a = BaseColor.a × VertexColor.a
 // - 조명·노멀·텍스처 없음. XR Single Pass Instanced 스테레오 매크로 포함. SRP Batcher 호환.
+// - Gameplay Guide 용도라 항상 보여야 한다:
+//   · ZTest Always  → 캐릭터/지형/물(ZWrite ON인 M_CleanWater 포함) 뒤에 있어도 깊이 판정에 걸리지 않는다.
+//   · Queue Transparent+50 → StylizedWater2 물(Transparent+0, 거리순 정렬)보다 항상 나중에 그려져
+//     물 표면 아래/뒤에 있어도 물에 덮이지 않는다. (QuickOutline 3100/ScreenFade 보다는 앞)
 Shader "ReBloom/Waterway Boundary Trail"
 {
     Properties
@@ -18,7 +22,7 @@ Shader "ReBloom/Waterway Boundary Trail"
         {
             "RenderPipeline" = "UniversalPipeline"
             "RenderType" = "Transparent"
-            "Queue" = "Transparent"
+            "Queue" = "Transparent+50"
             "IgnoreProjector" = "True"
         }
 
@@ -29,6 +33,7 @@ Shader "ReBloom/Waterway Boundary Trail"
 
             Blend SrcAlpha OneMinusSrcAlpha
             ZWrite Off
+            ZTest Always
             Cull Off
 
             HLSLPROGRAM
