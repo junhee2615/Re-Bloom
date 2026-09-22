@@ -90,6 +90,14 @@ namespace ReBloom.Water
         public float dryDuration = 3.0f;
 
         // ---------------------------------------------------------------
+        [Header("mental 판정 범위")]
+        [Tooltip("켜면 mental 의 클리어 구간이 '멈칫이 시작되는 순간 ~ 판정 지점' 전체가 된다.\n끄면 판정 지점 기준 ±window 만 인정한다")]
+        public bool mentalWindowFromHesitation = true;
+
+        [Tooltip("멈칫 시작보다 이만큼 더 일찍부터 인정한다 (초). 0 이면 멈칫 시작이 곧 구간의 시작")]
+        public float mentalEarlyPadding = 0f;
+
+        // ---------------------------------------------------------------
         [Header("햅틱 — 거리 기반 연속 진동 (ear 전용)")]
         [Tooltip("진동을 느끼는 기준점. 보통 ear 플레이어. 비우면 판정 지점을 쓴다")]
         public Transform hapticListener;
@@ -363,6 +371,40 @@ namespace ReBloom.Water
                 if (consecutiveFailures >= assistAfterFailures) w += assistWindowBonus;
                 return w;
             }
+        }
+
+        /// <summary>지금 물결의 예고 구간 길이(초).</summary>
+        float ApproachDuration
+        {
+            get
+            {
+                if (networkDriven) return Mathf.Max(0.01f, netApproach);
+                RoundSetup r = CurrentRound;
+                float a = r != null ? r.approachDuration : 2.4f;
+                return a < 0.01f ? 2.4f : a;
+            }
+        }
+
+        /// <summary>
+        /// mental 이 판정 지점보다 얼마나 먼저 눌러도 인정되는가 (초).
+        /// 멈칫이 시작되는 시점부터 판정 지점까지를 통째로 열어 준다.
+        /// </summary>
+        public float MentalEarlyWindow
+        {
+            get
+            {
+                if (!mentalWindowFromHesitation) return CurrentWindow;
+                float ratio = Mathf.Clamp(hesitationTimeRatio, 0.45f, 0.92f);
+                float fromHesitation = ApproachDuration * (1f - ratio) + Mathf.Max(0f, mentalEarlyPadding);
+                // 기존 창보다 좁아지지는 않게 한다
+                return Mathf.Max(fromHesitation, CurrentWindow);
+            }
+        }
+
+        /// <summary>mental 판정. err = 누른 시각 - 판정 시각.</summary>
+        public bool IsMentalHit(float err)
+        {
+            return err >= -MentalEarlyWindow && err <= CurrentWindow;
         }
 
         public bool StationsReady()
@@ -656,7 +698,7 @@ namespace ReBloom.Water
             {
                 bool netHit = waveIsReal && (role == Role.ear
                     ? hapticIntensity >= earPlateauThreshold
-                    : Mathf.Abs(err) <= CurrentWindow);
+                    : IsMentalHit(err));
 
                 if (netHit)
                 {
@@ -681,7 +723,7 @@ namespace ReBloom.Water
                 return;
             }
 
-            if (Mathf.Abs(err) <= CurrentWindow)
+            if (IsMentalHit(err))
                 Resolve(waveIsReal ? WaveOutcome.Success : WaveOutcome.FalseAlarm, err);
             else if (err < 0f) Resolve(WaveOutcome.TooEarly, err);
             else Resolve(WaveOutcome.TooLate, err);
@@ -780,6 +822,16 @@ namespace ReBloom.Water
             Gizmos.DrawWireSphere(judge, 1.2f);
             Gizmos.DrawLine(judge - side * 10f, judge + side * 10f);
 
+            // mental 클리어 구간 (초록) : 멈칫 시작 ~ 판정 지점
+            if (mentalWindowFromHesitation)
+            {
+                Gizmos.color = new Color(0.35f, 1f, 0.5f);
+                Vector3 ha = hes + Vector3.up * 0.2f;
+                Vector3 hb = judge + Vector3.up * 0.2f;
+                Gizmos.DrawLine(ha - side * 6f, hb - side * 6f);
+                Gizmos.DrawLine(ha + side * 6f, hb + side * 6f);
+            }
+
             if (Application.isPlaying && waveActive)
             {
                 Gizmos.color = Color.white;
@@ -794,7 +846,7 @@ namespace ReBloom.Water
             GUI.skin.label.richText = true;
 
             const int W = 430;
-            const int H = 235;
+            const int H = 258;
             GUI.Box(new Rect(10, 10, W, H), "");
             GUILayout.BeginArea(new Rect(22, 20, W - 24, H - 20));
 
@@ -816,6 +868,10 @@ namespace ReBloom.Water
             GUILayout.Label("회차 : " + (r != null ? r.label : "-") + "   |   성공 " + successCount + " / " + rounds.Count);
             GUILayout.Label("판정 창 : ±" + CurrentWindow.ToString("F2") + "s"
                 + (consecutiveFailures >= assistAfterFailures ? "  (어시스트 ON)" : ""));
+
+            if (mentalWindowFromHesitation)
+                GUILayout.Label("mental : -" + MentalEarlyWindow.ToString("F2") + "s ~ +"
+                    + CurrentWindow.ToString("F2") + "s");
 
             if (waveActive)
             {

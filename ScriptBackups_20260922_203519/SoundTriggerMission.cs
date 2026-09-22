@@ -8,16 +8,10 @@ using UnityEngine.UI;
 /// <summary>
 /// AliveStump 미션 : 뿌리에서 올라오는 리듬 패턴을 '소리'로 들려주고,
 /// 그 패턴과 똑같이 컨트롤러 Grab 버튼을 눌러 맞히는 리듬 미션.
-///
-/// 네트워크 모드에서는 두 머신 모두에서 이 코루틴이 돌아 같은 안내/소리/결과를 보고 듣는다.
-/// Grab 입력 판정은 requiredRole(ear)만 하고, 판정 결과와 버튼 누름 피드백은
-/// RootMissionNet을 통해 상대에게 중계된다.
+
 /// </summary>
 public class SoundTriggerMission : ActivationMission
 {
-    // 진행 상황 키에 쓰는 페이즈 번호 (이 미션은 단일 페이즈)
-    private const int PhasePlay = 1;
-
     [Header("UI (MissionPanel 하위)")]
     [SerializeField] private TextMeshProUGUI firstText;
     [SerializeField] private GameObject earImage;
@@ -44,7 +38,7 @@ public class SoundTriggerMission : ActivationMission
     [SerializeField] private float clearTextDuration = 1.5f;     // (9-1) '게임 클리어!' 표시
     [SerializeField] private float wrongTextDuration = 1.5f;     // (9-2) '틀렸습니다!' 표시
 
-    // 플레이 판정 결과 (성공 여부)
+    // 플레이 패정 결과 (성공 여부)
     private bool playSucceeded;
 
     [Header("리듬 패턴 (소리)")]
@@ -58,7 +52,7 @@ public class SoundTriggerMission : ActivationMission
     [SerializeField] private float longGap = 0.4f;
 
     [Header("효과음")]
-    [Tooltip("각 펄스마다 재생할 '똑똑' 효과음 (두 플레이어 모두에게 들린다)")]
+    [Tooltip("각 펄스마다 재생할 '똑똑' 효과음")]
     [SerializeField] private AudioSource pulseAudioSource;
     [SerializeField] private AudioClip pulseClip;
 
@@ -94,9 +88,7 @@ public class SoundTriggerMission : ActivationMission
     private IEnumerator RunMission()
     {
         // 실패 시 (1)번으로 돌아오도록 전체를 반복
-        int attempt = 0;
-
-        for (;;)
+        while (true)
         {
             // (1) 기억하기 안내
             SetText(msgRemember);
@@ -108,7 +100,7 @@ public class SoundTriggerMission : ActivationMission
             if (earImage != null) earImage.SetActive(true);
             SetText(msgListen);
 
-            // (3) 리듬 패턴을 '소리'로 재생 (두 머신 모두에서 같은 타이밍에 재생)
+            // (3) 리듬 패턴을 '소리'로 재생
             yield return StartCoroutine(PlayVibrationPattern());
 
             // (4) 재생 끝나고 1초 대기
@@ -129,37 +121,20 @@ public class SoundTriggerMission : ActivationMission
             }
             SetText(msgPlay);
 
-            // (8) Grab 박자 판정 — 수행 역할만 판정하고, 관전자는 중계된 결과를 기다린다.
-            bool judge = IsJudge;
-            int key = ResultKey(PhasePlay, attempt);
-            bool success;
-
-            if (judge)
-            {
-                playSucceeded = false;
-                yield return StartCoroutine(WaitForPlayResult(attempt));
-                success = playSucceeded;
-                SubmitResult(key, success);
-            }
-            else
-            {
-                yield return StartCoroutine(WatchRemotePlay(attempt, key));
-                TryGetResult(key, out success);
-            }
-
-            ClearRoundKeys(PhasePlay, attempt, SignalSlotCount());
+            // (8) Grab 박자 판정
+            playSucceeded = false;
+            yield return StartCoroutine(WaitForPlayResult());
 
             // (9) 결과 처리
             if (buttonImage != null) buttonImage.SetActive(false);
-            SetButtonColor(buttonNormalColor);
 
-            if (success)
+            if (playSucceeded)
             {
                 // (9-1) 성공
                 SetText(msgClear);
                 yield return new WaitForSeconds(clearTextDuration);
                 runningRoutine = null;
-                Clear();          // RootActivation → 다음 뿌리로
+                Clear();          // RootActivation.CompleteActivation() → 다음 뿌리로
                 yield break;
             }
             else
@@ -167,7 +142,7 @@ public class SoundTriggerMission : ActivationMission
                 // (9-2) 실패 → (1)번으로
                 SetText(msgWrong);
                 yield return new WaitForSeconds(wrongTextDuration);
-                attempt++;
+                // while 루프가 다시 (1)로 돌려보냄
             }
         }
     }
@@ -202,7 +177,7 @@ public class SoundTriggerMission : ActivationMission
         }
     }
 
-    // 리듬 펄스 1회 = '똑똑' 효과음 재생 (진동 없음). 두 머신에서 각자 재생된다.
+    // 리듬 펄스 1회 = '똑똑' 효과음 재생 (진동 없음)
     private void SendPulse()
     {
         if (pulseAudioSource != null && pulseClip != null)
@@ -210,8 +185,7 @@ public class SoundTriggerMission : ActivationMission
     }
 
     // (8) Grab 박자 판정 : (3)의 소리 패턴대로 Grab 버튼을 눌렀는지 비교 (너무 빡빡하지 않게)
-    // 누름/뗌은 그때그때 상대에게 중계해 상대 화면의 버튼도 같이 눌린 색으로 바뀐다.
-    private IEnumerator WaitForPlayResult(int attempt)
+    private IEnumerator WaitForPlayResult()
     {
         // (3)에서 들려준 패턴의 '펄스 사이 간격'들을 기대값으로 만든다.
         List<float> expected = BuildExpectedIntervals();
@@ -221,7 +195,7 @@ public class SoundTriggerMission : ActivationMission
         bool prevPressed = IsGrabPressed();        // 이미 쥐고 있던 입력은 무시
         float startTime = Time.time;
 
-        for (;;)
+        while (true)
         {
             bool pressed = IsGrabPressed();
 
@@ -230,16 +204,13 @@ public class SoundTriggerMission : ActivationMission
                 // 누르는 순간 → 박자 기록 + 회색(누르고 있는 동안)
                 pressTimes.Add(Time.time);
                 SetButtonColor(buttonPressedColor);
-                SubmitSignal(SignalKey(PhasePlay, attempt, (pressTimes.Count - 1) * 2));
                 if (pressTimes.Count >= expectedCount)
                     break;
             }
             else if (!pressed && prevPressed)
             {
-                // 손을 뗀 순간 → 흰색
+                // 손을 뗄 순간 → 흰색
                 SetButtonColor(buttonNormalColor);
-                if (pressTimes.Count > 0)
-                    SubmitSignal(SignalKey(PhasePlay, attempt, (pressTimes.Count - 1) * 2 + 1));
             }
             prevPressed = pressed;
 
@@ -256,34 +227,6 @@ public class SoundTriggerMission : ActivationMission
 
         SetButtonColor(buttonNormalColor);   // 판정 전 흰색으로 복구
         playSucceeded = Judge(expected, pressTimes);
-    }
-
-    // 관전자: 상대의 누름/뗌 신호를 버튼 색으로 따라 보여주며 판정 결과를 기다린다.
-    private IEnumerator WatchRemotePlay(int attempt, int resultKey)
-    {
-        int slots = SignalSlotCount();
-        int nextSlot = 0;
-        bool success;
-
-        while (!TryGetResult(resultKey, out success))
-        {
-            while (nextSlot < slots && HasSignal(SignalKey(PhasePlay, attempt, nextSlot)))
-            {
-                // 짝수 슬롯 = 누름, 홀수 슬롯 = 뗌
-                SetButtonColor((nextSlot % 2 == 0) ? buttonPressedColor : buttonNormalColor);
-                nextSlot++;
-            }
-
-            yield return null;
-        }
-
-        SetButtonColor(buttonNormalColor);
-    }
-
-    // 한 시도에서 쓰는 입력 신호 슬롯 수 (누름/뗌 2개씩 + 여유)
-    private int SignalSlotCount()
-    {
-        return (BuildExpectedIntervals().Count + 1) * 2 + 2;
     }
 
     // ButtonImage의 Image 색을 바꿈
@@ -318,8 +261,8 @@ public class SoundTriggerMission : ActivationMission
         return ok >= Mathf.CeilToInt(expected.Count * requiredMatchRatio);
     }
 
-    // 오른손 컨트롤러 Grab(그립) 버튼을 누르고 있는지
-    private bool IsGrabPressed()
+    // 오른손 컨트롤러 Grab(그립) 버튼을 눌려 있는지
+private bool IsGrabPressed()
     {
         // 역할 제한: 이 미션을 할 수 없는 플레이어의 그랩 입력은 인정하지 않음
         if (!CanLocalPlayerPlay()) return false;

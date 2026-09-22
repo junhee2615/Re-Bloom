@@ -185,9 +185,7 @@ public void CompleteActivation()
         }
     }
 
-    // 네트워크: 모든 머신에서 호출(RPC_StartAll).
-    // 두 플레이어가 같은 MissionCanvas 진행 상황을 보도록, 미션 코루틴은 양쪽 모두에서 돌린다.
-    // 입력/판정 제한은 미션 스크립트 내부에서 역할로 거르고, 결과는 RootMissionNet이 중계한다.
+    // 네트워크: 모든 머신에서 호출(RPC_StartAll). 수행 가능한 플레이어만 실제 미션 구동, 그 외는 관전.
     public void NetStartLocal()
     {
         if (missionStarted) return;
@@ -196,20 +194,16 @@ public void CompleteActivation()
         if (startButton != null) startButton.SetActive(false);
         if (missionPanel != null) missionPanel.SetActive(true);
 
-        if (mission != null)
+        if (mission != null && mission.CanLocalPlayerPlay())
         {
             mission.SetMissionIndex(MissionIndex);
             mission.OnCleared = OnMissionClearedNet;
             mission.StartMission();
-
-            if (mission.CanLocalPlayerPlay())
-                Debug.Log($"{name} 미션 시작 (네트워크)");
-            else
-                Debug.Log($"{name} 미션 시작 (네트워크 / 관전 - 입력은 상대 역할이 수행)");
+            Debug.Log($"{name} 미션 시작 (네트워크)");
         }
         else
         {
-            Debug.LogWarning($"{name} 에 mission이 연결되지 않았습니다.");
+            Debug.Log($"{name} 관전 (다른 역할의 플레이어가 수행)");
         }
     }
 

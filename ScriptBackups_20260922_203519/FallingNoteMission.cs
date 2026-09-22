@@ -7,16 +7,9 @@ using TMPro;
 /// <summary>
 /// AliveStump2 미션 : 떨어지는 노트(LeafNoteButton)를 ClearRow에 맞춰 터치하는 리듬게임.
 /// (AliveStump2 하위 MissionPanel에 붙는다. RootActivation이 StartMission()을 호출.)
-///
-/// 네트워크 모드에서는 두 머신 모두에서 이 코루틴이 돌아 안내 문구·노트 낙하·결과를 함께 본다.
-/// 터치 판정은 requiredRole(mental)만 하고, 터치/성공·실패는 RootMissionNet으로 중계되어
-/// 관전하는 쪽 화면에서도 같은 노트가 눌린 색으로 바뀐다.
 /// </summary>
 public class FallingNoteMission : ActivationMission
 {
-    // 진행 상황 키에 쓰는 페이즈 번호 (이 미션은 단일 페이즈)
-    private const int PhaseNotes = 2;
-
     [Header("UI (MissionPanel 하위)")]
     [SerializeField] private TextMeshProUGUI firstText;
     [SerializeField] private GameObject leafImage;
@@ -48,7 +41,6 @@ public class FallingNoteMission : ActivationMission
     // 각 노트 상태
     private class Note
     {
-        public int index;
         public GameObject go;
         public RectTransform rect;
         public Button button;
@@ -65,9 +57,6 @@ public class FallingNoteMission : ActivationMission
     private bool gathered;
     private Coroutine running;
 
-    // 현재 시도 번호 (터치 신호 키 계산에 쓰인다)
-    private int currentAttempt;
-
     public override void StartMission()
     {
         if (running != null) StopCoroutine(running);
@@ -81,7 +70,7 @@ public class FallingNoteMission : ActivationMission
     }
 
     // Notes 하위의 LeafNoteButton들을 한 번만 수집하고 클릭 이벤트를 연결한다.
-    private void GatherNotes()
+private void GatherNotes()
     {
         if (gathered) return;
         gathered = true;
@@ -98,7 +87,6 @@ public class FallingNoteMission : ActivationMission
             if (img == null) img = child.GetComponent<Image>();
 
             Note n = new Note();
-            n.index = notes.Count;           // 두 머신이 같은 순서로 수집하므로 인덱스가 곧 공통 식별자
             n.go = child.gameObject;
             n.rect = child as RectTransform;
             n.button = b;
@@ -117,15 +105,11 @@ public class FallingNoteMission : ActivationMission
         Debug.Log($"[FallingNote] 노트 {notes.Count}개 수집 (clearRow 할당={clearRow != null}, gamePanel 할당={gamePanel != null})");
     }
 
-    private IEnumerator RunMission()
+private IEnumerator RunMission()
     {
         // 실패하면 (2)로 돌아오도록 전체 반복
-        int attempt = 0;
-
-        for (;;)
+        while (true)
         {
-            currentAttempt = attempt;
-
             // (2) 안내 : FirstText + LeafImage, 2초 대기
             ResetRound();
             if (leafImage != null) leafImage.SetActive(true);
@@ -141,21 +125,14 @@ public class FallingNoteMission : ActivationMission
             if (gamePanel != null) gamePanel.SetActive(true);
             if (notesRoot != null) notesRoot.gameObject.SetActive(true);
 
-            // 판정은 수행 역할만. 관전자는 노트를 같이 흘려보며 중계된 결과를 기다린다.
-            bool judge = IsJudge;
-            int key = ResultKey(PhaseNotes, attempt);
-            bool success = false;
             bool failed = false;
 
-            for (;;)
+            while (true)
             {
                 // Notes 아래로 이동
-                if (notesRoot != null)
-                {
-                    Vector2 pos = notesRoot.anchoredPosition;
-                    pos.y -= scrollSpeed * Time.deltaTime;
-                    notesRoot.anchoredPosition = pos;
-                }
+                Vector2 pos = notesRoot.anchoredPosition;
+                pos.y -= scrollSpeed * Time.deltaTime;
+                notesRoot.anchoredPosition = pos;
 
                 float zoneMin, zoneMax, panelMin, panelMax;
                 GetWorldY(clearRow, out zoneMin, out zoneMax);
@@ -172,13 +149,6 @@ public class FallingNoteMission : ActivationMission
                     }
                     if (n.missed) continue;
 
-                    // 관전자: 상대가 터치한 노트를 같은 색으로 표시
-                    if (!judge && HasSignal(SignalKey(PhaseNotes, attempt, n.index)))
-                    {
-                        MarkTouched(n, false);
-                        continue;
-                    }
-
                     // 노트의 월드 Y 범위
                     float nMin, nMax;
                     GetWorldY(n.rect, out nMin, out nMax);
@@ -186,10 +156,14 @@ public class FallingNoteMission : ActivationMission
                     // 가시성 : 노트가 GamePanel과 겹치면 보임 (밖이면 숨김/클릭불가)
                     bool vis = (nMax >= panelMin && nMin <= panelMax);
                     if (n.image != null)
+                    {
+                        if (n.image.enabled != vis)
+                            Debug.Log($"[FallingNote] {n.go.name} 표시={vis} note=[{nMin:F2},{nMax:F2}] panel=[{panelMin:F2},{panelMax:F2}] zone=[{zoneMin:F2},{zoneMax:F2}]");
                         n.image.enabled = vis;
+                    }
 
-                    // 미스 : 노트가 ClearRow 아래로 완전히 지나가면 실패 (판정자만)
-                    if (judge && nMax < zoneMin - hitTolerance)
+                    // 미스 : 노트가 ClearRow 아래로 완전히 지나가면 실패
+                    if (nMax < zoneMin - hitTolerance)
                     {
                         n.missed = true;
                         failed = true;
@@ -197,28 +171,18 @@ public class FallingNoteMission : ActivationMission
                     }
                 }
 
-                if (judge)
-                {
-                    if (failed) { success = false; break; }
-                    if (touchedCount >= notes.Count) { success = true; break; }   // 전부 터치 → 클리어
-                }
-                else
-                {
-                    if (TryGetResult(key, out success)) break;
-                }
+                if (failed) break;
+                if (touchedCount >= notes.Count) break;   // 전부 터치 → 클리어
 
                 yield return null;
             }
-
-            if (judge) SubmitResult(key, success);
-            ClearRoundKeys(PhaseNotes, attempt, notes.Count);
 
             // (4) 결과 처리
             if (gamePanel != null) gamePanel.SetActive(false);
             if (notesRoot != null) notesRoot.gameObject.SetActive(false);
             if (firstText != null) firstText.gameObject.SetActive(true);
 
-            if (success)
+            if (!failed && touchedCount >= notes.Count)
             {
                 // (4-1) 클리어
                 SetText(msgClear);
@@ -232,7 +196,6 @@ public class FallingNoteMission : ActivationMission
                 // (4-2) 실패 → (2)로
                 SetText(msgWrong);
                 yield return new WaitForSeconds(wrongTextDuration);
-                attempt++;
             }
         }
     }
@@ -265,7 +228,7 @@ public class FallingNoteMission : ActivationMission
     }
 
     // 노트를 터치(클릭)했을 때
-    private void OnNoteClicked(Note n)
+private void OnNoteClicked(Note n)
     {
         // 역할 제한: 이 미션을 할 수 없는 플레이어의 터치는 카운트하지 않음
         if (!CanLocalPlayerPlay()) return;
@@ -274,6 +237,7 @@ public class FallingNoteMission : ActivationMission
         GetWorldY(clearRow, out zMin, out zMax);
         GetWorldY(n.rect, out nMin, out nMax);
         bool inZone = (nMax >= zMin - hitTolerance && nMin <= zMax + hitTolerance);
+        Debug.Log($"[FallingNote] 누름 감지: {n.go.name} note=[{nMin:F2},{nMax:F2}] zone=[{zMin:F2},{zMax:F2}] inZone={inZone} touched={n.touched} missed={n.missed}");
 
         if (n.touched || n.missed) return;
 
@@ -283,25 +247,12 @@ public class FallingNoteMission : ActivationMission
             return;
         }
 
-        MarkTouched(n, true);
+        n.touched = true;
+        touchedCount++;
         Debug.Log($"[FallingNote] {n.go.name} 터치 성공! ({touchedCount}/{notes.Count})");
 
-        // 상대 화면에도 같은 노트가 눌린 것으로 보이게 중계
-        SubmitSignal(SignalKey(PhaseNotes, currentAttempt, n.index));
-    }
-
-    // 노트를 '터치됨' 상태로 바꾼다. countIt=false면 화면 표시만(관전자용).
-    private void MarkTouched(Note n, bool countIt)
-    {
-        n.touched = true;
-        if (countIt) touchedCount++;
-
         if (touchClip != null) AudioSource.PlayClipAtPoint(touchClip, transform.position);
-        if (n.image != null)
-        {
-            n.image.enabled = true;
-            n.image.color = touchedColor;
-        }
+        if (n.image != null) n.image.color = touchedColor;
         n.hideTime = Time.time + noteHideDelay;
     }
 
