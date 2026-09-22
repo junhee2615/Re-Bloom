@@ -90,7 +90,7 @@ namespace ReBloom.Solar
             // ── 게임용 과장. 실제 반사가 아니라 조작감을 위한 손질이다. ──
             // 배율을 앞뒤로 따로 둔다.
             //
-            // 미션 설계상 판은 pitch로만 움직인다(SolarPanelTilt.maxRoll = 0). 그러면 경첩은 항상
+            // 판은 pitch로만 움직인다
             // 판의 좌우 축이라 축을 고정하고, 앞뒤는 각도의 부호로 가린다.
             Vector3 hinge = transform.right;
             float pitch = Vector3.SignedAngle(Vector3.up, normal, hinge);   // + 앞으로 기움, − 뒤로 기움
