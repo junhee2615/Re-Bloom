@@ -3,10 +3,11 @@ using UnityEngine;
 namespace ReBloom.Solar
 {
     /// <summary>
-    /// 시소 패널. 플레이어가 판 위 어디에 서 있느냐로 기울기가 정해진다.
+    /// 시소 패널. 플레이어가 판 위 앞뒤 어디에 서 있느냐로 기울기가 정해진다.
+    /// 양옆이 고정된 경첩이라 <b>pitch(앞뒤)로만</b> 움직인다
     ///
     /// 각도는 <b>수평(0°)을 기준</b>으로 잡는다. 씬에 배치된 각도에 더하는 것이 아니라,
-    /// <see cref="maxPitch"/>/<see cref="maxRoll"/>이 수평에서 벗어날 수 있는 절대 한계다.
+    /// <see cref="maxPitch"/>가 수평에서 벗어날 수 있는 절대 한계다.
     /// 배치 각도를 기준으로 삼으면 판마다 도달 범위가 달라져(배치에 25°와 27°가 섞여 있다)
     /// 같은 조작에 다른 결과가 나온다.
     ///
@@ -30,10 +31,7 @@ namespace ReBloom.Solar
         [Header("기울기 — 수평(0°) 기준 절대 한계")]
         [Tooltip("앞뒤로 기울 수 있는 최대 각도(수평에서).")]
         public float maxPitch = 20f;
-        [Tooltip("좌우로 기울 수 있는 최대 각도(수평에서). 회전축은 로컬 Z이고, 기우는 방향이 로컬 X다. " +
-                 "0이면 좌우가 잠긴다(양옆 고정 경첩).")]
-        public float maxRoll = 20f;
-        [Tooltip("중심에서 이만큼(m) 벗어나면 최대 각도가 된다. 앞뒤·좌우에 같은 값을 쓴다. " +
+        [Tooltip("중심에서 앞뒤로 이만큼(m) 벗어나면 최대 각도가 된다. " +
                  "판 크기와 일부러 분리했다 — 판 끝까지 걸어가야 최대가 되면 한 걸음의 변화가 너무 작다.")]
         [Min(0.01f)] public float fullDeflectionDistance = 0.4f;
         [Tooltip("목표 각도까지 따라가는 시간(초). 클수록 묵직하게 움직인다.")]
@@ -47,14 +45,11 @@ namespace ReBloom.Solar
         [Min(0.05f)] public float standProbe = 0.5f;
 
         [Header("디버그")]
-        [Tooltip("세션 없이 에디터에서 혼자 각도를 확인할 때 켠다. 아래 두 슬라이더로 직접 기울인다.")]
+        [Tooltip("세션 없이 에디터에서 혼자 각도를 확인할 때 켠다. 아래 슬라이더로 직접 기울인다.")]
         public bool debugManualTilt;
 
         [Tooltip("앞뒤 기울기 −1~1. 1이면 maxPitch만큼 기운다.")]
         [Range(-1f, 1f)] public float debugForward;
-
-        [Tooltip("좌우 기울기 −1~1. 1이면 maxRoll만큼 기운다.")]
-        [Range(-1f, 1f)] public float debugRight;
 
         /// <summary>지금 누군가 올라서 있는가.</summary>
         public bool IsOccupied { get; private set; }
@@ -71,9 +66,9 @@ namespace ReBloom.Solar
         // 같은 오브젝트의 거울. 고장이면 잠근다. 없으면(거울 아닌 판) 항상 움직인다.
         SolarReflector reflector;
 
-        // 정규화된 현재 기울기 (-1..1). x = 앞뒤, y = 좌우.
-        Vector2 current;
-        Vector2 velocity;
+        // 정규화된 현재 앞뒤 기울기 (-1..1).
+        float current;
+        float velocity;
 
         void Awake()
         {
@@ -97,20 +92,18 @@ namespace ReBloom.Solar
                 return;
             }
 
-            Vector2 target;
+            float target;
 
             if (debugManualTilt)
             {
-                target = new Vector2(debugForward, debugRight);
+                target = debugForward;
             }
             else if (TryGetFootPoint(out Vector3 foot))
             {
-                // 감도는 판 크기가 아니라 fullDeflectionDistance로 정한다.
+                // 감도는 판 크기가 아니라 fullDeflectionDistance로 정한다. 좌우 위치는 보지 않는다.
                 Vector3 local = ToLevelLocal(foot);
                 float reach = Mathf.Max(0.01f, fullDeflectionDistance);
-                target = new Vector2(
-                    Mathf.Clamp(local.z / reach, -1f, 1f),
-                    Mathf.Clamp(local.x / reach, -1f, 1f));
+                target = Mathf.Clamp(local.z / reach, -1f, 1f);
             }
             else
             {
@@ -120,34 +113,28 @@ namespace ReBloom.Solar
             }
 
             // 올라선 첫 프레임에는 지금 판이 놓인 각도에서 이어가야 한다.
-            // 안 그러면 current(0,0)에서 출발해 판이 수평으로 한 번 튄다.
+            // 안 그러면 current 0에서 출발해 판이 수평으로 한 번 튄다.
             if (!IsOccupied)
             {
                 current = CurrentTiltNormalized();
-                velocity = Vector2.zero;
+                velocity = 0f;
                 IsOccupied = true;
             }
 
-            current.x = Mathf.SmoothDamp(current.x, target.x, ref velocity.x, smoothTime);
-            current.y = Mathf.SmoothDamp(current.y, target.y, ref velocity.y, smoothTime);
+            current = Mathf.SmoothDamp(current, target, ref velocity, smoothTime);
 
-            // 앞에 서면 앞이 내려가고, 오른쪽에 서면 오른쪽이 내려간다(시소).
-            // 기준은 씬 배치 각도가 아니라 수평이다.
-            transform.rotation = restYaw *
-                Quaternion.Euler(current.x * maxPitch, 0f, -current.y * maxRoll);
+            // 앞에 서면 앞이 내려간다(시소). 기준은 씬 배치 각도가 아니라 수평이다.
+            transform.rotation = restYaw * Quaternion.Euler(current * maxPitch, 0f, 0f);
         }
 
         // 지금 판 각도를 -1~1 정규화 값으로 되돌린다(수평 기준).
         // 배치 각도가 한계를 넘으면 잘리므로, maxPitch는 배치 각도보다 크게 두는 편이 좋다.
-        Vector2 CurrentTiltNormalized()
+        float CurrentTiltNormalized()
         {
             Vector3 e = (Quaternion.Inverse(restYaw) * transform.rotation).eulerAngles;
             float pitch = Mathf.DeltaAngle(0f, e.x);
-            float roll = Mathf.DeltaAngle(0f, e.z);
 
-            return new Vector2(
-                maxPitch > 0.01f ? Mathf.Clamp(pitch / maxPitch, -1f, 1f) : 0f,
-                maxRoll > 0.01f ? Mathf.Clamp(-roll / maxRoll, -1f, 1f) : 0f);
+            return maxPitch > 0.01f ? Mathf.Clamp(pitch / maxPitch, -1f, 1f) : 0f;
         }
 
         // 발 위치를 "수평으로 눕힌" 판 좌표계로 옮긴다. 피하려는 것이 둘이다.
@@ -205,10 +192,14 @@ namespace ReBloom.Solar
             Quaternion level = Application.isPlaying ? restYaw : YawOnly(transform.rotation);
             Gizmos.matrix = Matrix4x4.TRS(transform.position, level, Vector3.one);
 
-            // 안쪽 사각형 = 최대 각도에 도달하는 거리
+            // 앞뒤 선 두 개 = 최대 각도에 도달하는 거리(경첩 축 방향으로는 어디 서든 같다)
             Gizmos.color = new Color(0.4f, 0.7f, 1f, 0.8f);
-            Gizmos.DrawWireCube(Vector3.zero, new Vector3(
-                fullDeflectionDistance * 2f, 0.02f, fullDeflectionDistance * 2f));
+            const float halfWidth = 1.5f;
+            for (int s = -1; s <= 1; s += 2)
+            {
+                float z = s * fullDeflectionDistance;
+                Gizmos.DrawLine(new Vector3(-halfWidth, 0f, z), new Vector3(halfWidth, 0f, z));
+            }
 
             // 밟는 면 = 이 오브젝트의 콜라이더 그대로
             Collider c = deck != null ? deck : GetComponent<Collider>();
