@@ -155,143 +155,16 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1740867299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &483889980 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 775270304983918568, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-  m_PrefabInstance: {fileID: 3846063778224516753}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &483889981
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483889980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38f6bf3d943ac7945842268c9ef1dca6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea
-  m_InteractionManager: {fileID: 0}
-  m_Colliders:
-  - {fileID: 483889982}
-  m_InteractionLayers:
-    m_Bits: 4294967295
-  m_DistanceCalculationMode: 1
-  m_SelectMode: 1
-  m_FocusMode: 1
-  m_CustomReticle: {fileID: 0}
-  m_AllowGazeInteraction: 0
-  m_AllowGazeSelect: 0
-  m_OverrideGazeTimeToSelect: 0
-  m_GazeTimeToSelect: 0.5
-  m_OverrideTimeToAutoDeselectGaze: 0
-  m_TimeToAutoDeselectGaze: 3
-  m_AllowGazeAssistance: 0
-  m_FirstHoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastHoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_HoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_HoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FirstSelectEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastSelectExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_SelectEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_SelectExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FirstFocusEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_LastFocusExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FocusEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FocusExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Activated:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Deactivated:
-    m_PersistentCalls:
-      m_Calls: []
-  m_StartingHoverFilters: []
-  m_StartingSelectFilters: []
-  m_StartingInteractionStrengthFilters: []
-  m_AutoFindParentInteractableInHierarchy: 0
-  m_ParentInteractableObject: {fileID: 0}
-  m_TeleportationProvider: {fileID: 0}
-  m_MatchOrientation: 0
-  m_MatchDirectionalInput: 0
-  m_TeleportTrigger: 0
-  m_FilterSelectionByHitNormal: 0
-  m_UpNormalToleranceDegrees: 30
-  m_Teleporting:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!64 &483889982
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483889980}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 294963533333793517, guid: acca4ee370f528a4bb2dea454a1f9ab3, type: 3}
 --- !u!1 &544448648 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &544448649
+--- !u!65 &544448649 stripped
 BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 8583060078375044655, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 544448648}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.24, y: 0, z: 3.12}
-  m_Center: {x: 0, y: 0.7, z: 0}
 --- !u!114 &544448650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679,7 +552,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 4000
+  m_ColorTemperature: 6455
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -1099,6 +972,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7099455630128102639, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7146819004974341702, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_Parameters.colorGradient.key0.b
       value: 0.6185983
@@ -1118,7 +995,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 2495552584900684712, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-    - {fileID: 4704473670481993954, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1260855994506195627, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
@@ -1126,19 +1002,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 544448649}
-    - targetCorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 544448650}
     - targetCorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 544448651}
-    - targetCorrespondingSourceObject: {fileID: 775270304983918568, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 483889982}
-    - targetCorrespondingSourceObject: {fileID: 775270304983918568, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 483889981}
     - targetCorrespondingSourceObject: {fileID: 8879328576759840386, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3846063778224516759}
