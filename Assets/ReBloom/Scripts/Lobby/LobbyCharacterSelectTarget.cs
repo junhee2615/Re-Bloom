@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -53,9 +54,16 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     private static readonly int IsHoveredHash =
         Animator.StringToHash("IsHovered");
 
-    // LobbyCharacterAnimator.controller: Any State → Thankful (Trigger), Thankful → Idle (Exit Time)
+    // LobbyCharacterAnimator.controller: Any State → Thankful (Trigger). Thankful은 나가는 전환이 없어
+    // 마지막 포즈를 유지하므로, 선택을 취소하면 Idle 상태로 직접 CrossFade 한다.
     private static readonly int SelectedHash =
         Animator.StringToHash("Selected");
+
+    private static readonly int IdleStateHash =
+        Animator.StringToHash("Idle");
+
+    // Thankful → Idle 복귀 시 짧게 섞어 자세가 튀지 않게 한다.
+    private const float IdleReturnCrossFade = 0.18f;
 
     private static readonly int BaseColorId =
         Shader.PropertyToID("_BaseColor");
@@ -80,6 +88,13 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
     [SerializeField, Tooltip("Glyph 회전 속도(도/초). 양수면 시계 방향, 음수면 반시계 방향.")]
     private float glyphRotationSpeed = 8f;
+
+    [Header("Unavailable (상대가 선택한 캐릭터)")]
+    [SerializeField, Range(0f, 1f), Tooltip("회색으로 만들 때 채도를 얼마나 뺄지. 1이면 완전 무채색.")]
+    private float unavailableDesaturation = 0.85f;
+
+    [SerializeField, Range(0f, 1f), Tooltip("회색으로 만들 때 밝기 배율. 낮을수록 어둡다.")]
+    private float unavailableBrightness = 0.55f;
 
     [Header("Detail Panel (Hover 설명 UI)")]
     [SerializeField, Tooltip("이 캐릭터의 설명 패널 CanvasGroup. Mental: MentalDetailPanel, Ear: EarDetailPanel")]
@@ -112,6 +127,26 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
     // Confirmation UI가 열려 있는 동안 다른 캐릭터가 반응하지 않도록 UI가 걸어 주는 잠금.
     private bool inputLocked;
+
+    // 상대 플레이어가 이 역할을 가져가서 선택할 수 없는 상태.
+    private bool unavailable;
+
+    // 회색 처리용. 캐릭터 루트 아래 Renderer들의 원본 머티리얼 색을 Awake에서 한 번만 캐시한다.
+    private struct GrayTarget
+    {
+        public Renderer Renderer;
+        public int MaterialIndex;
+        public bool HasBaseColor;
+        public Color BaseColor;
+        public bool HasColorDim;
+        public Color ColorDim;
+    }
+
+    private static readonly int BaseColorMatId = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorDimId = Shader.PropertyToID("_ColorDim");
+
+    private GrayTarget[] grayTargets;
+    private MaterialPropertyBlock grayPropertyBlock;
 
     // Glyph 알파 제어용. 원본 Material의 _BaseColor(RGB + 최대 알파)를 보존한다.
     private MaterialPropertyBlock glyphPropertyBlock;
@@ -171,6 +206,9 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
         // 설명 패널도 첫 프레임 전에 숨긴다. (GameObject는 활성 유지, CanvasGroup alpha만 제어)
         InitializeDetailPanel();
+
+        // 회색 처리 대상(Renderer × 머티리얼 슬롯)과 원본 색을 한 번만 캐시한다.
+        CacheGrayTargets();
     }
 
     private void OnEnable()
@@ -239,8 +277,12 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
     private void RequestSelect()
     {
-        // Confirmation UI가 열려 있거나(Pending/잠금) 이미 확정된(Selected) 캐릭터는 다시 요청하지 않는다.
-        if (inputLocked || state != SelectState.Idle)
+        // Confirmation UI가 열려 있거나(Pending/잠금) 상대가 가져간(unavailable) 캐릭터는 요청하지 않는다.
+        // Idle = 선택 요청, Selected = 선택 취소 요청. (모드 판단은 LobbyCharacterConfirmationUI가 한다.)
+        if (inputLocked || unavailable)
+            return;
+
+        if (state != SelectState.Idle && state != SelectState.Selected)
             return;
 
         if (role == Role.none)
@@ -309,6 +351,43 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         PlaySelectionEffect();
     }
 
+    /// <summary>
+    /// 선택 취소가 네트워크에 반영된 뒤 Selected 연출을 끝내고 Available(Idle)로 되돌린다.
+    /// Host가 Owner를 None으로 바꾼 것을 확인한 뒤에만 호출한다.
+    /// </summary>
+    public void ClearSelected()
+    {
+        if (state != SelectState.Selected)
+            return;
+
+        state = SelectState.Idle;
+        hoveringUIRay = null;
+
+        // Thankful 마지막 포즈 → Breathing Idle 로 명시 복귀 (Thankful에는 나가는 전환이 없다).
+        ReturnToIdleAnimation();
+
+        SetOutline(false);
+        HideDetailPanel();
+
+        // Selected 연출 정리.
+        HideGlyph();
+        StopSelectionEffect(ParticleSystemStopBehavior.StopEmitting);
+
+        // Ray가 여전히 이 캐릭터 위에 있으면 hoverEntered가 다시 오지 않으므로 직접 복구한다.
+        TryResumeHover();
+    }
+
+    private void ReturnToIdleAnimation()
+    {
+        if (characterAnimator == null)
+            return;
+
+        // 남아 있는 Selected 트리거가 Any State → Thankful 로 다시 들어가지 않게 지운다.
+        characterAnimator.ResetTrigger(SelectedHash);
+        characterAnimator.SetBool(IsHoveredHash, false);
+        characterAnimator.CrossFade(IdleStateHash, IdleReturnCrossFade, 0);
+    }
+
     // Thankful 트리거와 IsHovered=false를 같은 프레임에 넣는다.
     // Any State → Thankful 전환이 상태 전환(Thinking → Idle)보다 우선 평가되므로
     // Thinking에서 Idle을 거치지 않고 바로 Thankful로 들어가고, Thankful이 끝난 뒤에는
@@ -351,6 +430,156 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     }
 
     // ------------------------------------------------------------------
+    // Unavailable (상대가 선택한 캐릭터)
+    // ------------------------------------------------------------------
+
+    /// <summary>상대 플레이어가 이 역할을 가져가 선택할 수 없는 상태인지.</summary>
+    public bool IsUnavailable => unavailable;
+
+    /// <summary>
+    /// 상대가 이 역할을 가져갔는지 반영한다. 같은 값이면 아무 작업도 하지 않는다.
+    /// 내가 이미 선택한(Selected) 캐릭터에는 적용하지 않는다.
+    /// </summary>
+    public void SetUnavailable(bool value)
+    {
+        if (unavailable == value)
+            return;
+
+        // 내 Selected 연출(Thankful/Outline/Glyph)은 절대 회색으로 덮지 않는다.
+        if (value && state == SelectState.Selected)
+            return;
+
+        unavailable = value;
+
+        if (value)
+        {
+            // Hover 캐시와 연출을 먼저 정리한 뒤 입력을 막는다.
+            hoveringUIRay = null;
+            SetHovered(false);
+            SetOutline(false);
+            HideDetailPanel();
+
+            SetInteractableEnabled(false);
+            ApplyGray(true);
+        }
+        else
+        {
+            ApplyGray(false);
+            SetInteractableEnabled(true);
+
+            // Ray가 아직 이 영역을 가리키고 있으면 hoverEntered가 다시 오지 않으므로 직접 복구한다.
+            TryResumeHover();
+        }
+    }
+
+    // Collider는 그대로 두고 XRSimpleInteractable만 껐다 켠다.
+    // (끄면 XRI가 등록을 해제하며 hoverExited를 보내 주고, Ray는 이 캐릭터를 그냥 지나간다.)
+    private void SetInteractableEnabled(bool value)
+    {
+        if (interactable == null)
+            return;
+
+        if (interactable.enabled != value)
+            interactable.enabled = value;
+    }
+
+    // 캐릭터 루트(부모) 아래 Renderer × 머티리얼 슬롯의 원본 색을 한 번만 캐시한다.
+    private void CacheGrayTargets()
+    {
+        grayPropertyBlock = new MaterialPropertyBlock();
+
+        Transform root = transform.parent;
+
+        if (root == null)
+        {
+            grayTargets = new GrayTarget[0];
+            return;
+        }
+
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        List<GrayTarget> targets = new List<GrayTarget>();
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null)
+                continue;
+
+            // 최초 시점의 슬롯만 다룬다. (QuickOutline이 뒤에 붙이는 Mask/Fill 슬롯은 건드리지 않는다.)
+            Material[] materials = renderer.sharedMaterials;
+
+            if (materials == null)
+                continue;
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                Material material = materials[i];
+
+                if (material == null)
+                    continue;
+
+                bool hasBaseColor = material.HasProperty(BaseColorMatId);
+                bool hasColorDim = material.HasProperty(ColorDimId);
+
+                if (!hasBaseColor && !hasColorDim)
+                    continue;
+
+                targets.Add(new GrayTarget
+                {
+                    Renderer = renderer,
+                    MaterialIndex = i,
+                    HasBaseColor = hasBaseColor,
+                    BaseColor = hasBaseColor ? material.GetColor(BaseColorMatId) : Color.white,
+                    HasColorDim = hasColorDim,
+                    ColorDim = hasColorDim ? material.GetColor(ColorDimId) : Color.white
+                });
+            }
+        }
+
+        grayTargets = targets.ToArray();
+    }
+
+    // 상태가 바뀔 때만 호출된다. 해제는 MPB 자체를 제거해 원본 머티리얼 값이 그대로 드러나게 한다.
+    private void ApplyGray(bool gray)
+    {
+        if (grayTargets == null)
+            return;
+
+        foreach (GrayTarget target in grayTargets)
+        {
+            if (target.Renderer == null)
+                continue;
+
+            if (!gray)
+            {
+                target.Renderer.SetPropertyBlock(null, target.MaterialIndex);
+                continue;
+            }
+
+            grayPropertyBlock.Clear();
+
+            if (target.HasBaseColor)
+                grayPropertyBlock.SetColor(BaseColorMatId, ToGray(target.BaseColor));
+
+            if (target.HasColorDim)
+                grayPropertyBlock.SetColor(ColorDimId, ToGray(target.ColorDim));
+
+            target.Renderer.SetPropertyBlock(grayPropertyBlock, target.MaterialIndex);
+        }
+    }
+
+    // 원본 색 → 무채색으로 desaturation 만큼 섞고, brightness 를 곱한다. 알파는 원본 유지.
+    private Color ToGray(Color source)
+    {
+        float luminance = source.grayscale;
+        Color gray = new Color(luminance, luminance, luminance, source.a);
+
+        Color result = Color.Lerp(source, gray, Mathf.Clamp01(unavailableDesaturation));
+        float brightness = Mathf.Clamp01(unavailableBrightness);
+
+        return new Color(result.r * brightness, result.g * brightness, result.b * brightness, source.a);
+    }
+
+    // ------------------------------------------------------------------
     // Hover
     // ------------------------------------------------------------------
 
@@ -381,10 +610,18 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     // UI Ray Hover를 시작한다. 잠금/Pending/Selected 상태에서는 연출을 켜지 않는다.
     private void TryBeginHover(XRRayInteractor ray)
     {
-        if (hoveringUIRay != null || inputLocked || state != SelectState.Idle)
+        // Selected 캐릭터도 Trigger(선택 취소)를 받기 위해 Ray는 캐시하지만 Hover 연출은 켜지 않는다.
+        if (hoveringUIRay != null || inputLocked || unavailable)
+            return;
+
+        if (state != SelectState.Idle && state != SelectState.Selected)
             return;
 
         hoveringUIRay = ray;
+
+        if (state != SelectState.Idle)
+            return;
+
         SetHovered(true);
         SetOutline(true);
         ShowDetailPanel();
@@ -393,7 +630,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     // 현재 이 영역을 Hover 중인 Interactor 중 UI Ray가 있으면 Hover 상태를 복구한다.
     private void TryResumeHover()
     {
-        if (interactable == null || !isActiveAndEnabled)
+        if (interactable == null || !isActiveAndEnabled || unavailable)
             return;
 
         foreach (IXRHoverInteractor hoverInteractor in interactable.interactorsHovering)

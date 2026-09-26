@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -55,6 +56,13 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     [SerializeField, Tooltip("Base/CharacterSelectArea 의 LobbyCharacterSelectTarget")]
     private LobbyCharacterSelectTarget earTarget;
 
+    [Header("Button Labels")]
+    [SerializeField, Tooltip("ConfirmationPanel/ConfirmBtn/Text (TMP)")]
+    private TMP_Text confirmButtonLabel;
+
+    [SerializeField, Tooltip("ConfirmationPanel/CancelBtn/Text (TMP)")]
+    private TMP_Text cancelButtonLabel;
+
     [Header("Messages")]
     [SerializeField]
     private string mentalMessage = "정신 제약 캐릭터로 선택하시겠습니까?";
@@ -62,8 +70,35 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     [SerializeField]
     private string earMessage = "청각 제약 캐릭터로 선택하시겠습니까?";
 
+    [SerializeField]
+    private string mentalDeselectMessage = "루멘 선택을 취소하시겠습니까?";
+
+    [SerializeField]
+    private string earDeselectMessage = "에코 선택을 취소하시겠습니까?";
+
+    [SerializeField]
+    private string selectConfirmLabel = "선택";
+
+    [SerializeField]
+    private string selectCancelLabel = "취소";
+
+    [SerializeField]
+    private string deselectConfirmLabel = "선택 취소";
+
+    [SerializeField]
+    private string deselectCancelLabel = "돌아가기";
+
+    private enum ConfirmationMode
+    {
+        Select,
+        Deselect
+    }
+
     // 현재 확인을 기다리는 캐릭터. 열려 있지 않으면 null.
     private LobbyCharacterSelectTarget currentTarget;
+
+    // 현재 확인 창이 선택인지 선택 취소인지.
+    private ConfirmationMode mode = ConfirmationMode.Select;
 
     // Confirm이 한 번 끝나면 다시 캐릭터를 고르게 하지 않는다.
     private bool selectionConfirmed;
@@ -74,6 +109,10 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     private bool subscribed;
 
     private Coroutine fadeCoroutine;
+
+    // 지난 프레임의 Networked Owner. 값이 바뀐 프레임에만 Target 상태를 갱신한다.
+    private PlayerRef lastMentalOwner = PlayerRef.None;
+    private PlayerRef lastEarOwner = PlayerRef.None;
 
     public bool IsOpen => currentTarget != null;
 
@@ -88,6 +127,77 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     private void OnEnable()
     {
         Subscribe();
+    }
+
+    private void Update()
+    {
+        RefreshRoleOwnership();
+    }
+
+    // ------------------------------------------------------------------
+    // 상대 점유 반영 (Networked MentalOwner/EarOwner 폴링)
+    // ------------------------------------------------------------------
+
+    // 값이 바뀐 프레임에만 Target에 반영한다. (매 프레임 MPB/Interactor를 건드리지 않는다.)
+    private void RefreshRoleOwnership()
+    {
+        LobbyManager lobbyManager = LobbyManager.Instance;
+
+        if (lobbyManager == null || lobbyManager.Runner == null)
+            return;
+
+        PlayerRef me = lobbyManager.Runner.LocalPlayer;
+        PlayerRef mentalOwner = lobbyManager.MentalOwner;
+        PlayerRef earOwner = lobbyManager.EarOwner;
+
+        if (mentalOwner == lastMentalOwner && earOwner == lastEarOwner)
+            return;
+
+        PlayerRef previousMental = lastMentalOwner;
+        PlayerRef previousEar = lastEarOwner;
+
+        lastMentalOwner = mentalOwner;
+        lastEarOwner = earOwner;
+
+        // 상대가 가져간 역할만 Unavailable. 내가 고른 역할은 Selected 연출을 유지해야 하므로 제외한다.
+        ApplyOwnership(mentalTarget, mentalOwner, me, previousMental);
+        ApplyOwnership(earTarget, earOwner, me, previousEar);
+    }
+
+    // Multi(2인 협동) 세션인지. (LobbyManager.IsSelectionComplete와 같은 기준)
+    private static bool IsMultiSession =>
+        NetworkManager.Instance == null || NetworkManager.Instance.Mode == SessionMode.Multi;
+
+    // 해당 역할을 이미 다른 플레이어가 가져갔는지.
+    private static bool IsTakenByOther(LobbyManager lobbyManager, Role role)
+    {
+        if (lobbyManager.Runner == null)
+            return false;
+
+        PlayerRef owner = role == Role.mental ? lobbyManager.MentalOwner : lobbyManager.EarOwner;
+
+        return owner != PlayerRef.None && owner != lobbyManager.Runner.LocalPlayer;
+    }
+
+    private void ApplyOwnership(LobbyCharacterSelectTarget target, PlayerRef owner, PlayerRef me, PlayerRef previousOwner)
+    {
+        if (target == null)
+            return;
+
+        // 내 역할이 해제됐다(내가 취소했거나 Host가 회수했다) → Selected 연출을 끝내고 Available로 되돌린다.
+        if (previousOwner == me && owner == PlayerRef.None)
+        {
+            selectionConfirmed = false;   // 다시 선택할 수 있게 한다.
+            target.ClearSelected();
+        }
+
+        bool takenByOther = owner != PlayerRef.None && owner != me;
+
+        // 내가 확인 창을 열어 둔 캐릭터를 상대가 먼저 가져갔으면 창을 닫는다.
+        if (takenByOther && currentTarget == target && !selectionConfirmed)
+            Cancel();
+
+        target.SetUnavailable(takenByOther);
     }
 
     private void OnDisable()
@@ -174,9 +284,21 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         if (target == null)
             return;
 
-        // 이미 열려 있거나(닫히는 중 포함) 선택이 끝났으면 무시한다.
-        if (currentTarget != null || closing || selectionConfirmed)
+        // 이미 열려 있거나(닫히는 중 포함) 무시한다.
+        if (currentTarget != null || closing)
             return;
+
+        if (target.IsSelected)
+        {
+            // 선택 취소는 Multi에서만. (LobbyManager.RequestDeselect도 Single을 막지만 창부터 띄우지 않는다.)
+            if (!IsMultiSession)
+                return;
+        }
+        else if (selectionConfirmed)
+        {
+            // 이미 역할을 확정한 상태에서 다른 캐릭터를 새로 고르지는 않는다.
+            return;
+        }
 
         Open(target);
     }
@@ -185,19 +307,37 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     {
         currentTarget = target;
 
-        // 대상은 Pending으로 강조를 유지하고, 두 캐릭터 모두 추가 입력을 막는다.
-        currentTarget.EnterPending();
+        // Selected 캐릭터에서 온 요청이면 선택 취소 확인이다.
+        mode = target.IsSelected ? ConfirmationMode.Deselect : ConfirmationMode.Select;
+
+        // Select: 대상을 Pending으로 강조 유지.
+        // Deselect: Selected 상태(Thankful/Outline/Glyph)를 그대로 두고 입력만 잠근다.
+        if (mode == ConfirmationMode.Select)
+            currentTarget.EnterPending();
+
         SetTargetsLocked(true);
 
-        if (messageText != null)
-            messageText.text = GetMessage(currentTarget.Role);
+        ApplyModeTexts(currentTarget.Role);
 
         // 열리는 즉시 입력을 받는다. (Fade In 중 첫 Trigger가 유실되지 않도록) alpha만 페이드한다.
         SetCanvasActive(true);
         SetCanvasGroupInteractable(true);
         StartFade(1f, fadeInDuration, null);
 
-        Debug.Log($"[Lobby Confirmation] Open - role={currentTarget.Role}", this);
+        Debug.Log($"[Lobby Confirmation] Open - role={currentTarget.Role}, mode={mode}", this);
+    }
+
+    // 창을 열 때마다 모드에 맞는 문구와 버튼 라벨을 다시 설정한다.
+    private void ApplyModeTexts(Role role)
+    {
+        if (messageText != null)
+            messageText.text = GetMessage(role);
+
+        if (confirmButtonLabel != null)
+            confirmButtonLabel.text = mode == ConfirmationMode.Deselect ? deselectConfirmLabel : selectConfirmLabel;
+
+        if (cancelButtonLabel != null)
+            cancelButtonLabel.text = mode == ConfirmationMode.Deselect ? deselectCancelLabel : selectCancelLabel;
     }
 
     /// <summary>취소 버튼. 창을 Fade Out한 뒤 대상을 Idle로 되돌리고 다시 캐릭터를 고를 수 있게 한다.</summary>
@@ -265,6 +405,22 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
             return;
         }
 
+        // 선택 취소는 별도 경로로 처리한다. (Selected 연출은 Owner가 None으로 복제된 뒤에 정리)
+        if (mode == ConfirmationMode.Deselect)
+        {
+            ConfirmDeselect(lobbyManager, role);
+            return;
+        }
+
+        // 내가 확인 창을 보는 사이에 상대가 먼저 가져갔으면 선택 요청을 보내지 않는다.
+        // (최종 방어는 Host의 ApplySelect 가드. 여기서는 UX만 보완한다.)
+        if (IsTakenByOther(lobbyManager, role))
+        {
+            Debug.Log($"[Lobby Confirmation] 상대가 먼저 {role}을 선택해 요청을 보내지 않습니다.", this);
+            Cancel();
+            return;
+        }
+
         closing = true;
         selectionConfirmed = true;
 
@@ -291,6 +447,40 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
         // 창이 사라진 뒤 Selected 연출을 시작한다. 그동안 대상은 Pending 강조를 유지한다.
         StartFade(0f, fadeOutDuration, OnConfirmFadeOutComplete);
+    }
+
+    // 선택 취소 확정: 창만 닫고 역할 해제를 요청한다.
+    // 캐릭터의 Selected 연출은 Owner가 None으로 복제된 뒤 RefreshRoleOwnership에서 정리한다.
+    private void ConfirmDeselect(LobbyManager lobbyManager, Role role)
+    {
+        closing = true;
+
+        SetCanvasGroupInteractable(false);
+
+        switch (role)
+        {
+            case Role.mental:
+                lobbyManager.OnMentalDeselectClicked();
+                break;
+
+            case Role.ear:
+                lobbyManager.OnEarDeselectClicked();
+                break;
+        }
+
+        Debug.Log($"[Lobby Confirmation] Deselect 요청 - role={role}", this);
+
+        StartFade(0f, fadeOutDuration, OnDeselectFadeOutComplete);
+    }
+
+    private void OnDeselectFadeOutComplete()
+    {
+        SetCanvasActive(false);
+
+        // Selected 상태는 건드리지 않는다. 잠금만 풀어 다른 캐릭터를 다시 고를 수 있게 한다.
+        currentTarget = null;
+        SetTargetsLocked(false);
+        closing = false;
     }
 
     private void OnConfirmFadeOutComplete()
@@ -409,6 +599,21 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
     private string GetMessage(Role role)
     {
+        if (mode == ConfirmationMode.Deselect)
+        {
+            switch (role)
+            {
+                case Role.mental:
+                    return mentalDeselectMessage;
+
+                case Role.ear:
+                    return earDeselectMessage;
+
+                default:
+                    return "이 캐릭터 선택을 취소하시겠습니까?";
+            }
+        }
+
         switch (role)
         {
             case Role.mental:

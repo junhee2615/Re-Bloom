@@ -143,6 +143,79 @@ public class LobbyManager : NetworkBehaviour
     }
 
     // ------------------------------------------------------------------
+    // 역할 선택 취소 (Multi 전용)
+    // ------------------------------------------------------------------
+
+    /// <summary>mental을 고른 플레이어가 선택을 취소한다.</summary>
+    public void OnMentalDeselectClicked()
+    {
+        RequestDeselect(Role.mental);
+    }
+
+    /// <summary>ear를 고른 플레이어가 선택을 취소한다.</summary>
+    public void OnEarDeselectClicked()
+    {
+        RequestDeselect(Role.ear);
+    }
+
+    private void RequestDeselect(Role role)
+    {
+        if (Runner == null || Object == null || !Object.IsValid)
+        {
+            Debug.LogWarning("[LobbyManager] 아직 네트워크에 연결되지 않아 선택 취소를 보낼 수 없습니다.", this);
+            return;
+        }
+
+        // Single(개인 테스트)은 하나만 골라도 바로 출발하므로 취소를 허용하지 않는다.
+        if (!IsMultiSession)
+        {
+            Debug.Log("[LobbyManager] Single 모드에서는 역할 선택을 취소할 수 없습니다.", this);
+            return;
+        }
+
+        Rpc_DeselectRole(role);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void Rpc_DeselectRole(Role role, RpcInfo info = default)
+    {
+        PlayerRef sender = info.Source;
+
+        // Host가 자기 버튼을 눌러 로컬로 실행된 경우 Source가 비어 있을 수 있다.
+        if (sender == PlayerRef.None)
+            sender = Runner.LocalPlayer;
+
+        ApplyDeselect(sender, role);
+    }
+
+    // Host 전용. 자기가 가진 역할만, 씬 전환이 시작되기 전에만 놓을 수 있다.
+    private void ApplyDeselect(PlayerRef sender, Role role)
+    {
+        if (!HasStateAuthority)
+            return;
+
+        // 이미 전원에게 Fade Out을 요청한 뒤라면 되돌리지 않는다.
+        if (IsSceneTransitionLocked)
+            return;
+
+        // 자기가 가진 역할만 취소할 수 있다.
+        if (GetOwner(role) != sender)
+            return;
+
+        // 이탈 처리(FixedUpdateNetwork)와 같은 순서로 정리한다.
+        RoleAssignments.Remove(sender);
+        SetOwner(role, PlayerRef.None);
+        CancelScheduledStart();
+    }
+
+    /// <summary>Multi(2인 협동) 세션인지. NetworkManager가 없으면 Multi로 본다. (IsSelectionComplete와 같은 기준)</summary>
+    private bool IsMultiSession =>
+        NetworkManager.Instance == null || NetworkManager.Instance.Mode == SessionMode.Multi;
+
+    /// <summary>씬 전환 Fade가 이미 시작되어 더 이상 선택을 되돌릴 수 없는 구간인지. (Host 기준)</summary>
+    private bool IsSceneTransitionLocked => _fadeRequested;
+
+    // ------------------------------------------------------------------
     // 개발용 Stage 선택 (Stage Select UI에서 호출)
     // ------------------------------------------------------------------
 
@@ -458,6 +531,8 @@ public class LobbyManager : NetworkBehaviour
             RoleManager.SetLocalRole(Role.mental);
         else if (EarOwner == me)
             RoleManager.SetLocalRole(Role.ear);
+        else if (RoleManager.HasLocalRole)
+            RoleManager.ClearLocalRole();   // 선택을 취소했거나 역할을 잃은 경우
     }
 
     private void ApplyButtonState(RoleButtonVisual visual, PlayerRef owner, bool localAlreadyChose)
