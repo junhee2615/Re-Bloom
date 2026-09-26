@@ -207,6 +207,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4496312228613482899, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3682245615501268640}
+    - targetCorrespondingSourceObject: {fileID: -4496312228613482899, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2758325826297153851}
+    - targetCorrespondingSourceObject: {fileID: -4496312228613482899, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3642360939757258708}
     - targetCorrespondingSourceObject: {fileID: 3334185812359465625, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7532734278109832288}
@@ -383,7 +389,7 @@ MonoBehaviour:
   maxDistance: 60
   hitMask:
     serializedVersion: 2
-    m_Bits: 2147491191
+    m_Bits: 2147491799
   maxBounces: 4
   minGain: 0.05
   tiltGainForward: 1.8
@@ -410,6 +416,45 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -5298851424026594782, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+--- !u!114 &2758325826297153851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3614213272801666555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b74ebbf4fff11054988672846c43890e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarBeamAim
+  farDistance: 6
+  nearDistance: 1.6
+  candidates: []
+--- !u!114 &3642360939757258708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3614213272801666555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05e5f5546445c8949b1654038d8f2d17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarBeamHaptics
+  onlyForRole: 2
+  requireStandingOnPanel: 1
+  driveWhenRoleUnknown: 1
+  useLeftHand: 1
+  useRightHand: 1
+  scatteredAmplitude: 0.1
+  convergingAmplitude: 0.45
+  onTargetAmplitude: 1
+  minPerceptible: 0.06
+  scatteredInterval: 0.4
+  convergingInterval: 0.1
+  pulseDuration: 0.07
 --- !u!1 &6770256454037453071 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3334185812359465625, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}

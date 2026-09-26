@@ -5031,6 +5031,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
@@ -5939,6 +5940,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
+  faceAngleTolerance: 15
   broken: 1
 --- !u!114 &8697068732299842200
 MonoBehaviour:
@@ -5956,7 +5958,19 @@ MonoBehaviour:
   decayMultiplier: 1
   onRepaired:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 674650832220306594}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &4471120390215587361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5967,7 +5981,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec3caf178d02ff5418673363dbc95d04, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarPanelTilt
   maxPitch: 35
   fullDeflectionDistance: 0.4
