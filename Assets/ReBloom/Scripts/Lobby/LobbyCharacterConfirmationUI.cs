@@ -114,6 +114,9 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     private PlayerRef lastMentalOwner = PlayerRef.None;
     private PlayerRef lastEarOwner = PlayerRef.None;
 
+    // 씬 전환 잠금 상태(Networked SceneTransitionStarted의 로컬 캐시). 값이 바뀔 때만 반영한다.
+    private bool transitionLocked;
+
     public bool IsOpen => currentTarget != null;
 
     private void Awake()
@@ -131,7 +134,63 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
     private void Update()
     {
+        RefreshSceneTransitionLock();
         RefreshRoleOwnership();
+    }
+
+    // ------------------------------------------------------------------
+    // 씬 전환 입력 잠금 (Networked SceneTransitionStarted 폴링)
+    // ------------------------------------------------------------------
+
+    // Fade가 시작되면 모든 Peer에서 캐릭터 선택 입력을 잠근다. (Host의 Deselect 거부와 UX를 맞춘다)
+    private void RefreshSceneTransitionLock()
+    {
+        bool started = IsSceneTransitionStarted;
+
+        if (started == transitionLocked)
+            return;
+
+        transitionLocked = started;
+
+        if (started)
+        {
+            // 열려 있는 확인 창은 네트워크 요청 없이 닫고, 두 캐릭터의 입력을 막는다.
+            CloseForSceneTransition();
+            SetTargetsLocked(true);
+        }
+        else
+        {
+            // 전환이 취소됐으면 다시 고를 수 있게 연다.
+            SetTargetsLocked(false);
+        }
+    }
+
+    private static bool IsSceneTransitionStarted
+    {
+        get
+        {
+            LobbyManager lobbyManager = LobbyManager.Instance;
+            return lobbyManager != null && lobbyManager.SceneTransitionStarted;
+        }
+    }
+
+    // Select/Deselect 요청을 보내지 않고 UI만 정리한다.
+    // Selected 캐릭터의 Thankful/Outline/Glyph와 상대 캐릭터의 회색 상태는 건드리지 않는다.
+    private void CloseForSceneTransition()
+    {
+        StopFade();
+
+        LobbyCharacterSelectTarget target = currentTarget;
+        currentTarget = null;
+        closing = false;
+
+        // 아직 확정 전(Select 모드)이던 대상만 Pending 강조를 되돌린다. (Selected면 CancelPending이 무시한다)
+        if (target != null && mode == ConfirmationMode.Select)
+            target.CancelPending();
+
+        SetCanvasGroupInteractable(false);
+        ApplyAlpha(0f);
+        SetCanvasActive(false);
     }
 
     // ------------------------------------------------------------------
@@ -288,6 +347,10 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         if (currentTarget != null || closing)
             return;
 
+        // 씬 전환 Fade가 시작된 뒤에는 새 확인 창을 열지 않는다. (Host도 Deselect를 거부한다)
+        if (IsSceneTransitionStarted)
+            return;
+
         if (target.IsSelected)
         {
             // 선택 취소는 Multi에서만. (LobbyManager.RequestDeselect도 Single을 막지만 창부터 띄우지 않는다.)
@@ -380,10 +443,12 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         if (currentTarget == null || closing)
             return;
 
-        if (selectionConfirmed)
+        // 선택은 한 번만. 단 선택 취소(Deselect)는 이미 확정한 뒤에 여는 창이므로 통과시킨다.
+        if (selectionConfirmed && mode != ConfirmationMode.Deselect)
         {
             SetCanvasGroupInteractable(false);
             SetCanvasActive(false);
+            currentTarget = null;   // 창이 닫힌 뒤 다시 열 수 있도록 정리한다.
             return;
         }
 
@@ -487,6 +552,11 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     {
         SetCanvasActive(false);
         FinishConfirm();
+
+        // Selected 캐릭터를 다시 Trigger해 선택 취소 확인을 열 수 있도록 잠금을 푼다.
+        // (상대가 가져간 캐릭터는 unavailable, 새 선택은 selectionConfirmed가 계속 막는다.)
+        SetTargetsLocked(false);
+
         closing = false;
     }
 

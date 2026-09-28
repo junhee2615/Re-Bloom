@@ -61,6 +61,12 @@ public class LobbyManager : NetworkBehaviour
     /// </summary>
     [Networked] public int NextSceneOverride { get; set; }
 
+    /// <summary>
+    /// 씬 전환 Fade가 시작되었는지. Host만 쓰고 [Networked]라 모든 Peer가 같은 값을 본다.
+    /// 이 값이 true가 되면 각 Peer의 캐릭터 선택 UI가 입력을 잠근다. (Host의 ApplyDeselect 거부와 UX를 맞춘다)
+    /// </summary>
+    [Networked] public NetworkBool SceneTransitionStarted { get; private set; }
+
     /// <summary>현재 기준으로 실제 이동하게 될 씬 이름. Stage Select UI 표시용.</summary>
     public string CurrentNextSceneName => ResolveNextSceneName();
 
@@ -88,6 +94,7 @@ public class LobbyManager : NetworkBehaviour
             MentalOwner = PlayerRef.None;
             EarOwner = PlayerRef.None;
             NextSceneOverride = 0;
+            SceneTransitionStarted = false;
             RoleAssignments.Clear();
         }
 
@@ -212,8 +219,11 @@ public class LobbyManager : NetworkBehaviour
     private bool IsMultiSession =>
         NetworkManager.Instance == null || NetworkManager.Instance.Mode == SessionMode.Multi;
 
-    /// <summary>씬 전환 Fade가 이미 시작되어 더 이상 선택을 되돌릴 수 없는 구간인지. (Host 기준)</summary>
-    private bool IsSceneTransitionLocked => _fadeRequested;
+    /// <summary>
+    /// 씬 전환 Fade가 이미 시작되어 더 이상 선택을 되돌릴 수 없는 구간인지. (Host 기준)
+    /// _fadeRequested는 로드 직전에 내려가므로, 그 뒤 로드까지의 짧은 구간도 SceneTransitionStarted로 막는다.
+    /// </summary>
+    private bool IsSceneTransitionLocked => _fadeRequested || SceneTransitionStarted;
 
     // ------------------------------------------------------------------
     // 개발용 Stage 선택 (Stage Select UI에서 호출)
@@ -370,6 +380,7 @@ public class LobbyManager : NetworkBehaviour
         // 모든 피어(Host 포함)의 화면을 검게 덮은 뒤 로드한다.
         // 다음 씬의 Fade In은 ScreenFade가 sceneLoaded에서 자동으로 처리한다.
         _fadeRequested = true;
+        SceneTransitionStarted = true;   // 각 Peer의 캐릭터 선택 UI가 이 값을 보고 입력을 잠근다.
         Rpc_BeginSceneFade();
 
         if (sceneFadeDuration > 0f)
@@ -415,6 +426,7 @@ public class LobbyManager : NetworkBehaviour
             return;
 
         _fadeRequested = false;
+        SceneTransitionStarted = false;   // 전환이 취소됐으니 선택 UI 입력을 다시 연다.
         Rpc_RestoreSceneFade();
     }
 

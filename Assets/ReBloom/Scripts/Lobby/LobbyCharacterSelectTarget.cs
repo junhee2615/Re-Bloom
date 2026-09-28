@@ -413,20 +413,20 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
 
         inputLocked = locked;
 
-        if (state != SelectState.Idle)
-            return;
-
         if (locked)
         {
-            // 잠기는 순간 Hover 중이던 다른 캐릭터는 강조를 내린다.
-            if (hoveringUIRay != null)
+            // 잠기는 순간 Hover 중이던 다른 캐릭터는 강조를 내린다. (Idle일 때만 연출이 걸려 있다.)
+            if (state == SelectState.Idle && hoveringUIRay != null)
                 ClearHoveringUIRay();
+
+            return;
         }
-        else
-        {
-            // 잠금이 풀렸는데 Ray가 이미 위에 있으면 hoverEntered가 다시 오지 않으므로 직접 복구한다.
+
+        // 잠금이 풀렸는데 Ray가 이미 위에 있으면 hoverEntered가 다시 오지 않으므로 직접 복구한다.
+        // Selected에서도 복구해 Ray를 다시 올리지 않아도 선택 취소 Trigger를 받을 수 있게 한다.
+        // (TryBeginHover가 Selected에서는 Ray만 캐시하고 Thinking/DetailPanel은 켜지 않는다.)
+        if (state == SelectState.Idle || state == SelectState.Selected)
             TryResumeHover();
-        }
     }
 
     // ------------------------------------------------------------------
