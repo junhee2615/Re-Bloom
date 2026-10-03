@@ -54,9 +54,59 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("검정이 걷히며 Stage 환경이 나타나는 시간.")]
     [SerializeField, Min(0f)] private float stage1FadeInDuration = 1.5f;
 
-    [Header("Timing - Stage 위 문장 (\"전기는 끊겼고,\")")]
+    [Header("Timing - Stage1 위 문장 (\"전기는 끊겼고,\")")]
     [SerializeField, Min(0f)] private float stage1LineFadeInDuration = 1f;
     [SerializeField, Min(0f)] private float stage1LineHoldDuration = 2.5f;
+    [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다.")]
+    [SerializeField, Min(0f)] private float stage1LineFadeOutDuration = 0.8f;
+
+    [Header("Timing - Stage1 → Stage2 전환")]
+    [Tooltip("Stage1 환경이 검정으로 사라지는 시간.")]
+    [SerializeField, Min(0f)] private float stage1FadeOutDuration = 1f;
+
+    [Tooltip("검정이 걷히며 Stage2 환경이 나타나는 시간.")]
+    [SerializeField, Min(0f)] private float stage2FadeInDuration = 1.5f;
+
+    [Header("Timing - Stage2 위 문장")]
+    [SerializeField, Min(0f)] private float stage2LineFadeInDuration = 1f;
+    [SerializeField, Min(0f)] private float stage2LineHoldDuration = 3.5f;
+    [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다.")]
+    [SerializeField, Min(0f)] private float stage2LineFadeOutDuration = 0.8f;
+
+    [Header("Timing - Stage2 종료")]
+    [Tooltip("Stage2 환경이 검정으로 사라지는 시간. 이후 Stage2를 언로드한다.")]
+    [SerializeField, Min(0f)] private float stage2FadeOutDuration = 1f;
+
+    [Header("Timing - 희망 내레이션")]
+    [Tooltip("검정만 보이는 정적. 이 뒤에 첫 희망 문장이 나타난다.")]
+    [SerializeField, Min(0f)] private float hopeInitialDelay = 1f;
+
+    [SerializeField, Min(0f)] private float hopeLine1FadeInDuration = 1f;
+    [SerializeField, Min(0f)] private float hopeLine1HoldDuration = 3f;
+    [SerializeField, Min(0f)] private float hopeLine1FadeOutDuration = 0.8f;
+
+    [SerializeField, Min(0f)] private float betweenHopeLinesDelay = 0.5f;
+
+    [SerializeField, Min(0f)] private float hopeLine2FadeInDuration = 1f;
+    [SerializeField, Min(0f)] private float hopeLine2HoldDuration = 3.5f;
+    [SerializeField, Min(0f)] private float hopeLine2FadeOutDuration = 0.8f;
+
+    [Header("Timing - Re:Bloom 타이틀")]
+    [Tooltip("타이틀이 나타나기 전 검정만 보이는 시간.")]
+    [SerializeField, Min(0f)] private float beforeTitleDelay = 1f;
+
+    [SerializeField, Min(0f)] private float titleFadeInDuration = 1.5f;
+    [SerializeField, Min(0f)] private float titleHoldDuration = 3f;
+
+    [Tooltip("타이틀이 검정 속으로 사라지는 시간. 이 뒤에 세션이 시작된다.")]
+    [SerializeField, Min(0f)] private float titleFadeOutDuration = 0.8f;
+
+    [Header("Font Size")]
+    [Tooltip("내레이션 문장에 쓰는 크기. 모든 내레이션 구간에서 이 값으로 되돌린다.")]
+    [SerializeField, Min(1f)] private float narrationFontSize = 36f;
+
+    [Tooltip("타이틀에만 쓰는 크기.")]
+    [SerializeField, Min(1f)] private float titleFontSize = 72f;
 
     [Header("Narration")]
     [SerializeField, TextArea(2, 4)]
@@ -70,6 +120,18 @@ public class OpeningNarrationController : MonoBehaviour
 
     [SerializeField, TextArea(2, 4)]
     private string stage1Line = "전기는 끊겼고,";
+
+    [SerializeField, TextArea(2, 4)]
+    private string stage2Line = "숲은 말라가고 있으며,\n물길은 막혔다.";
+
+    [SerializeField, TextArea(2, 4)]
+    private string hopeLine1 = "하지만 아직,\n모든 것이 사라진 것은 아니다.";
+
+    [SerializeField, TextArea(2, 4)]
+    private string hopeLine2 = "이 세계를 다시 피워낼\n두 개의 감각이 남아 있다.";
+
+    [Tooltip("타이틀. 이 구간에서만 Font Size가 titleFontSize로 바뀐다.")]
+    [SerializeField] private string titleLine = "Re:Bloom";
 
     [Header("References")]
     [Tooltip("페이드할 내레이션 텍스트의 CanvasGroup. (OpeningText)")]
@@ -180,9 +242,9 @@ public class OpeningNarrationController : MonoBehaviour
 
         Debug.Log("[Opening] Transition line complete");
 
-        // ── Stage 환경을 검정 뒤에서 갈아끼운다 ──────────────────
+        // ── Stage1 환경을 검정 뒤에서 올린다 ─────────────────────
         if (environmentController != null)
-            yield return environmentController.LoadStageBlind();
+            yield return environmentController.GoToStage(0);
         else
             Debug.LogWarning("[Opening] EnvironmentController가 없어 Stage를 올리지 못했습니다.", this);
 
@@ -192,8 +254,7 @@ public class OpeningNarrationController : MonoBehaviour
         if (screenFade != null)
             yield return screenFade.FadeIn(stage1FadeInDuration);
 
-        // ── Stage 위에 올리는 문장 "전기는 끊겼고," ──────────────
-        // 이번 단계에서는 Fade Out하지 않고 보이는 상태로 멈춘다.
+        // ── Stage1 위에 올리는 문장 "전기는 끊겼고," ─────────────
         yield return ShowLine(
             stage1Line,
             stage1LineFadeInDuration,
@@ -201,24 +262,264 @@ public class OpeningNarrationController : MonoBehaviour
             0f,
             keepVisible: true);
 
-        // ── 이후 아무것도 하지 않는다 ────────────────────────────
-        // 다음 단계에서 여기에 "숲은 말라가고 있으며" → Stage2 를 잇는다.
         Debug.Log("[Opening] Stage1 narration shown");
+
+        // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
+        yield return FadeNarration(1f, 0f, stage1LineFadeOutDuration);
+
+        // ── Stage1 환경을 검정으로 덮는다 ────────────────────────
+        if (screenFade != null)
+            yield return screenFade.FadeOut(stage1FadeOutDuration);
+
+        // ── 검정 뒤에서 Stage1 → Stage2 로 갈아끼운다 ────────────
+        if (environmentController != null)
+            yield return environmentController.GoToStage(1);
+        else
+            Debug.LogWarning("[Opening] EnvironmentController가 없어 Stage2로 넘어가지 못했습니다.", this);
+
+        // ── 검정을 걷어 Stage2 환경을 보여준다 ──────────────────
+        if (screenFade != null)
+            yield return screenFade.FadeIn(stage2FadeInDuration);
+
+        // ── Stage2 위에 올리는 문장 ──────────────────────────────
+        yield return ShowLine(
+            stage2Line,
+            stage2LineFadeInDuration,
+            stage2LineHoldDuration,
+            0f,
+            keepVisible: true);
+
+        Debug.Log("[Opening] Stage2 narration shown");
+
+        // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
+        yield return FadeNarration(1f, 0f, stage2LineFadeOutDuration);
+
+        Debug.Log("[Opening] Stage2 narration complete");
+
+        // ── Stage2 환경을 검정으로 덮는다 ────────────────────────
+        if (screenFade != null)
+            yield return screenFade.FadeOut(stage2FadeOutDuration);
+
+        // ── 검정 뒤에서 Stage2를 내린다. 다음 Stage는 올리지 않는다 ──
+        if (environmentController != null)
+            yield return environmentController.UnloadStage();
+
+        // ── 정적 ─────────────────────────────────────────────────
+        if (hopeInitialDelay > 0f)
+            yield return new WaitForSeconds(hopeInitialDelay);
+
+        // ── 희망 문장 1 ──────────────────────────────────────────
+        yield return ShowLine(
+            hopeLine1,
+            hopeLine1FadeInDuration,
+            hopeLine1HoldDuration,
+            hopeLine1FadeOutDuration);
+
+        Debug.Log("[Opening] Hope line 1 complete");
+
+        // ── 문장 사이 검정 ───────────────────────────────────────
+        if (betweenHopeLinesDelay > 0f)
+            yield return new WaitForSeconds(betweenHopeLinesDelay);
+
+        // ── 희망 문장 2 ──────────────────────────────────────────
+        yield return ShowLine(
+            hopeLine2,
+            hopeLine2FadeInDuration,
+            hopeLine2HoldDuration,
+            hopeLine2FadeOutDuration);
+
+        Debug.Log("[Opening] Hope line 2 complete");
+
+        // ── 타이틀 전 검정 ───────────────────────────────────────
+        if (beforeTitleDelay > 0f)
+            yield return new WaitForSeconds(beforeTitleDelay);
+
+        // ── Re:Bloom 타이틀 ──────────────────────────────────────
+        // 이 구간에서만 Font Size를 titleFontSize로 올린다.
+        // Hold가 끝나면 검정 속으로 사라지고, 그 뒤에 Opening을 정리하고 세션을 시작한다.
+        yield return ShowLine(
+            titleLine,
+            titleFadeInDuration,
+            titleHoldDuration,
+            titleFadeOutDuration,
+            fontSizeOverride: titleFontSize);
+
+        Debug.Log("[Opening] Title complete");
+
+        // ── Opening 정리 후 기존 세션 흐름으로 넘긴다 ────────────
+        yield return FinishOpeningAndEnterSession();
     }
 
+    /// <summary>
+    /// 타이틀이 완전히 사라진 뒤의 Opening 마무리.
+    ///
+    /// 순서가 중요하다 —
+    ///   ① 세션 요청 검증 (실패하면 아무것도 정리하지 않고 멈춘다)
+    ///   ② 리그 포즈 복구   : Lobby에는 리그를 배치하는 코드가 없다
+    ///   ③ OpeningText 제거 : DontDestroyOnLoad 영역에 있어 씬이 사라져도 남는다
+    ///   ④ ScreenFade 복구  : Lobby가 기존 방식으로 Fade In할 수 있게
+    ///   ⑤ EnterSession
+    ///
+    /// Locomotion은 여기서 켜지 않는다. 자세한 이유는
+    /// <see cref="OpeningEnvironmentController.RestoreLocomotionForExit"/> 주석에 있다.
+    /// </summary>
+    private IEnumerator FinishOpeningAndEnterSession()
+    {
+        // ── ① 세션 요청 검증 ────────────────────────────────────
+        if (!OpeningSessionRequest.HasRequest)
+        {
+            Debug.LogError(
+                "[Opening] 세션 요청이 없습니다. StartScene의 Single/Multi 버튼을 거치지 않고 " +
+                "Opening을 직접 실행하면 이 상태가 됩니다. EnterSession을 호출하지 않고 멈춥니다.", this);
+            yield break;
+        }
+
+        if (NetworkManager.Instance == null)
+        {
+            Debug.LogError(
+                "[Opening] NetworkManager.Instance가 없습니다. StartScene의 Manager가 " +
+                "DontDestroyOnLoad로 넘어왔는지 확인하세요. EnterSession을 호출하지 않고 멈춥니다.", this);
+            yield break;
+        }
+
+        // 값을 먼저 로컬로 복사한다. Clear는 입장 성공을 확인한 뒤에만 한다.
+        string roomCode = OpeningSessionRequest.RoomCode;
+        SessionMode mode = OpeningSessionRequest.Mode;
+
+        // ── ② 리그 포즈 복구 ────────────────────────────────────
+        if (environmentController != null)
+            environmentController.RestoreRigPoseForExit();
+
+        // ── ③ OpeningText 제거 ─────────────────────────────────
+        DestroyNarrationText();
+
+        // ── ④ ScreenFade 복구 ──────────────────────────────────
+        yield return RestoreScreenFadeForLobby();
+
+        // ── ⑤ 세션 시작 ────────────────────────────────────────
+        Debug.Log($"[Opening] Session start - mode={mode}, room={roomCode}");
+
+        EnterSessionAndClearOnSuccess(roomCode, mode);
+    }
+
+    /// <summary>
+    /// OpeningText를 치운다.
+    ///
+    /// 이 오브젝트는 <see cref="AttachNarrationToScreenFadeCanvas"/> 에서 영속
+    /// ScreenFadeCanvas의 자식으로 옮겨졌다. 그래서 Opening 씬이 언로드돼도 함께
+    /// 사라지지 않고, 그대로 두면 Lobby에서 "Re:Bloom" 글자가 계속 떠 있다.
+    ///
+    /// Destroy는 프레임 끝에 처리되므로 알파를 먼저 0으로 만들어 그 사이에도 보이지 않게 한다.
+    /// 새 Text는 만들지 않는다.
+    /// </summary>
+    private void DestroyNarrationText()
+    {
+        if (narrationGroup == null)
+            return;
+
+        narrationGroup.alpha = 0f;
+
+        GameObject textObject = narrationGroup.gameObject;
+
+        narrationGroup = null;
+        narrationText = null;
+
+        Destroy(textObject);
+
+        Debug.Log("[Opening] OpeningText destroyed");
+    }
+
+    /// <summary>
+    /// ScreenFade를 기존 동작으로 되돌린다. ScreenFade.cs는 수정하지 않고
+    /// 공개 API(FadeOut / enabled)만 쓴다.
+    ///
+    /// ScreenFade는 OnEnable에서 sceneLoaded를 구독하고 OnDisable에서 해제하며,
+    /// sceneLoaded가 오면 스스로 FadeIn(1f)을 돌린다. Opening 시작 시 enabled=false로
+    /// 꺼 둔 상태이므로 지금은 구독이 끊겨 있다.
+    ///
+    /// 그래서 순서를 이렇게 둔다 —
+    ///   ① FadeOut(0f)로 알파를 1(완전 검정)에 맞춘다. while 조건이 바로 거짓이 되어
+    ///      즉시 1이 된다. 이걸 먼저 해 두어야 Lobby의 자동 FadeIn이 1 → 0으로 온전히 돈다.
+    ///   ② enabled = true 로 구독을 되살린다.
+    ///
+    /// 이 뒤에 로드되는 첫 씬은 Fusion이 올리는 Lobby뿐이므로, Lobby 로드가 끝나는
+    /// 시점에 ScreenFade가 기존 방식 그대로 Fade In한다.
+    /// 여기서 수동 FadeIn을 돌리지 않기 때문에 자동 FadeIn과 겹치지 않는다.
+    /// </summary>
+    private IEnumerator RestoreScreenFadeForLobby()
+    {
+        if (screenFade == null)
+        {
+            Debug.LogWarning(
+                "[Opening] ScreenFade를 찾지 못해 복구를 건너뜁니다. " +
+                "Lobby가 검정으로 남을 수 있습니다.", this);
+            yield break;
+        }
+
+        yield return screenFade.FadeOut(0f);
+
+        screenFade.enabled = true;
+
+        Debug.Log("[Opening] ScreenFade restored");
+    }
+
+    /// <summary>
+    /// 기존 <see cref="NetworkManager.EnterSession"/> 을 그대로 호출한다.
+    /// 세션의 첫 Network Scene은 NetworkManager가 정하는 Lobby 그대로다.
+    /// Single / Multi 분기는 만들지 않고 보관된 Mode를 그대로 넘긴다.
+    ///
+    /// 코루틴이 아니라 async void인 이유:
+    /// EnterSession의 Task는 Lobby 로드가 끝난 뒤에 완료된다. 그 시점에 Opening은 이미
+    /// 언로드되어 이 컴포넌트가 파괴돼 있으므로 코루틴으로는 결과를 받을 수 없다.
+    /// async void의 연속은 Unity 메인 스레드 컨텍스트에 남아 계속 실행되므로,
+    /// 파괴 뒤에도 성공 여부를 보고 Clear할 수 있다.
+    /// 그래서 이 뒤의 로그에는 컨텍스트(this)를 넘기지 않는다.
+    /// </summary>
+    private async void EnterSessionAndClearOnSuccess(string roomCode, SessionMode mode)
+    {
+        bool entered = await NetworkManager.Instance.EnterSession(roomCode, mode);
+
+        if (entered)
+        {
+            // 성공한 뒤에만 비운다. EnterSession은 실패 시 _sessionStarted를 되돌려
+            // 재시도를 허용하므로, 먼저 비우면 재시도에 쓸 room/mode가 사라진다.
+            OpeningSessionRequest.Clear();
+
+            Debug.Log("[Opening] Session request cleared");
+            return;
+        }
+
+        Debug.LogError(
+            $"[Opening] 세션 입장에 실패했습니다 (room={roomCode}, mode={mode}). " +
+            "재시도를 위해 OpeningSessionRequest 값을 유지합니다.");
+
+        // 실패하면 어떤 씬도 로드되지 않아 ScreenFade의 자동 FadeIn이 돌지 않는다.
+        // 검정 그대로 두면 멈춘 것과 구분되지 않으므로 수동으로 한 번만 걷는다.
+        // (자동 FadeIn은 sceneLoaded에서만 돌기 때문에 겹치지 않는다.)
+        if (screenFade != null)
+            screenFade.StartCoroutine(screenFade.FadeIn(1f));
+    }
     /// <summary>
     /// 문장 하나를 띄우고 유지한 뒤 지운다. OpeningText 하나를 계속 재사용하며
     /// 알파가 0인 상태에서만 내용을 바꿔 글자가 바뀌는 순간이 보이지 않게 한다.
     /// </summary>
     /// <param name="keepVisible">true면 Fade Out 없이 보이는 상태로 둔다.</param>
+    /// <param name="fontSizeOverride">0보다 크면 이 크기를 쓴다. 그 외에는 항상 narrationFontSize로 돌아간다.</param>
     private IEnumerator ShowLine(
-        string line, float fadeIn, float hold, float fadeOut, bool keepVisible = false)
+        string line, float fadeIn, float hold, float fadeOut,
+        bool keepVisible = false, float fontSizeOverride = 0f)
     {
         if (narrationGroup != null)
             narrationGroup.alpha = 0f;
 
         if (narrationText != null)
+        {
+            // 알파가 0인 상태에서만 크기와 내용을 바꾼다. 바뀌는 순간이 보이지 않는다.
+            narrationText.fontSize =
+                fontSizeOverride > 0f ? fontSizeOverride : narrationFontSize;
+
             narrationText.text = line;
+        }
 
         yield return FadeNarration(0f, 1f, fadeIn);
 
@@ -310,23 +611,25 @@ public class OpeningNarrationController : MonoBehaviour
         narrationGroup.alpha = to;
     }
 
-    /// <summary>ScreenFade는 XR Origin 프리팹 안(ScreenFadeCanvas)에 들어 있다.</summary>
+    /// <summary>
+    /// ScreenFade는 XR Origin 프리팹 안(ScreenFadeCanvas)에 들어 있다.
+    ///
+    /// Opening 씬에는 더 이상 VRSystem이 없고, 리그는 StartScene에서
+    /// DontDestroyOnLoad로 넘어온다. 그래서 Opening 씬 범위가 아니라
+    /// 로드된 모든 씬(+ DontDestroyOnLoad 영역)을 대상으로 찾아야 한다.
+    ///
+    /// Start()에서 한 번만 호출한다. 매 프레임 탐색하지 않는다.
+    /// </summary>
     private ScreenFade ResolveScreenFade()
     {
-        foreach (GameObject root in gameObject.scene.GetRootGameObjects())
-        {
-            ScreenFade fade = root.GetComponentInChildren<ScreenFade>(true);
-
-            if (fade != null)
-                return fade;
-        }
-
-        return null;
+        return FindAnyObjectByType<ScreenFade>(FindObjectsInactive.Include);
     }
 
     /// <summary>인스펙터 연결이 비었을 때를 위한 폴백. Opening 씬에서만 찾는다.</summary>
     private CanvasGroup ResolveNarrationGroup()
     {
+        // OpeningText는 Opening 씬 소유이므로 여기는 전역으로 넓히지 않는다.
+        // (리그 쪽 ScreenFadeCanvas의 CanvasGroup을 잡으면 안 된다.)
         foreach (GameObject root in gameObject.scene.GetRootGameObjects())
         {
             // ScreenFade의 CanvasGroup을 잡지 않도록 ScreenFade가 달린 계층은 건너뛴다.

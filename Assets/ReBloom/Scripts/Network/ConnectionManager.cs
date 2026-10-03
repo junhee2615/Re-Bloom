@@ -1,9 +1,13 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
 public class ConnectionManager : MonoBehaviour
 {
+    /// <summary>버튼을 누른 뒤 곧바로 로드할 오프닝 씬. Build Profiles > Scene List에 등록되어 있어야 한다.</summary>
+    private const string OpeningSceneName = "Opening";
+
     [SerializeField, Tooltip("Multi(2인 협동) 입장 시 사용할 세션 이름. 같은 이름끼리 매칭된다.")]
     private string multiRoomCode = "TestRoom";
 
@@ -26,7 +30,23 @@ public class ConnectionManager : MonoBehaviour
         Enter(singleRoomPrefix + SystemInfo.deviceUniqueIdentifier, SessionMode.Single);
     }
 
-    private async void Enter(string roomCode, SessionMode mode)
+    /// <summary>
+    /// 버튼을 누르면 선택값만 보관하고 Opening으로 넘어간다.
+    ///
+    /// 여기서 Fusion 세션을 시작하지 않는 이유:
+    /// Opening은 Stage1/Stage2를 일반 SceneManager로 Additive Load해 잠깐 보여 주는
+    /// 순수 로컬 연출이다. Runner가 살아 있는 상태에서 그렇게 하면
+    /// PlayerSpawner가 Active Scene 이름으로 스폰 여부를 판정하기 때문에
+    /// 임시 Stage에 플레이어 아바타가 스폰되는 등 세션 상태가 오염된다.
+    /// 또 멀티에서 두 피어의 45초 연출을 동기화해야 하는 문제가 생긴다.
+    ///
+    /// 그래서 EnterSession은 Opening이 끝난 뒤에 호출한다.
+    /// 세션의 첫 Network Scene은 계속 Lobby이고, NetworkManager는 수정하지 않는다.
+    ///
+    /// NetworkManager는 Awake에서 DontDestroyOnLoad되므로 Opening으로 넘어가도 살아남는다.
+    /// 다음 단계에서 Opening이 OpeningSessionRequest를 읽어 EnterSession을 호출한다.
+    /// </summary>
+    private void Enter(string roomCode, SessionMode mode)
     {
         if (NetworkManager.Instance == null)
         {
@@ -34,14 +54,14 @@ public class ConnectionManager : MonoBehaviour
             return;
         }
 
+        // 연출 중 버튼이 다시 눌리는 사고를 막는다. 이 씬은 곧 언로드된다.
         SetEntryButtonsInteractable(false);
 
-        bool entered = await NetworkManager.Instance.EnterSession(roomCode, mode);
+        OpeningSessionRequest.Set(roomCode, mode);
 
-        // 성공하면 곧바로 Lobby 씬으로 넘어가면서 이 오브젝트는 사라진다.
-        // 실패했을 때만 버튼을 다시 열어 준다.
-        if (!entered)
-            SetEntryButtonsInteractable(true);
+        Debug.Log($"[Opening] 세션 요청 보관 - room={roomCode}, mode={mode}. '{OpeningSceneName}'을 로드합니다.", this);
+
+        SceneManager.LoadScene(OpeningSceneName, LoadSceneMode.Single);
     }
 
     private void SetEntryButtonsInteractable(bool value)
