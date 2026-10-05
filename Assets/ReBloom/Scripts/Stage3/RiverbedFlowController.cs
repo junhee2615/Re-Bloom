@@ -152,6 +152,15 @@ namespace ReBloom.Water
         [Tooltip("에디터 테스트용 키. VR 에서는 SubmitInput() 을 직접 호출한다")]
         public KeyCode debugKey = KeyCode.Space;
 
+        [Header("판정 사운드 (각자 로컬 재생)")]
+        [Tooltip("비우면 이 오브젝트의 AudioSource 를 쓴다")]
+        public AudioSource feedbackAudio;
+        [Tooltip("둘 다 맞춰서 한 회차가 클리어됐을 때")]
+        public AudioClip correctClip;
+        [Tooltip("틀리게 눌렀거나, 진짜 물결을 클리어하지 못하고 흘려보냈을 때")]
+        public AudioClip wrongClip;
+        [Range(0f, 1f)] public float feedbackVolume = 1f;
+
         [Header("디버그")]
         public bool showDebugHud = true;
         public bool logToConsole = true;
@@ -207,6 +216,10 @@ namespace ReBloom.Water
 
         bool stationsReadyCached;
 
+        // 이번 물결의 판정 사운드 상태
+        bool waveCleared;       // 이번 물결이 클리어 처리됐다
+        bool waveWrongPlayed;   // 이번 물결에서 wrong 을 이미 울렸다
+
         string lastOutcomeText = "";
         float lastOutcomeTime = -99f;
 
@@ -259,6 +272,8 @@ namespace ReBloom.Water
             if (rounds == null || rounds.Count == 0) BuildDefaultRounds();
             ResolveJudgmentDistance();
             RebuildFrontShape();
+
+            if (feedbackAudio == null) feedbackAudio = GetComponent<AudioSource>();
 
             if (riverbedRenderers != null)
             {
@@ -462,6 +477,8 @@ namespace ReBloom.Water
             netApproach = Mathf.Max(0.1f, approachDuration);
             waveActive = true;
             waveInputTaken = false;
+            waveCleared = false;
+            waveWrongPlayed = false;
             waveStartTime = Time.time;
             beatTime = waveStartTime + netApproach;
             phase = Phase.WaveIncoming;
@@ -478,6 +495,8 @@ namespace ReBloom.Water
             roundIndex = Mathf.Clamp(count, 0, Mathf.Max(0, rounds.Count - 1));
             lastOutcomeText = "성공 " + count + " / " + rounds.Count;
             lastOutcomeTime = Time.time;
+            waveCleared = true;
+            PlayCorrect();
             if (onRoundCleared != null) onRoundCleared.Invoke(count);
         }
 
@@ -562,6 +581,8 @@ namespace ReBloom.Water
             waveIndex++;
             waveActive = true;
             waveInputTaken = false;
+            waveCleared = false;
+            waveWrongPlayed = false;
             // 난수 대신 해시를 쓴다. 나중에 시드와 인덱스만 동기화하면
             // 두 클라이언트가 같은 진짜/페이크 순서를 뽑게 된다
             waveIsReal = Hash01(waveSeed + waveIndex) >= r.fakeChance;
@@ -661,6 +682,11 @@ namespace ReBloom.Water
         void EndWave()
         {
             waveActive = false;
+
+            // 네트워크 모드: 진짜 물결이 클리어되지 못하고 지나갔으면 실패 소리.
+            // (내가 놓쳤거나, 나는 맞췄지만 상대가 못 맞춘 경우)
+            if (networkDriven && waveIsReal && !waveCleared) PlayWrong();
+
             if (phase != Phase.Complete) phase = Phase.Waiting;
 
             RoundSetup r = CurrentRound;
@@ -712,6 +738,7 @@ namespace ReBloom.Water
                         : (err < 0f ? "너무 빠름" : "너무 늦음");
                 }
                 lastOutcomeTime = Time.time;
+                if (!netHit) PlayWrong();
                 if (onWaveResolved != null) onWaveResolved.Invoke(netHit ? 0 : 4);
                 return;
             }
@@ -732,6 +759,9 @@ namespace ReBloom.Water
         void Resolve(WaveOutcome outcome, float errorSeconds)
         {
             lastOutcomeTime = Time.time;
+
+            if (outcome == WaveOutcome.Success) PlayCorrect();
+            else PlayWrong();
 
             if (outcome == WaveOutcome.Success)
             {
@@ -785,6 +815,25 @@ namespace ReBloom.Water
 
             if (logToConsole) Debug.Log("[Riverbed] " + outcome + " : " + lastOutcomeText);
             if (onWaveResolved != null) onWaveResolved.Invoke((int)outcome);
+        }
+
+        // ---------------- 판정 사운드 ----------------
+        void PlayCorrect()
+        {
+            if (feedbackAudio != null && correctClip != null)
+                feedbackAudio.PlayOneShot(correctClip, feedbackVolume);
+        }
+
+        // 한 물결에서 wrong 은 한 번만 울린다
+        void PlayWrong()
+        {
+            if (waveActive || waveInputTaken)
+            {
+                if (waveWrongPlayed) return;
+                waveWrongPlayed = true;
+            }
+            if (feedbackAudio != null && wrongClip != null)
+                feedbackAudio.PlayOneShot(wrongClip, feedbackVolume);
         }
 
         // ---------------------------------------------------------------
