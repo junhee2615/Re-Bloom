@@ -10,27 +10,29 @@ namespace ReBloom.Solar
     /// 닿은 지점으로 재면 빗나간 빔이 하늘로 사라지는 순간 거리가 수십 m로 튀어
     /// "가까워지는 중"이 드러나지 않는다. 최단 거리는 빔이 표적을 스쳐 지나가도 연속적으로 줄었다 늘어난다.
     ///
-    /// 표적은 <b>아직 고장난</b> 거울이다. 수리되면 표적에서 빠지고 다음 고장 판이 표적이 된다.
+    /// <b>조용한 경우는 이 판이 고장났을 때뿐이다.</b> 겨눌 표적이 없어도, 빔이 안 나와도
+    /// <see cref="AimState.Scattered"/>로 둔다 — "여기서는 아무 일도 일어나지 않는다"를 약한 진동으로
+    /// 계속 알려주는 쪽이, 침묵으로 "고장인지 아닌지" 헷갈리게 하는 것보다 낫다.
     ///
-    /// 빔은 해와 판 법선만으로 정해져 모든 피어에서 같으므로 이 값도 동기화하지 않는다.
+    /// 표적은 <b>아직 고장난</b> 거울이다(자기 자신은 제외). 수리되면 표적에서 빠지고 다음 고장 판이 표적이 된다.
     ///
-    /// 배치: <see cref="SolarBeam"/>과 같은 GameObject.
+    /// 배치: <see cref="SolarBeam"/>과 같은 GameObject(= 판 면).
     /// </summary>
     [AddComponentMenu("ReBloom/Solar Beam Aim")]
     [RequireComponent(typeof(SolarBeam))]
     [DefaultExecutionOrder(200)]   // SolarBeam(기본 0)의 LateUpdate보다 뒤에서 읽는다.
     public class SolarBeamAim : MonoBehaviour
     {
-        /// <summary>조준 상태. 연출이 세 갈래로 갈리는 지점이다.</summary>
+        /// <summary>조준 상태. 연출이 갈리는 지점이다.</summary>
         public enum AimState
         {
-            /// <summary>빔이 꺼졌거나 살릴 판이 남지 않았다.</summary>
+            /// <summary>이 판이 고장나 발전하지 못한다. 유일하게 조용한 상태다.</summary>
             Off,
-            /// <summary>표적에서 멀다. "빛이 퍼진 상태".</summary>
+            /// <summary>겨눌 표적이 없거나 멀다. "빛이 퍼진 상태".</summary>
             Scattered,
             /// <summary>가까워지는 중.</summary>
             Converging,
-            /// <summary>빔이 실제로 표적에 닿았다.</summary>
+            /// <summary>빔이 실제로 고장 판에 닿았다.</summary>
             OnTarget,
         }
 
@@ -58,10 +60,12 @@ namespace ReBloom.Solar
         /// <summary>지금 조준 상태.</summary>
         public AimState State { get; private set; }
 
+        SolarReflector self;
         SolarBeam beam;
 
         void Awake()
         {
+            self = GetComponent<SolarReflector>();
             beam = GetComponent<SolarBeam>();
 
             if (candidates == null || candidates.Length == 0)
@@ -73,20 +77,24 @@ namespace ReBloom.Solar
             Target = null;
             Distance = 0f;
             Proximity = 0f;
-            State = AimState.Off;
 
-            // 빔이 꺼져 있으면(광원을 못 받거나 스치듯 받으면) 잴 것이 없다.
-            if (beam == null || beam.Path.Count < 2) return;
-
-            // 빔이 실제로 고장 판에 닿았으면 그게 곧 정답이다. 거리를 잴 필요가 없다.
-            // (고장 판도 Chain에는 들어간다 — SolarBeam이 반사 성공 여부와 무관하게 먼저 담는다.)
-            for (int i = 0; i < beam.Chain.Count; i++)
+            // 이 판이 고장이면 아무것도 하지 않는다. 그 밖에는 최소 Scattered다.
+            if (self != null && self.broken)
             {
-                SolarReflector mirror = beam.Chain[i];
-                if (mirror == null || !mirror.broken) continue;
+                State = AimState.Off;
+                return;
+            }
 
-                Target = mirror;
-                Distance = 0f;
+            State = AimState.Scattered;
+
+            // 빔이 안 나오면(해를 등졌거나 광원이 없으면) 겨눌 방향 자체가 없다.
+            if (beam == null || !beam.IsEmitting) return;
+
+            // 빔이 고장 판 앞면에 닿았으면 그게 곧 정답이다. 거리를 잴 필요가 없다.
+            SolarReflector hit = beam.HitMirror;
+            if (hit != null && hit != self && hit.broken)
+            {
+                Target = hit;
                 Proximity = 1f;
                 State = AimState.OnTarget;
                 return;
@@ -98,10 +106,10 @@ namespace ReBloom.Solar
             Distance = distance;
             Proximity = 1f - Mathf.Clamp01(Mathf.InverseLerp(Mathf.Min(nearDistance, farDistance),
                                                              farDistance, distance));
-            State = Proximity > 0f ? AimState.Converging : AimState.Scattered;
+            if (Proximity > 0f) State = AimState.Converging;
         }
 
-        // 빔 경로(꺾은선) 전체에서 가장 가까운 고장 판. 체인 중간에서 꺾여도 마지막 구간으로 잰다.
+        // 빔 선분에서 가장 가까운 고장 판.
         bool TryFindNearest(out SolarReflector nearest, out float nearestDistance)
         {
             nearest = null;
@@ -110,21 +118,13 @@ namespace ReBloom.Solar
             for (int i = 0; i < candidates.Length; i++)
             {
                 SolarReflector r = candidates[i];
-                if (r == null || !r.broken || !r.isActiveAndEnabled) continue;
+                if (r == null || r == self || !r.broken || !r.isActiveAndEnabled) continue;
 
-                Vector3 center = r.Position;
-                float best = float.MaxValue;
-
-                for (int p = 1; p < beam.Path.Count; p++)
-                {
-                    float d = DistanceToSegment(center, beam.Path[p - 1], beam.Path[p]);
-                    if (d < best) best = d;
-                }
-
-                if (best < nearestDistance)
+                float d = DistanceToSegment(r.Position, beam.Origin, beam.End);
+                if (d < nearestDistance)
                 {
                     nearest = r;
-                    nearestDistance = best;
+                    nearestDistance = d;
                 }
             }
 
@@ -152,8 +152,7 @@ namespace ReBloom.Solar
                 : Color.Lerp(new Color(1f, 0.4f, 0.2f, 0.6f), new Color(1f, 0.95f, 0.4f, 0.9f), Proximity);
 
             Gizmos.DrawWireSphere(Target.Position, nearDistance);
-            if (beam != null && beam.Path.Count >= 2)
-                Gizmos.DrawLine(Target.Position, beam.Path[beam.Path.Count - 1]);
+            if (beam != null && beam.IsEmitting) Gizmos.DrawLine(Target.Position, beam.End);
         }
     }
 }

@@ -16,8 +16,16 @@ namespace ReBloom.Solar
     /// 보내고(가까울수록 간격이 좁아진다), 맞는 순간 간격을 길이보다 짧게 만들어 임펄스가 겹치는
     /// <b>끊기지 않는</b> 진동으로 질감을 바꾼다. 세기와 촘촘함이 함께 올라가야 "모이는 중"이 읽힌다.
     ///
+    /// <b>올라설 수 있는 판이면 최소 약한 진동은 항상 온다.</b> 겨눌 고장 판이 없어도, 아무리 빗나가도
+    /// 약하게 울린다 — 애초에 그 판으로는 클리어할 수 없다는 것도 정보이고, 침묵으로 두면
+    /// "고장인지 조작 가능한지"가 헷갈린다. 완전히 조용한 것은 <b>고장난 판</b>뿐이다
+    /// (<see cref="SolarPanelTilt"/>가 잠겨 <see cref="SolarPanelTilt.IsOccupied"/>도 서지 않고,
+    /// <see cref="SolarBeamAim"/>도 <see cref="SolarBeamAim.AimState.Off"/>를 준다).
+    ///
     /// 진동은 로컬 기기로만 나가므로 동기화하지 않는다.
-    /// 배치: <see cref="SolarBeamAim"/>과 같은 GameObject(= 빔을 쏘는 판).
+    ///
+    /// 배치: <see cref="SolarBeamAim"/>과 같은 GameObject. 판 9장 전부에 붙는다 — 수리된 판은
+    /// 정상 판과 완전히 같아지므로 구분하지 않는다.
     /// </summary>
     [AddComponentMenu("ReBloom/Solar Beam Haptics")]
     [RequireComponent(typeof(SolarBeamAim))]

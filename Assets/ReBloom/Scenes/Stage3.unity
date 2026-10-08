@@ -124,6 +124,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1260855994506195627, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &195865346 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7951147598815666439, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
+--- !u!114 &195865347 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8958693633120167358, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
+--- !u!114 &195865348 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7057088179119263795, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
+--- !u!114 &428408664 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7318312531019193204, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25d7a804eb3540419baf349250c3086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarReflector
 --- !u!1 &462404572
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,55 +199,77 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1740867299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &544448648 stripped
+--- !u!1 &545977041
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &544448649 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 8583060078375044655, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-  m_PrefabInstance: {fileID: 3846063778224516753}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &544448650
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 545977044}
+  - component: {fileID: 545977043}
+  - component: {fileID: 545977042}
+  m_Layer: 0
+  m_Name: SolarMissionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &545977042
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 544448648}
+  m_GameObject: {fileID: 545977041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b92705fd5b338fb4185ab923a8089c40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarMissionManager
+  requiredPanels:
+  - {fileID: 428408664}
+  - {fileID: 195865348}
+  - {fileID: 195865347}
+  - {fileID: 195865346}
+  _IsClear:
+    _value: 0
+--- !u!114 &545977043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545977041}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2431891116
+  SortKey: 4139852126
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 544448651}
+  - {fileID: 545977042}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &544448651
-MonoBehaviour:
+--- !u!4 &545977044
+Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 544448648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9acc516dbdd1e747864ffba623de613, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BuildingToWaterfrontT
-  boardingZone: {fileID: 544448649}
-  verticalTolerance: 2
-  waterfrontSpawnPoint: {fileID: 462404573}
-  delayBeforeTransition: 3
-  fadeDuration: 1
-  glassDoor: {fileID: 0}
-  doorRotateAngle: 100
-  doorRotateDuration: 1.5
+  m_GameObject: {fileID: 545977041}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &618764029
 GameObject:
   m_ObjectHideFlags: 0
@@ -812,21 +878,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1905840926404618095, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905840926404618095, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905840926404618095, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905840926404618095, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+    - target: {fileID: 250614228499250555, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: SortKey
+      value: 801208161
       objectReference: {fileID: 0}
     - target: {fileID: 3805301633693628875, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: hitMask.m_Bits
@@ -880,6 +934,14 @@ PrefabInstance:
       propertyPath: hitMask.m_Bits
       value: 2147491191
       objectReference: {fileID: 0}
+    - target: {fileID: 4575645206835385633, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: requiredMission
+      value: 
+      objectReference: {fileID: 545977042}
+    - target: {fileID: 4575645206835385633, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: waterfrontSpawnPoint
+      value: 
+      objectReference: {fileID: 462404573}
     - target: {fileID: 4890399217715522011, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
@@ -1000,12 +1062,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 618764030}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 544448650}
-    - targetCorrespondingSourceObject: {fileID: 9215494535916644873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 544448651}
     - targetCorrespondingSourceObject: {fileID: 8879328576759840386, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3846063778224516759}
@@ -1078,3 +1134,4 @@ SceneRoots:
   - {fileID: 1539875647}
   - {fileID: 802586104}
   - {fileID: 2138010515}
+  - {fileID: 545977044}
