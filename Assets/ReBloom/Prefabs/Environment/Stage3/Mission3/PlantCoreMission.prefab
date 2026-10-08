@@ -166,6 +166,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
@@ -2744,6 +2745,7 @@ GameObject:
   - component: {fileID: 7200975580608171706}
   - component: {fileID: 5965478490754584730}
   - component: {fileID: 4333657927969931003}
+  - component: {fileID: 895004668752380645}
   m_Layer: 8
   m_Name: PlantCore_low
   m_TagString: Untagged
@@ -2823,6 +2825,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &895004668752380645
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6129821863182266187}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 8287172093356631840, guid: 95cdde90e0920814d8487e951a05e5a6, type: 3}
 --- !u!1 &6298598809293381242
 GameObject:
   m_ObjectHideFlags: 0
@@ -2957,6 +2981,7 @@ GameObject:
   - component: {fileID: 2765325774703661190}
   - component: {fileID: 742147790680529952}
   - component: {fileID: 2051546332252558240}
+  - component: {fileID: 7915005157960713417}
   m_Layer: 8
   m_Name: PlantBottleGlass_low
   m_TagString: Untagged
@@ -3036,6 +3061,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &7915005157960713417
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7475543160245269605}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 8915126947918807030, guid: 95cdde90e0920814d8487e951a05e5a6, type: 3}
 --- !u!1 &8283632098064056304
 GameObject:
   m_ObjectHideFlags: 0

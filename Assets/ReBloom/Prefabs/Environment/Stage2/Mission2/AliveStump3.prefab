@@ -5892,7 +5892,6 @@ GameObject:
   - component: {fileID: 8080971112516191893}
   - component: {fileID: 3272440804103787441}
   - component: {fileID: 8612314911608537987}
-  - component: {fileID: 6355780544711824875}
   - component: {fileID: 8831405803387831808}
   - component: {fileID: 892145919039930809}
   m_Layer: 8
@@ -5939,6 +5938,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
@@ -6819,27 +6819,6 @@ MonoBehaviour:
   amplitude: 0.25
   duration: 0.15
   interval: 0.7
---- !u!65 &6355780544711824875
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7699370525682168746}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.69, y: 1, z: 0.67}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8831405803387831808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7272,6 +7251,7 @@ GameObject:
   - component: {fileID: 1857912129430816490}
   - component: {fileID: 2352388835872150307}
   - component: {fileID: 8045951254644643967}
+  - component: {fileID: 4214394293433535213}
   m_Layer: 0
   m_Name: Stump_low
   m_TagString: Untagged
@@ -7351,6 +7331,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &4214394293433535213
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8997445261142024251}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 9019657177421144928, guid: 3b5e97f56be58ef4a804a4cd2a96e891, type: 3}
 --- !u!1001 &3476443997277633562
 PrefabInstance:
   m_ObjectHideFlags: 0

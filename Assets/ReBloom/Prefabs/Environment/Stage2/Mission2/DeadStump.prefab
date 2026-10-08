@@ -141,6 +141,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
@@ -1016,6 +1017,7 @@ GameObject:
   - component: {fileID: 8807669915567993460}
   - component: {fileID: 84471150117705400}
   - component: {fileID: 372055236776008092}
+  - component: {fileID: 7427247105019790666}
   m_Layer: 0
   m_Name: Stump3_low
   m_TagString: Untagged
@@ -1095,6 +1097,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &7427247105019790666
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4214509340690576411}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4127764295324871088, guid: db4ab5bafac840349aa9b4a743148c1c, type: 3}
 --- !u!1001 &5083327571202712620
 PrefabInstance:
   m_ObjectHideFlags: 0
