@@ -12,6 +12,10 @@ using System.Collections;
 
 public class ZoneTeleporter : NetworkBehaviour
 {
+    [Header("잠금")]
+    // 태양광 미션이 끝나야 전기가 흐른다 — 그 전에는 두 사람이 다 올라서도 작동하지 않는다.
+    // 비워 두면 잠금 없이 항상 쓸 수 있다.
+    [SerializeField] private ReBloom.Solar.SolarMissionManager requiredMission;
     [Header("감지 영역")]
     [SerializeField] private Collider boardingZone;
     [SerializeField] private float verticalTolerance = 2f; // 수직 판정치
@@ -81,10 +85,22 @@ public class ZoneTeleporter : NetworkBehaviour
         boardingZone = GetComponent<Collider>();
     }
 
+    /// <summary>지금 이 텔레포터를 쓸 수 있는가. 잠금 대상 미션이 없거나 끝났으면 true.</summary>
+    public bool IsUnlocked => requiredMission == null || requiredMission.IsClear;
+
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority)
             return;
+
+        // 잠겨 있으면 탑승 판정 자체를 하지 않는다. 해제 뒤 이미 올라서 있던 사람도
+        // 다음 틱에 정상적으로 잡히므로 따로 처리할 게 없다.
+        if (!IsUnlocked)
+        {
+            Player1On = false;
+            Player2On = false;
+            return;
+        }
 
         UpdateBoardingState();
 

@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 2569205412203007987}
   - component: {fileID: 2963454342568482782}
   - component: {fileID: 2311845001133537647}
+  - component: {fileID: 6084971388843131451}
+  - component: {fileID: 7527626587648715361}
   m_Layer: 8
   m_Name: BuildingToWaterfrontTeleporter
   m_TagString: Untagged
@@ -938,6 +940,46 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.24, y: 0, z: 3.12}
   m_Center: {x: 0, y: 0.7, z: 0}
+--- !u!114 &6084971388843131451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2948861707242394953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 985925231
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 7527626587648715361}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &7527626587648715361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2948861707242394953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9acc516dbdd1e747864ffba623de613, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingToWaterfrontT
+  requiredMission: {fileID: 0}
+  boardingZone: {fileID: 2311845001133537647}
+  verticalTolerance: 2
+  waterfrontSpawnPoint: {fileID: 0}
+  delayBeforeTransition: 3
+  fadeDuration: 1
+  glassDoor: {fileID: 0}
+  doorRotateAngle: 100
+  doorRotateDuration: 1.5
 --- !u!1 &5529538935365777171
 GameObject:
   m_ObjectHideFlags: 0
