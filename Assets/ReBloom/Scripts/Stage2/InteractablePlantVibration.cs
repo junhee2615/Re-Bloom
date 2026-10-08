@@ -1,7 +1,13 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.XR;
 
+/// <summary>
+/// 연꽃 줄기에 손을 대면 그 식물 고유의 리듬을 컨트롤러 진동으로 들려준다(ear 역할만 느낀다).
+/// 이 리듬을 mental이 연꽃잎 터치로 따라 치면 PetalRhythmMission이 판정한다.
+///
+/// 시각 안내(아웃라인 점멸)는 PetalRhythmMission이 담당한다.
+/// </summary>
 [RequireComponent(typeof(Collider))]
 public class InteractablePlantVibration : MonoBehaviour
 {
@@ -39,11 +45,12 @@ public class InteractablePlantVibration : MonoBehaviour
         if (!other.CompareTag("Right Controller"))
             return;
 
-        // ear 역할만 진동을 느낀다.
+        isTouching = true;
+
+        // ear 역할만 진동을 느낌
         if (!RoleManager.LocalIsEar)
             return;
 
-        isTouching = true;
         if (runningRoutine == null)
             runningRoutine = StartCoroutine(PlayLoop());
     }
@@ -82,7 +89,7 @@ public class InteractablePlantVibration : MonoBehaviour
         runningRoutine = null;
     }
 
-    // 진동 인스펙터에서 입력 
+    // 진동 인스펙터에서 입력
     private IEnumerator PlayVibrationPattern()
     {
         bool first = true;
@@ -108,7 +115,7 @@ public class InteractablePlantVibration : MonoBehaviour
         }
     }
 
-    // 오른손 컨트롤러에 진동 펄스 
+    // 오른손 컨트롤러에 진동 펄스
     private void SendPulse()
     {
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);

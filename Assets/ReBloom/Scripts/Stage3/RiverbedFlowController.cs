@@ -90,6 +90,14 @@ namespace ReBloom.Water
         public float dryDuration = 3.0f;
 
         // ---------------------------------------------------------------
+        [Header("mental 판정 범위")]
+        [Tooltip("켜면 mental 의 클리어 구간이 '멈칫이 시작되는 순간 ~ 판정 지점' 전체가 된다.\n끄면 판정 지점 기준 ±window 만 인정한다")]
+        public bool mentalWindowFromHesitation = true;
+
+        [Tooltip("멈칫 시작보다 이만큼 더 일찍부터 인정한다 (초). 0 이면 멈칫 시작이 곧 구간의 시작")]
+        public float mentalEarlyPadding = 0f;
+
+        // ---------------------------------------------------------------
         [Header("햅틱 — 거리 기반 연속 진동 (ear 전용)")]
         [Tooltip("진동을 느끼는 기준점. 보통 ear 플레이어. 비우면 판정 지점을 쓴다")]
         public Transform hapticListener;
@@ -143,6 +151,15 @@ namespace ReBloom.Water
         [Header("입력")]
         [Tooltip("에디터 테스트용 키. VR 에서는 SubmitInput() 을 직접 호출한다")]
         public KeyCode debugKey = KeyCode.Space;
+
+        [Header("판정 사운드 (각자 로컬 재생)")]
+        [Tooltip("비우면 이 오브젝트의 AudioSource 를 쓴다")]
+        public AudioSource feedbackAudio;
+        [Tooltip("둘 다 맞춰서 한 회차가 클리어됐을 때")]
+        public AudioClip correctClip;
+        [Tooltip("틀리게 눌렀거나, 진짜 물결을 클리어하지 못하고 흘려보냈을 때")]
+        public AudioClip wrongClip;
+        [Range(0f, 1f)] public float feedbackVolume = 1f;
 
         [Header("디버그")]
         public bool showDebugHud = true;
@@ -199,6 +216,10 @@ namespace ReBloom.Water
 
         bool stationsReadyCached;
 
+        // 이번 물결의 판정 사운드 상태
+        bool waveCleared;       // 이번 물결이 클리어 처리됐다
+        bool waveWrongPlayed;   // 이번 물결에서 wrong 을 이미 울렸다
+
         string lastOutcomeText = "";
         float lastOutcomeTime = -99f;
 
@@ -251,6 +272,8 @@ namespace ReBloom.Water
             if (rounds == null || rounds.Count == 0) BuildDefaultRounds();
             ResolveJudgmentDistance();
             RebuildFrontShape();
+
+            if (feedbackAudio == null) feedbackAudio = GetComponent<AudioSource>();
 
             if (riverbedRenderers != null)
             {
@@ -365,6 +388,40 @@ namespace ReBloom.Water
             }
         }
 
+        /// <summary>지금 물결의 예고 구간 길이(초).</summary>
+        float ApproachDuration
+        {
+            get
+            {
+                if (networkDriven) return Mathf.Max(0.01f, netApproach);
+                RoundSetup r = CurrentRound;
+                float a = r != null ? r.approachDuration : 2.4f;
+                return a < 0.01f ? 2.4f : a;
+            }
+        }
+
+        /// <summary>
+        /// mental 이 판정 지점보다 얼마나 먼저 눌러도 인정되는가 (초).
+        /// 멈칫이 시작되는 시점부터 판정 지점까지를 통째로 열어 준다.
+        /// </summary>
+        public float MentalEarlyWindow
+        {
+            get
+            {
+                if (!mentalWindowFromHesitation) return CurrentWindow;
+                float ratio = Mathf.Clamp(hesitationTimeRatio, 0.45f, 0.92f);
+                float fromHesitation = ApproachDuration * (1f - ratio) + Mathf.Max(0f, mentalEarlyPadding);
+                // 기존 창보다 좁아지지는 않게 한다
+                return Mathf.Max(fromHesitation, CurrentWindow);
+            }
+        }
+
+        /// <summary>mental 판정. err = 누른 시각 - 판정 시각.</summary>
+        public bool IsMentalHit(float err)
+        {
+            return err >= -MentalEarlyWindow && err <= CurrentWindow;
+        }
+
         public bool StationsReady()
         {
             if (!requireStations) return true;
@@ -420,6 +477,8 @@ namespace ReBloom.Water
             netApproach = Mathf.Max(0.1f, approachDuration);
             waveActive = true;
             waveInputTaken = false;
+            waveCleared = false;
+            waveWrongPlayed = false;
             waveStartTime = Time.time;
             beatTime = waveStartTime + netApproach;
             phase = Phase.WaveIncoming;
@@ -436,6 +495,8 @@ namespace ReBloom.Water
             roundIndex = Mathf.Clamp(count, 0, Mathf.Max(0, rounds.Count - 1));
             lastOutcomeText = "성공 " + count + " / " + rounds.Count;
             lastOutcomeTime = Time.time;
+            waveCleared = true;
+            PlayCorrect();
             if (onRoundCleared != null) onRoundCleared.Invoke(count);
         }
 
@@ -520,6 +581,8 @@ namespace ReBloom.Water
             waveIndex++;
             waveActive = true;
             waveInputTaken = false;
+            waveCleared = false;
+            waveWrongPlayed = false;
             // 난수 대신 해시를 쓴다. 나중에 시드와 인덱스만 동기화하면
             // 두 클라이언트가 같은 진짜/페이크 순서를 뽑게 된다
             waveIsReal = Hash01(waveSeed + waveIndex) >= r.fakeChance;
@@ -619,6 +682,11 @@ namespace ReBloom.Water
         void EndWave()
         {
             waveActive = false;
+
+            // 네트워크 모드: 진짜 물결이 클리어되지 못하고 지나갔으면 실패 소리.
+            // (내가 놓쳤거나, 나는 맞췄지만 상대가 못 맞춘 경우)
+            if (networkDriven && waveIsReal && !waveCleared) PlayWrong();
+
             if (phase != Phase.Complete) phase = Phase.Waiting;
 
             RoundSetup r = CurrentRound;
@@ -656,7 +724,7 @@ namespace ReBloom.Water
             {
                 bool netHit = waveIsReal && (role == Role.ear
                     ? hapticIntensity >= earPlateauThreshold
-                    : Mathf.Abs(err) <= CurrentWindow);
+                    : IsMentalHit(err));
 
                 if (netHit)
                 {
@@ -670,6 +738,7 @@ namespace ReBloom.Water
                         : (err < 0f ? "너무 빠름" : "너무 늦음");
                 }
                 lastOutcomeTime = Time.time;
+                if (!netHit) PlayWrong();
                 if (onWaveResolved != null) onWaveResolved.Invoke(netHit ? 0 : 4);
                 return;
             }
@@ -681,7 +750,7 @@ namespace ReBloom.Water
                 return;
             }
 
-            if (Mathf.Abs(err) <= CurrentWindow)
+            if (IsMentalHit(err))
                 Resolve(waveIsReal ? WaveOutcome.Success : WaveOutcome.FalseAlarm, err);
             else if (err < 0f) Resolve(WaveOutcome.TooEarly, err);
             else Resolve(WaveOutcome.TooLate, err);
@@ -690,6 +759,9 @@ namespace ReBloom.Water
         void Resolve(WaveOutcome outcome, float errorSeconds)
         {
             lastOutcomeTime = Time.time;
+
+            if (outcome == WaveOutcome.Success) PlayCorrect();
+            else PlayWrong();
 
             if (outcome == WaveOutcome.Success)
             {
@@ -745,6 +817,25 @@ namespace ReBloom.Water
             if (onWaveResolved != null) onWaveResolved.Invoke((int)outcome);
         }
 
+        // ---------------- 판정 사운드 ----------------
+        void PlayCorrect()
+        {
+            if (feedbackAudio != null && correctClip != null)
+                feedbackAudio.PlayOneShot(correctClip, feedbackVolume);
+        }
+
+        // 한 물결에서 wrong 은 한 번만 울린다
+        void PlayWrong()
+        {
+            if (waveActive || waveInputTaken)
+            {
+                if (waveWrongPlayed) return;
+                waveWrongPlayed = true;
+            }
+            if (feedbackAudio != null && wrongClip != null)
+                feedbackAudio.PlayOneShot(wrongClip, feedbackVolume);
+        }
+
         // ---------------------------------------------------------------
         void PushGlobals()
         {
@@ -780,6 +871,16 @@ namespace ReBloom.Water
             Gizmos.DrawWireSphere(judge, 1.2f);
             Gizmos.DrawLine(judge - side * 10f, judge + side * 10f);
 
+            // mental 클리어 구간 (초록) : 멈칫 시작 ~ 판정 지점
+            if (mentalWindowFromHesitation)
+            {
+                Gizmos.color = new Color(0.35f, 1f, 0.5f);
+                Vector3 ha = hes + Vector3.up * 0.2f;
+                Vector3 hb = judge + Vector3.up * 0.2f;
+                Gizmos.DrawLine(ha - side * 6f, hb - side * 6f);
+                Gizmos.DrawLine(ha + side * 6f, hb + side * 6f);
+            }
+
             if (Application.isPlaying && waveActive)
             {
                 Gizmos.color = Color.white;
@@ -794,7 +895,7 @@ namespace ReBloom.Water
             GUI.skin.label.richText = true;
 
             const int W = 430;
-            const int H = 235;
+            const int H = 258;
             GUI.Box(new Rect(10, 10, W, H), "");
             GUILayout.BeginArea(new Rect(22, 20, W - 24, H - 20));
 
@@ -816,6 +917,10 @@ namespace ReBloom.Water
             GUILayout.Label("회차 : " + (r != null ? r.label : "-") + "   |   성공 " + successCount + " / " + rounds.Count);
             GUILayout.Label("판정 창 : ±" + CurrentWindow.ToString("F2") + "s"
                 + (consecutiveFailures >= assistAfterFailures ? "  (어시스트 ON)" : ""));
+
+            if (mentalWindowFromHesitation)
+                GUILayout.Label("mental : -" + MentalEarlyWindow.ToString("F2") + "s ~ +"
+                    + CurrentWindow.ToString("F2") + "s");
 
             if (waveActive)
             {

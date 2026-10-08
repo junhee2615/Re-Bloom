@@ -60,10 +60,75 @@ public class PetalRhythmMission : MonoBehaviour
     // 중복 호출 방지
     private bool revivedFired;
 
+    [Header("아웃라인 점멸")]
+    [Tooltip("복원 전까지 점멸시킬 Outline. 비우면 같은 오브젝트에서 자동으로 찾는다.")]
+    [SerializeField] private Outline outline;
+    [Tooltip("체크 해제하면 점멸 없이 늘 켜진 아웃라인 그대로 둔다.")]
+    [SerializeField] private bool pulseUntilRevived = true;
+    [Range(0f, 1f)]
+    [Tooltip("가장 흐려졌을 때의 알파. 0이면 완전히 사라졌다가 다시 나타난다.")]
+    [SerializeField] private float pulseMinAlpha = 0.1f;
+    [Tooltip("점멸 속도(rad/s). 2.5면 약 2.5초에 한 번 왕복한다.")]
+    [SerializeField] private float pulseSpeed = 2.5f;
+
+    // 인스펙터에 설정된 원래 아웃라인 색 (복원 후 되돌릴 기준)
+    private Color outlineBaseColor;
+    private bool outlineRestored = true;
+
 
     // plantId → 인스턴스. 네트워크 RPC(NetworkPlayer.Rpc_RevivePlant)가 id 로 찾아 로컬 복원
     private static readonly Dictionary<int, PetalRhythmMission> _registry =
         new Dictionary<int, PetalRhythmMission>();
+
+    private void Awake()
+    {
+        if (outline == null)
+            outline = GetComponent<Outline>();
+
+        if (outline != null)
+            outlineBaseColor = outline.OutlineColor;
+    }
+
+    /// <summary>
+    /// 아웃라인 점멸. MissionOutlineHighlighter_2가 이 연꽃의 아웃라인을 켜 둔 구간에서만,
+    /// 아직 복원되지 않은 연꽃을 서서히 켰다 껐다 한다. 복원되면 원래 색(상시 점등)으로 되돌린다.
+    /// 복원 여부(cleared)는 RPC로 두 기기에 함께 반영되므로 두 플레이어가 같은 화면을 본다.
+    /// </summary>
+    private void Update()
+    {
+        if (outline == null)
+            return;
+
+        // 다른 미션 단계라 하이라이터가 꺼 둔 상태 — 색만 원래대로 돌려 두고 손대지 않는다.
+        if (!outline.enabled)
+        {
+            RestoreOutline();
+            return;
+        }
+
+        if (pulseUntilRevived && !cleared)
+        {
+            float wave = (Mathf.Sin(Time.time * pulseSpeed) + 1f) / 2f;
+            Color c = outlineBaseColor;
+            c.a = Mathf.Lerp(pulseMinAlpha, outlineBaseColor.a, wave);
+            outline.OutlineColor = c;
+            outlineRestored = false;
+        }
+        else
+        {
+            RestoreOutline();
+        }
+    }
+
+    // 점멸로 바꿔 둔 알파를 인스펙터 원래 색으로 되돌린다.
+    private void RestoreOutline()
+    {
+        if (outlineRestored || outline == null)
+            return;
+
+        outline.OutlineColor = outlineBaseColor;
+        outlineRestored = true;
+    }
 
     private void OnEnable()
     {
@@ -74,6 +139,8 @@ public class PetalRhythmMission : MonoBehaviour
     {
         if (_registry.TryGetValue(plantId, out var m) && m == this)
             _registry.Remove(plantId);
+
+        RestoreOutline();
     }
 
     /// 연꽃잎 포워더가 오른손 접촉을 알릴 때 호출. mental 로컬에서만 유효
