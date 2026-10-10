@@ -4,9 +4,6 @@ using UnityEngine.UI;
 
 public class ConnectionManager : MonoBehaviour
 {
-    [SerializeField, Tooltip("Multi(2인 협동) 입장 시 사용할 세션 이름. 같은 이름끼리 매칭된다.")]
-    private string multiRoomCode = "TestRoom";
-
     [SerializeField, Tooltip("Single(개인 테스트) 입장 시 세션 이름 앞에 붙는 접두사. 뒤에 기기 고유 ID가 붙어 항상 혼자만의 방이 된다.")]
     private string singleRoomPrefix = "Solo_";
 
@@ -16,7 +13,7 @@ public class ConnectionManager : MonoBehaviour
     /// <summary>StartScene의 MultiBtn.OnClick에 연결한다.</summary>
     public void EnterMulti()
     {
-        Enter(multiRoomCode, SessionMode.Multi);
+        Enter(null, SessionMode.Multi); // RoomCode 정해두지 않고 null로
     }
 
     /// <summary>StartScene의 SingleBtn.OnClick에 연결한다.</summary>
