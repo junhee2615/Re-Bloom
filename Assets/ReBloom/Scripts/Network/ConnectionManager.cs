@@ -20,7 +20,7 @@ public class ConnectionManager : MonoBehaviour
     /// <summary>StartScene의 MultiBtn.OnClick에 연결한다.</summary>
     public void EnterMulti()
     {
-        Enter(multiRoomCode, SessionMode.Multi);
+        Enter(null, SessionMode.Multi); // RoomCode 정해두지 않고 null로
     }
 
     /// <summary>StartScene의 SingleBtn.OnClick에 연결한다.</summary>

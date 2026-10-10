@@ -24,6 +24,11 @@ public class UIPanel : MonoBehaviour
     [SerializeField] private MissionPanelData stage2WaterCompleteMessage;
     [SerializeField] private MissionPanelData stage2PlantCompleteMessage;
     [SerializeField] private MissionPanelData stage2StumpCompleteMessage;
+    [Header("Mission Data - Stage3")]
+    [SerializeField] private MissionPanelData stage3InitialMessage;
+    [SerializeField] private MissionPanelData stage3PanelCompleteMessage;
+    [SerializeField] private MissionPanelData stage3RiverbedCompleteMessage;
+    [SerializeField] private MissionPanelData stage3PlantMachineCompleteMessage;
 
 
     [Header("Audio")]
@@ -48,7 +53,7 @@ public class UIPanel : MonoBehaviour
         panelRoot.SetActive(false);
         TutorialMissionManager.TutorialChanged += OnTutorialChanged;
         TutorialMissionManager_2.TutorialChanged += OnTutorialChanged_2;
-
+        TutorialMissionManager_3.TutorialChanged += OnTutorialChanged_3;
     }
 
     private void Update()
@@ -129,6 +134,28 @@ public class UIPanel : MonoBehaviour
         }
     }
 
+    // Stage3 튜토리얼. 첫 미션 지연(5초)은 TutorialMissionManager_3 가 처리한다.
+    private void OnTutorialChanged_3(TutorialStep_3 step)
+    {
+        switch (step)
+        {
+            case TutorialStep_3.Initial:
+                ShowTutorial(stage3InitialMessage);
+                break;
+
+            case TutorialStep_3.PanelComplete:
+                ShowTutorial(stage3PanelCompleteMessage);
+                break;
+
+            case TutorialStep_3.RiverbedComplete:
+                ShowTutorial(stage3RiverbedCompleteMessage);
+                break;
+
+            case TutorialStep_3.PlantMachineComplete:
+                ShowTutorial(stage3PlantMachineCompleteMessage);
+                break;
+        }
+    }
 
     private IEnumerator ShowFirstTutorialAfterDelay()
     {
@@ -202,6 +229,7 @@ public class UIPanel : MonoBehaviour
     {
         TutorialMissionManager.TutorialChanged -= OnTutorialChanged;
         TutorialMissionManager_2.TutorialChanged -= OnTutorialChanged_2;
+        TutorialMissionManager_3.TutorialChanged -= OnTutorialChanged_3;
 
     }
 }
