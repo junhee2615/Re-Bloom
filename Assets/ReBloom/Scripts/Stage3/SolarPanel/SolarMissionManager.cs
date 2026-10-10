@@ -63,7 +63,7 @@ namespace ReBloom.Solar
         // 복제로 늦게 도착하는 클라이언트에서도 같은 순간에 한 번 쏜다.
         void Update()
         {
-            if (raised || !IsClear) return;
+            if (raised || Object == null || !Object.IsValid || !IsClear) return;
 
             raised = true;
             Cleared?.Invoke();
