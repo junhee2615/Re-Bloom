@@ -510,6 +510,8 @@ GameObject:
   - component: {fileID: 1877193006}
   - component: {fileID: 1877193009}
   - component: {fileID: 1877193010}
+  - component: {fileID: 1877193011}
+  - component: {fileID: 1877193012}
   m_Layer: 0
   m_Name: OpeningManager
   m_TagString: Untagged
@@ -658,6 +660,37 @@ MonoBehaviour:
   xrOriginOverride: {fileID: 0}
   openingDirectionalLightOverride: {fileID: 0}
   cameraResolveTimeoutFrames: 300
+--- !u!114 &1877193011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877193005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23599dc99a1478389224ce08d59385b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::OpeningSkipInput
+  holdDuration: 3
+  narrationController: {fileID: 1877193009}
+  logHoldState: 0
+--- !u!114 &1877193012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877193005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a474c38fba046d3ac335351435f6fae, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::OpeningSkipUI
+  skipInput: {fileID: 1877193011}
+  narrationController: {fileID: 1877193009}
+  fontAsset: {fileID: 11400000, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
+  ringSpriteOverride: {fileID: 0}
 --- !u!4 &1877193007
 Transform:
   m_ObjectHideFlags: 0

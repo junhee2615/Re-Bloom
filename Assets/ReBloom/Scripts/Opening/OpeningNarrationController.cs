@@ -101,6 +101,14 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("타이틀이 검정 속으로 사라지는 시간. 이 뒤에 세션이 시작된다.")]
     [SerializeField, Min(0f)] private float titleFadeOutDuration = 0.8f;
 
+    [Header("Timing - 스킵")]
+    [Tooltip("스킵할 때 현재 화면을 검정으로 덮는 시간. 정상 연출 타이밍과는 무관하다.")]
+    [SerializeField, Min(0f)] private float skipFadeOutDuration = 0.6f;
+
+    [Tooltip("스킵 시 진행 중인 Additive Load/Unload를 기다릴 최대 시간(초). " +
+             "이 시간을 넘기면 스킵을 취소하고 오프닝을 계속 진행한다.")]
+    [SerializeField, Min(1f)] private float skipSceneOperationTimeout = 30f;
+
     [Header("Font Size")]
     [Tooltip("내레이션 문장에 쓰는 크기. 모든 내레이션 구간에서 이 값으로 되돌린다.")]
     [SerializeField, Min(1f)] private float narrationFontSize = 36f;
@@ -159,7 +167,33 @@ public class OpeningNarrationController : MonoBehaviour
 
     private ScreenFade screenFade;
 
-    private IEnumerator Start()
+    /// <summary>ScreenFade가 제어하는 검정 Image의 CanvasGroup. 알파를 읽기 위해서만 쓴다.</summary>
+    private CanvasGroup screenFadeGroup;
+
+    /// <summary>연출 본체. 스킵이 이것만 정지시킨다. (StopAllCoroutines는 쓰지 않는다)</summary>
+    private Coroutine openingRoutine;
+
+    /// <summary>스킵 처리 코루틴. 이 코루틴은 스킵에 의해 정지되지 않는다.</summary>
+    private Coroutine skipRoutine;
+
+    /// <summary>
+    /// 종료 경로를 선점한 플래그. 정상 종료와 스킵이 동시에 실행되지 않게 하는 공통 게이트다.
+    /// <see cref="TryClaimFinish"/> 만 이 값을 올린다.
+    /// </summary>
+    private bool finishing;
+
+    /// <summary>이미 Opening 종료(정상/스킵)가 시작되었는지. 입력 스크립트가 참고한다.</summary>
+    public bool IsFinishing => finishing;
+
+    private void Start()
+    {
+        // 연출 본체를 코루틴으로 돌리고 핸들을 보관한다.
+        // Start()를 IEnumerator로 두면 핸들이 없어 스킵이 StopAllCoroutines에 의존해야 하고,
+        // 그러면 스킵 코루틴 자신까지 멈춘다. 시작 시점과 타이밍은 이전과 같다.
+        openingRoutine = StartCoroutine(RunOpening());
+    }
+
+    private IEnumerator RunOpening()
     {
         // 참조는 여기서 한 번만 해석한다.
         screenFade = screenFadeOverride != null ? screenFadeOverride : ResolveScreenFade();
@@ -189,6 +223,9 @@ public class OpeningNarrationController : MonoBehaviour
 
         // ── 텍스트를 ScreenFadeCanvas 안으로 옮긴다 ──────────────
         AttachNarrationToScreenFadeCanvas();
+
+        // 스킵이 "현재 알파에서" 검정으로 덮을 수 있도록 검정 CanvasGroup을 한 번만 찾아 둔다.
+        screenFadeGroup = ResolveScreenFadeGroup();
 
         // ── 완전한 검정 고정 ─────────────────────────────────────
         if (screenFade != null)
@@ -365,6 +402,37 @@ public class OpeningNarrationController : MonoBehaviour
     /// </summary>
     private IEnumerator FinishOpeningAndEnterSession()
     {
+        if (!TryClaimFinish())
+        {
+            // 스킵이 먼저 종료를 선점했다. 같은 정리를 두 번 하지 않는다.
+            Debug.Log("[Opening] Finish already claimed - 정상 종료를 건너뜁니다.", this);
+            yield break;
+        }
+
+        yield return FinishOpeningCore();
+    }
+
+    /// <summary>
+    /// 종료 경로를 선점한다. 정상 종료와 스킵이 공유하는 게이트다.
+    /// 처음 부른 쪽만 true를 받고, 그 뒤의 호출은 모두 false가 된다.
+    ///
+    /// 메인 스레드에서만 호출되므로(코루틴 / Update) lock은 필요하지 않다.
+    /// </summary>
+    private bool TryClaimFinish()
+    {
+        if (finishing)
+            return false;
+
+        finishing = true;
+        return true;
+    }
+
+    /// <summary>
+    /// 실제 마무리. 정상 종료와 스킵이 **같은 구현**을 쓴다.
+    /// 게이트는 호출하는 쪽에서 이미 통과한 상태로 들어온다.
+    /// </summary>
+    private IEnumerator FinishOpeningCore()
+    {
         // ── ① 세션 요청 검증 ────────────────────────────────────
         if (!OpeningSessionRequest.HasRequest)
         {
@@ -400,6 +468,219 @@ public class OpeningNarrationController : MonoBehaviour
         Debug.Log($"[Opening] Session start - mode={mode}, room={roomCode}");
 
         EnterSessionAndClearOnSuccess(roomCode, mode);
+    }
+
+    // ── 스킵 ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 오프닝 스킵을 요청한다. 입력 판정은 <see cref="OpeningSkipInput"/> 가 담당하고
+    /// 여기서는 "안전하게 끝내는 순서"만 책임진다.
+    ///
+    /// 몇 번 불러도 안전하다 — 이미 스킵이 돌고 있거나 종료가 선점되어 있으면 무시한다.
+    /// </summary>
+    public void RequestSkip()
+    {
+        if (skipRoutine != null)
+            return;
+
+        if (finishing)
+        {
+            Debug.Log("[Opening] Skip ignored - 종료가 이미 진행 중입니다.", this);
+            return;
+        }
+
+        skipRoutine = StartCoroutine(SkipOpeningRoutine());
+    }
+
+    /// <summary>
+    /// 스킵 처리.
+    ///
+    /// 순서가 중요하다 —
+    ///   ① 세션 요청 검증  : Lobby로 갈 수 없으면 연출을 끊지 않고 그대로 둔다
+    ///   ② 씬 작업 대기    : 진행 중인 Additive Load/Unload의 후처리를 보장한다
+    ///   ③ 종료 선점       : 이 뒤로 정상 종료 경로는 들어오지 못한다
+    ///   ④ 연출 코루틴 정지 : ②를 지났으므로 비동기 씬 작업 중이 아니다
+    ///   ⑤ 검정으로 덮기   : 현재 알파에서 시작하므로 검정 구간에서도 깜빡이지 않는다
+    ///   ⑥ Stage 언로드    : 정상 종료와 같은 UnloadStage 경로를 쓴다
+    ///   ⑦ Main Camera 태그 복구 (안전망)
+    ///   ⑧ FinishOpeningCore : 정상 종료와 완전히 같은 마무리
+    ///
+    /// ②를 먼저 두는 이유:
+    /// LoadSceneAsync 도중에 연출 코루틴을 멈추면 로드 자체는 계속 진행되는데
+    /// 그 뒤의 정리 / Active Scene 전환 / 리그 이동 / Main Camera 태그 복구는 영원히
+    /// 실행되지 않는다. 그래서 StopAllCoroutines로 끊고 바로 씬을 넘기지 않고,
+    /// 씬 작업이 스스로 끝나는 것을 기다린 뒤에만 연출을 정지한다.
+    ///
+    /// Locomotion은 여기서도 켜지 않는다. 정상 종료와 같은 이유로
+    /// <c>OpeningEnvironmentController.OnDestroy</c> 의 복구에 맡긴다.
+    /// </summary>
+    private IEnumerator SkipOpeningRoutine()
+    {
+        Debug.Log("[Opening] Skip start", this);
+
+        // ── ① 세션 요청 검증 ────────────────────────────────────
+        // 여기서 실패하면 스킵해도 Lobby로 갈 수 없다. 연출을 끊지 않고 그대로 둔다.
+        if (!OpeningSessionRequest.HasRequest || NetworkManager.Instance == null)
+        {
+            Debug.LogError(
+                "[Opening] 세션 요청 또는 NetworkManager가 없어 스킵을 취소합니다. " +
+                "오프닝을 그대로 계속 진행합니다.", this);
+
+            skipRoutine = null;
+            yield break;
+        }
+
+        // ── ② 진행 중인 비동기 씬 작업 대기 ─────────────────────
+        if (environmentController != null && environmentController.IsSceneOperationInProgress)
+        {
+            Debug.Log("[Opening] Skip waiting for scene operation", this);
+
+            float waited = 0f;
+
+            while (environmentController.IsSceneOperationInProgress &&
+                   waited < skipSceneOperationTimeout)
+            {
+                waited += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (environmentController.IsSceneOperationInProgress)
+            {
+                Debug.LogError(
+                    $"[Opening] 씬 작업이 {skipSceneOperationTimeout}초 안에 끝나지 않아 " +
+                    "스킵을 취소합니다. 오프닝을 그대로 계속 진행합니다.", this);
+
+                skipRoutine = null;
+                yield break;
+            }
+
+            Debug.Log($"[Opening] Skip scene operation finished ({waited:F2}s)", this);
+        }
+
+        // ── ③ 종료 선점 ────────────────────────────────────────
+        // ②를 기다리는 동안 연출이 정상 종료에 도달했을 수 있다. 그때는 스킵이 물러난다.
+        if (!TryClaimFinish())
+        {
+            Debug.Log("[Opening] Skip ignored - 정상 종료가 먼저 시작되었습니다.", this);
+
+            skipRoutine = null;
+            yield break;
+        }
+
+        // ── ④ 연출 코루틴 정지 ─────────────────────────────────
+        if (openingRoutine != null)
+        {
+            StopCoroutine(openingRoutine);
+            openingRoutine = null;
+
+            Debug.Log("[Opening] Narration routine stopped", this);
+        }
+
+        // ── ⑤ 검정으로 덮기 ────────────────────────────────────
+        yield return FadeOutForSkip(skipFadeOutDuration);
+
+        // ── ⑥ 올라가 있는 Stage 언로드 ─────────────────────────
+        if (environmentController != null && environmentController.HasStageLoaded)
+            yield return environmentController.UnloadStage();
+
+        // ── ⑦ Main Camera 태그 복구 ────────────────────────────
+        if (environmentController != null)
+            environmentController.RestoreMainCameraTagForExit();
+
+        // ── ⑧ 정상 종료와 같은 마무리 ──────────────────────────
+        yield return FinishOpeningCore();
+
+        skipRoutine = null;
+
+        Debug.Log("[Opening] Skip complete");
+    }
+
+    /// <summary>
+    /// 스킵용 페이드. 검정과 내레이션 텍스트를 한 루프에서 함께 처리한다.
+    ///
+    /// <see cref="ScreenFade.FadeOut"/> 를 쓰지 않는 이유:
+    /// 그 구현은 현재 알파와 무관하게 항상 0 → 1로 보간한다. 이미 검정인 구간(내레이션
+    /// 사이, 타이틀 전후)에서 스킵하면 첫 프레임에 알파가 0으로 떨어져 Stage가 번쩍인다.
+    /// 그래서 ScreenFade.cs는 수정하지 않고, 같은 CanvasGroup의 현재 알파에서 시작한다.
+    ///
+    /// 코루틴을 따로 띄우지 않고 한 루프에서 두 알파를 함께 움직이는 이유:
+    /// 텍스트 페이드를 별도 코루틴으로 돌리면 뒤이은 <see cref="DestroyNarrationText"/> 와
+    /// 수명이 겹칠 수 있다.
+    /// </summary>
+    private IEnumerator FadeOutForSkip(float duration)
+    {
+        // 알파를 읽을 CanvasGroup을 못 찾았을 때의 안전한 대안.
+        // FadeOut(0f)은 while 조건이 바로 거짓이 되어 보간 없이 알파 1이 되므로 깜빡임이 없다.
+        if (screenFadeGroup == null)
+        {
+            if (narrationGroup != null)
+                narrationGroup.alpha = 0f;
+
+            if (screenFade != null)
+                yield return screenFade.FadeOut(0f);
+
+            yield break;
+        }
+
+        float blackFrom = screenFadeGroup.alpha;
+        float textFrom = narrationGroup != null ? narrationGroup.alpha : 0f;
+
+        if (duration > 0f && (blackFrom < 1f || textFrom > 0f))
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                screenFadeGroup.alpha = Mathf.Lerp(blackFrom, 1f, t);
+
+                if (narrationGroup != null)
+                    narrationGroup.alpha = Mathf.Lerp(textFrom, 0f, t);
+
+                yield return null;
+            }
+        }
+
+        screenFadeGroup.alpha = 1f;
+
+        if (narrationGroup != null)
+            narrationGroup.alpha = 0f;
+    }
+
+    /// <summary>
+    /// ScreenFade가 제어하는 검정 Image의 CanvasGroup을 찾는다. 알파를 읽기 위해서만 쓴다.
+    ///
+    /// ScreenFade.canvasGroup은 private 직렬화 필드라 밖에서 읽을 수 없고,
+    /// ScreenFade.cs는 수정 대상이 아니다. ScreenFadeCanvas 프리팹에서 ScreenFade가
+    /// 가리키는 것은 **자식 Image**의 CanvasGroup이고, 루트에도 별개의 CanvasGroup이
+    /// 하나 더 있다. 그래서 루트와 내레이션 그룹을 제외한 첫 번째를 쓴다.
+    ///
+    /// 못 찾으면 null을 돌려주고 <see cref="FadeOutForSkip"/> 가 즉시 검정으로 대체한다.
+    /// </summary>
+    private CanvasGroup ResolveScreenFadeGroup()
+    {
+        if (screenFade == null)
+            return null;
+
+        foreach (CanvasGroup group in screenFade.GetComponentsInChildren<CanvasGroup>(true))
+        {
+            if (group.gameObject == screenFade.gameObject)
+                continue;
+
+            if (group == narrationGroup)
+                continue;
+
+            return group;
+        }
+
+        Debug.LogWarning(
+            "[Opening] ScreenFade의 검정 CanvasGroup을 찾지 못했습니다. " +
+            "스킵 시 페이드 없이 즉시 검정으로 전환됩니다.", this);
+
+        return null;
     }
 
     /// <summary>

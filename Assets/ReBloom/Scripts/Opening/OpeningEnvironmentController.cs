@@ -103,14 +103,48 @@ public class OpeningEnvironmentController : MonoBehaviour
     private Quaternion rigOriginalRotation;
     private bool rigPoseCaptured;
 
+    // 비동기 씬 작업(Additive Load / Unload)이 겹쳐 있을 수 있으므로 bool이 아니라 깊이로 센다.
+    private int sceneOperationDepth;
+
     /// <summary>마지막 전환이 끝까지 성공했는지.</summary>
     public bool IsStageReady { get; private set; }
 
     /// <summary>
+    /// <see cref="GoToStage"/> / <see cref="UnloadStage"/> 가 진행 중인지.
+    ///
+    /// 스킵처럼 바깥에서 연출을 끊는 경로는 이 값이 false가 될 때까지 기다려야 한다.
+    /// 로드 도중에 호출한 쪽의 코루틴을 멈추면 <c>LoadSceneAsync</c> 자체는 계속
+    /// 진행되는데 그 뒤의 후처리(오브젝트 정리 / Active Scene 전환 / 리그 이동 /
+    /// Main Camera 태그 복구)는 영원히 실행되지 않아, 태그가 Untagged로 남고 Stage가
+    /// 정리되지 않은 채 Lobby로 넘어간다.
+    /// </summary>
+    public bool IsSceneOperationInProgress => sceneOperationDepth > 0;
+
+    /// <summary>Opening이 올려 둔 Stage 씬이 아직 로드된 상태인지.</summary>
+    public bool HasStageLoaded => currentStageIndex >= 0;
+
+    /// <summary>
     /// 검정 상태에서 호출한다. 올라가 있던 Stage를 내리고 지정한 Stage로 갈아끼운 뒤
     /// 정리·조명 전환·리그 이동까지 끝낸다. 페이드는 호출한 쪽이 담당한다.
+    ///
+    /// 실제 구현은 <see cref="GoToStageRoutine"/> 에 있고 여기서는 진행 상태만 표시한다.
+    /// try/finally로 감싸므로 중간에 yield break로 빠져나가도 깊이가 새지 않는다.
     /// </summary>
     public IEnumerator GoToStage(int index)
+    {
+        sceneOperationDepth++;
+
+        try
+        {
+            yield return GoToStageRoutine(index);
+        }
+        finally
+        {
+            sceneOperationDepth--;
+        }
+    }
+
+    private IEnumerator GoToStageRoutine(int index)
     {
         IsStageReady = false;
 
@@ -228,9 +262,18 @@ public class OpeningEnvironmentController : MonoBehaviour
     /// </summary>
     public IEnumerator UnloadStage()
     {
-        IsStageReady = false;
+        sceneOperationDepth++;
 
-        yield return UnloadCurrentStage();
+        try
+        {
+            IsStageReady = false;
+
+            yield return UnloadCurrentStage();
+        }
+        finally
+        {
+            sceneOperationDepth--;
+        }
     }
 
     /// <summary>
@@ -519,6 +562,29 @@ public class OpeningEnvironmentController : MonoBehaviour
 
         if (openingDirectionalLight != null)
             openingDirectionalLight.enabled = true;
+    }
+
+    /// <summary>
+    /// <see cref="GoToStage"/> 가 잠시 떼어 둔 Main Camera 태그를 되돌린다.
+    ///
+    /// 정상 경로에서는 GoToStage가 끝날 때(또는 <see cref="RestoreAfterFailure"/> 에서)
+    /// 이미 복구하므로 보통 아무것도 하지 않는다. 스킵처럼 바깥에서 흐름을 끊는 경로를
+    /// 위한 안전망이다. 태그가 Untagged로 남으면 Lobby 이후 Camera.main이 null이 되어
+    /// 카메라를 찾는 모든 스크립트가 멈춘다.
+    ///
+    /// 이미 MainCamera면 건드리지 않으므로 몇 번 불러도 결과가 같다.
+    /// </summary>
+    public void RestoreMainCameraTagForExit()
+    {
+        if (rigCamera == null)
+            return;
+
+        if (rigCamera.CompareTag(MainCameraTag))
+            return;
+
+        rigCamera.tag = MainCameraTag;
+
+        Debug.Log("[Opening] Main Camera tag restored for exit");
     }
 
     /// <summary>
