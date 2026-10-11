@@ -69,6 +69,28 @@ public class RootMissionNet : NetworkBehaviour
         if (ActiveIndex < 0) ActiveIndex = 0;
     }
 
+    // 뿌리 하나 발견 알림: ear 기기가 감지하면 Host 를 거쳐 모든 기기에서 발견 표시를 켠다.
+    // 연결 전이면 false 를 돌려 호출한 쪽이 로컬로 처리하게 한다.
+    public bool NotifyRootFound(int index)
+    {
+        if (!Ready) return false;
+        if (HasStateAuthority) RPC_RootFoundAll(index);
+        else RPC_RootFound(index);
+        return true;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RootFound(int index, RpcInfo info = default)
+    {
+        RPC_RootFoundAll(index);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_RootFoundAll(int index)
+    {
+        if (manager != null) manager.NetRootFound(index);
+    }
+
 // 발견 완료 알림: 아무 기기나 먼저 세 뿌리를 다 찾으면 모두에게 전파해 함께 전환을 시작한다.
     public void NotifyFindComplete()
     {
