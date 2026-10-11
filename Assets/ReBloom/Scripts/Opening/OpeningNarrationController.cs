@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Opening 첫 문장 연출.
@@ -67,11 +68,25 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("검정이 걷히며 Stage2 환경이 나타나는 시간.")]
     [SerializeField, Min(0f)] private float stage2FadeInDuration = 1.5f;
 
-    [Header("Timing - Stage2 위 문장")]
+    [Header("Timing - Stage2 장면 1 문장")]
     [SerializeField, Min(0f)] private float stage2LineFadeInDuration = 1f;
     [SerializeField, Min(0f)] private float stage2LineHoldDuration = 3.5f;
-    [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다.")]
+    [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다. 장면 1·2 모두 이 값을 쓴다.")]
     [SerializeField, Min(0f)] private float stage2LineFadeOutDuration = 0.8f;
+
+    [Header("Timing - Stage2 장면 1 → 2 구도 전환")]
+    [Tooltip("장면 1 환경을 검정으로 덮는 시간. 이 페이드가 끝난 뒤에 리그를 옮긴다.")]
+    [SerializeField, Min(0f)] private float stage2ShotFadeOutDuration = 1f;
+
+    [Tooltip("리그를 옮긴 뒤 검정을 유지하는 시간. 큰 각도 재배치의 멀미를 줄인다.")]
+    [SerializeField, Min(0f)] private float stage2ShotBlackHoldDuration = 0.4f;
+
+    [Tooltip("검정이 걷히며 장면 2 구도가 나타나는 시간.")]
+    [SerializeField, Min(0f)] private float stage2ShotFadeInDuration = 1.2f;
+
+    [Header("Timing - Stage2 장면 2 문장")]
+    [SerializeField, Min(0f)] private float stage2Line2FadeInDuration = 1f;
+    [SerializeField, Min(0f)] private float stage2Line2HoldDuration = 2.5f;
 
     [Header("Timing - Stage2 종료")]
     [Tooltip("Stage2 환경이 검정으로 사라지는 시간. 이후 Stage2를 언로드한다.")]
@@ -129,8 +144,13 @@ public class OpeningNarrationController : MonoBehaviour
     [SerializeField, TextArea(2, 4)]
     private string stage1Line = "전기는 끊겼고,";
 
+    [Tooltip("Stage2 장면 1. 기존 Stage2 구도에서 보여준다.")]
     [SerializeField, TextArea(2, 4)]
-    private string stage2Line = "숲은 말라가고 있으며,\n물길은 막혔다.";
+    private string stage2Line = "숲은 말라가고 있으며,";
+
+    [Tooltip("Stage2 장면 2. 같은 Stage2 씬에서 리그만 오염된 수로 앞으로 옮긴 뒤 보여준다.")]
+    [SerializeField, TextArea(2, 4)]
+    private string stage2Line2 = "물길은 막혔다.";
 
     [SerializeField, TextArea(2, 4)]
     private string hopeLine1 = "하지만 아직,\n모든 것이 사라진 것은 아니다.";
@@ -138,8 +158,26 @@ public class OpeningNarrationController : MonoBehaviour
     [SerializeField, TextArea(2, 4)]
     private string hopeLine2 = "이 세계를 다시 피워낼\n두 개의 감각이 남아 있다.";
 
-    [Tooltip("타이틀. 이 구간에서만 Font Size가 titleFontSize로 바뀐다.")]
+    [Tooltip("로고 이미지를 쓸 수 없을 때만 사용하는 폴백 타이틀 문구. " +
+             "정상 동작에서는 Title Logo Sprite가 대신 표시된다.")]
     [SerializeField] private string titleLine = "Re:Bloom";
+
+    [Header("Re:Bloom 타이틀 로고")]
+    [Tooltip("StartScene과 같은 ReBloom_Logo. 비어 있으면 위의 titleLine으로 폴백한다.")]
+    [SerializeField] private Sprite titleLogoSprite;
+
+    [Tooltip("로고 RectTransform 크기(캔버스 단위). 원본이 3:1이므로 3:1로 두면 여백 없이 꽉 찬다. " +
+             "540x180은 기존 TMP 타이틀(72pt)의 약 1.5배 크기다.")]
+    [SerializeField] private Vector2 titleLogoSize = new Vector2(540f, 180f);
+
+    [Tooltip("화면 중앙 기준 오프셋. 0이면 정면 정중앙이다.")]
+    [SerializeField] private Vector2 titleLogoAnchoredPosition = Vector2.zero;
+
+    [Tooltip("ScreenFadeCanvas 기준 로컬 Z. 내레이션 텍스트와 같은 값을 쓴다.")]
+    [SerializeField] private float titleLogoDistance = 1.6f;
+
+    [Tooltip("ScreenFadeCanvas는 localScale 1.4의 거대한 캔버스다. 그 안에서 줄이는 배율.")]
+    [SerializeField] private float titleLogoLocalScale = 0.00167f;
 
     [Header("References")]
     [Tooltip("페이드할 내레이션 텍스트의 CanvasGroup. (OpeningText)")]
@@ -151,6 +189,15 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("Stage Additive Load / 정리 / 리그 이동 / 조명 전환을 담당한다. " +
              "비워 두면 같은 오브젝트에서 찾는다.")]
     [SerializeField] private OpeningEnvironmentController environmentController;
+
+    [Header("Stage2 장면 2 구도")]
+    [Tooltip("장면 2 구도. x·z는 머리(HMD)가 놓일 월드 좌표이고, " +
+             "y는 리그 바닥 높이다. Floor 트래킹이므로 실제 눈높이는 여기에 " +
+             "HMD 높이(약 1.6m)가 더해진 값이 된다. y 1.6 → 눈높이 약 3.2m.")]
+    [SerializeField] private Vector3 stage2ExtraShotPosition = new Vector3(-16.3f, 1.6f, -20.56f);
+
+    [Tooltip("장면 2에서 바라볼 방향(Yaw). HMD가 어느 쪽을 보고 있어도 이 방향이 정면이 된다.")]
+    [SerializeField] private float stage2ExtraShotYaw = -45.3f;
 
     [Tooltip("비워 두면 Opening 씬에서 자동으로 찾는다.")]
     [SerializeField] private ScreenFade screenFadeOverride;
@@ -169,6 +216,10 @@ public class OpeningNarrationController : MonoBehaviour
 
     /// <summary>ScreenFade가 제어하는 검정 Image의 CanvasGroup. 알파를 읽기 위해서만 쓴다.</summary>
     private CanvasGroup screenFadeGroup;
+
+    // 마지막 타이틀 로고. 영속 ScreenFadeCanvas 아래에 만들므로 반드시 지워야 한다.
+    private RectTransform titleLogoRect;
+    private CanvasGroup titleLogoGroup;
 
     /// <summary>연출 본체. 스킵이 이것만 정지시킨다. (StopAllCoroutines는 쓰지 않는다)</summary>
     private Coroutine openingRoutine;
@@ -318,7 +369,7 @@ public class OpeningNarrationController : MonoBehaviour
         if (screenFade != null)
             yield return screenFade.FadeIn(stage2FadeInDuration);
 
-        // ── Stage2 위에 올리는 문장 ──────────────────────────────
+        // ── 장면 1: 기존 Stage2 구도 위에 첫 문장 ────────────────
         yield return ShowLine(
             stage2Line,
             stage2LineFadeInDuration,
@@ -326,7 +377,23 @@ public class OpeningNarrationController : MonoBehaviour
             0f,
             keepVisible: true);
 
-        Debug.Log("[Opening] Stage2 narration shown");
+        Debug.Log("[Opening] Stage2 shot 1 narration shown");
+
+        // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
+        yield return FadeNarration(1f, 0f, stage2LineFadeOutDuration);
+
+        // ── 장면 1 → 장면 2 (같은 씬, 리그만 이동) ──────────────
+        yield return GoToStage2ExtraShot();
+
+        // ── 장면 2: 오염된 수로 구도 위에 두 번째 문장 ───────────
+        yield return ShowLine(
+            stage2Line2,
+            stage2Line2FadeInDuration,
+            stage2Line2HoldDuration,
+            0f,
+            keepVisible: true);
+
+        Debug.Log("[Opening] Stage2 shot 2 narration shown");
 
         // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
         yield return FadeNarration(1f, 0f, stage2LineFadeOutDuration);
@@ -372,19 +439,76 @@ public class OpeningNarrationController : MonoBehaviour
             yield return new WaitForSeconds(beforeTitleDelay);
 
         // ── Re:Bloom 타이틀 ──────────────────────────────────────
-        // 이 구간에서만 Font Size를 titleFontSize로 올린다.
+        // StartScene과 같은 로고 이미지를 쓴다. OpeningText(TMP)는 내레이션 전용으로
+        // 남겨 두고, 로고는 별도 Image 오브젝트로 만든다.
+        // 스프라이트가 비어 있거나 캔버스를 찾지 못한 경우에만 기존 TMP 타이틀로
+        // 폴백한다. 어느 쪽이든 Fade In / Hold / Fade Out 타이밍은 같다.
         // Hold가 끝나면 검정 속으로 사라지고, 그 뒤에 Opening을 정리하고 세션을 시작한다.
-        yield return ShowLine(
-            titleLine,
-            titleFadeInDuration,
-            titleHoldDuration,
-            titleFadeOutDuration,
-            fontSizeOverride: titleFontSize);
+        if (CreateTitleLogo())
+        {
+            yield return ShowTitleLogo();
+        }
+        else
+        {
+            yield return ShowLine(
+                titleLine,
+                titleFadeInDuration,
+                titleHoldDuration,
+                titleFadeOutDuration,
+                fontSizeOverride: titleFontSize);
+        }
 
         Debug.Log("[Opening] Title complete");
 
         // ── Opening 정리 후 기존 세션 흐름으로 넘긴다 ────────────
         yield return FinishOpeningAndEnterSession();
+    }
+
+    /// <summary>
+    /// Stage2 안에서 구도만 바꾼다. Stage2를 **다시 로드하지 않는다.**
+    ///
+    /// stageShots에 Stage2를 한 번 더 넣는 방법을 쓰지 않는 이유:
+    /// <see cref="OpeningEnvironmentController.GoToStage"/> 는 맨 먼저 이전 Stage를
+    /// 언로드하므로 Stage2를 내렸다가 다시 올린다. 정리·시각 사본 생성·Active Scene
+    /// 전환·Main Camera 태그 토글까지 전부 다시 일어나 Quest에서 수 초가 걸린다.
+    /// 그래서 여기서는 리그 Transform만 옮기는 경로를 쓴다.
+    ///
+    /// 멀미 방지 순서 —
+    ///   ① 완전 검정까지 FadeOut을 **기다린다** (알파가 1에 도달한 뒤에 옮긴다)
+    ///   ② 보간 없이 순간이동 (Lerp로 움직이면 전정기관 불일치로 바로 멀미가 난다)
+    ///   ③ 검정을 잠시 유지해 큰 각도 재배치를 흡수한다
+    ///   ④ FadeIn
+    ///
+    /// ScreenFade.FadeOut은 현재 알파와 무관하게 항상 0 → 1로 보간한다. 이 메서드는
+    /// 화면이 보이는 상태(알파 0)에서만 호출되므로 정상 동작하며, 검정 구간으로
+    /// 옮기면 첫 프레임에 Stage가 번쩍이므로 호출 위치를 바꾸면 안 된다.
+    /// </summary>
+    private IEnumerator GoToStage2ExtraShot()
+    {
+        // ① 완전 검정
+        if (screenFade != null)
+            yield return screenFade.FadeOut(stage2ShotFadeOutDuration);
+
+        // ② 순간이동 (HMD Yaw 보정은 EnvironmentController가 한다)
+        if (environmentController != null)
+        {
+            environmentController.MoveRigToExtraShot(
+                stage2ExtraShotPosition, stage2ExtraShotYaw);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[Opening] EnvironmentController가 없어 Stage2 추가 구도로 옮기지 " +
+                "못했습니다. 장면 2가 장면 1과 같은 구도로 보입니다.", this);
+        }
+
+        // ③ 검정 유지
+        if (stage2ShotBlackHoldDuration > 0f)
+            yield return new WaitForSeconds(stage2ShotBlackHoldDuration);
+
+        // ④ 장면 2 등장
+        if (screenFade != null)
+            yield return screenFade.FadeIn(stage2ShotFadeInDuration);
     }
 
     /// <summary>
@@ -458,8 +582,10 @@ public class OpeningNarrationController : MonoBehaviour
         if (environmentController != null)
             environmentController.RestoreRigPoseForExit();
 
-        // ── ③ OpeningText 제거 ─────────────────────────────────
+        // ── ③ OpeningText / 타이틀 로고 제거 ───────────────────
+        // 둘 다 영속 ScreenFadeCanvas 아래에 있어 씬이 사라져도 남는다.
         DestroyNarrationText();
+        DestroyTitleLogo();
 
         // ── ④ ScreenFade 복구 ──────────────────────────────────
         yield return RestoreScreenFadeForLobby();
@@ -616,6 +742,9 @@ public class OpeningNarrationController : MonoBehaviour
             if (narrationGroup != null)
                 narrationGroup.alpha = 0f;
 
+            if (titleLogoGroup != null)
+                titleLogoGroup.alpha = 0f;
+
             if (screenFade != null)
                 yield return screenFade.FadeOut(0f);
 
@@ -625,7 +754,11 @@ public class OpeningNarrationController : MonoBehaviour
         float blackFrom = screenFadeGroup.alpha;
         float textFrom = narrationGroup != null ? narrationGroup.alpha : 0f;
 
-        if (duration > 0f && (blackFrom < 1f || textFrom > 0f))
+        // 로고는 검정 Image의 형제라 검정 알파가 올라가도 가려지지 않는다.
+        // 그래서 텍스트와 같이 여기서 직접 걷어야 한다.
+        float logoFrom = titleLogoGroup != null ? titleLogoGroup.alpha : 0f;
+
+        if (duration > 0f && (blackFrom < 1f || textFrom > 0f || logoFrom > 0f))
         {
             float elapsed = 0f;
 
@@ -640,6 +773,9 @@ public class OpeningNarrationController : MonoBehaviour
                 if (narrationGroup != null)
                     narrationGroup.alpha = Mathf.Lerp(textFrom, 0f, t);
 
+                if (titleLogoGroup != null)
+                    titleLogoGroup.alpha = Mathf.Lerp(logoFrom, 0f, t);
+
                 yield return null;
             }
         }
@@ -648,6 +784,9 @@ public class OpeningNarrationController : MonoBehaviour
 
         if (narrationGroup != null)
             narrationGroup.alpha = 0f;
+
+        if (titleLogoGroup != null)
+            titleLogoGroup.alpha = 0f;
     }
 
     /// <summary>
@@ -681,6 +820,173 @@ public class OpeningNarrationController : MonoBehaviour
             "스킵 시 페이드 없이 즉시 검정으로 전환됩니다.", this);
 
         return null;
+    }
+
+    // ── 타이틀 로고 ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 타이틀 로고 Image를 ScreenFadeCanvas 안에 만든다.
+    ///
+    /// OpeningText의 자식이 아니라 **형제**로 만든다. OpeningText는 내레이션 전용으로
+    /// 남겨야 하고, 그 CanvasGroup을 공유하면 내레이션 페이드와 수명이 얽힌다.
+    ///
+    /// 드로우 순서는 검정 Image **바로 뒤**다. 같은 캔버스에서는 하이어라키 순서가
+    /// 드로우 순서이므로 검정 위에 선명하게 올라온다. OpeningSkipUI도 같은 자리에
+    /// 들어오는데, 더 나중에 만들어지는 이쪽이 그 아래가 되므로 스킵 게이지가
+    /// 로고 위에 보인다. (의도한 순서다)
+    /// ScreenFade가 알파를 제어하는 것은 검정 Image의 CanvasGroup이므로 그 형제인
+    /// 이 로고는 검정 알파의 영향을 받지 않는다.
+    ///
+    /// 성공하면 true. 스프라이트나 캔버스가 없으면 아무것도 만들지 않고 false를
+    /// 돌려 호출한 쪽이 기존 TMP 타이틀로 폴백한다.
+    /// </summary>
+    private bool CreateTitleLogo()
+    {
+        if (titleLogoSprite == null)
+        {
+            Debug.LogWarning(
+                "[Opening] 타이틀 로고 스프라이트가 비어 있어 기존 TMP 타이틀로 진행합니다. " +
+                "OpeningManager의 Title Logo Sprite에 ReBloom_Logo를 연결하세요.", this);
+            return false;
+        }
+
+        if (screenFade == null)
+            return false;
+
+        Canvas fadeCanvas = screenFade.GetComponent<Canvas>();
+
+        if (fadeCanvas == null)
+        {
+            Debug.LogWarning(
+                "[Opening] ScreenFade가 붙은 오브젝트에서 Canvas를 찾지 못해 " +
+                "기존 TMP 타이틀로 진행합니다.", this);
+            return false;
+        }
+
+        var logoObject = new GameObject("OpeningTitleLogo", typeof(RectTransform));
+        logoObject.layer = fadeCanvas.gameObject.layer;
+
+        titleLogoRect = (RectTransform)logoObject.transform;
+        titleLogoRect.SetParent(fadeCanvas.transform, false);
+
+        titleLogoRect.localRotation = Quaternion.identity;
+        titleLogoRect.localScale =
+            new Vector3(titleLogoLocalScale, titleLogoLocalScale, titleLogoLocalScale);
+
+        titleLogoRect.anchorMin = new Vector2(0.5f, 0.5f);
+        titleLogoRect.anchorMax = new Vector2(0.5f, 0.5f);
+        titleLogoRect.pivot = new Vector2(0.5f, 0.5f);
+        titleLogoRect.anchoredPosition = titleLogoAnchoredPosition;
+        titleLogoRect.sizeDelta = titleLogoSize;
+
+        // anchoredPosition이 localPosition의 x·y를 덮으므로 z는 마지막에 넣는다.
+        titleLogoRect.localPosition = new Vector3(
+            titleLogoAnchoredPosition.x, titleLogoAnchoredPosition.y, titleLogoDistance);
+
+        if (screenFadeGroup != null)
+            titleLogoRect.SetSiblingIndex(screenFadeGroup.transform.GetSiblingIndex() + 1);
+        else
+            titleLogoRect.SetAsLastSibling();
+
+        var image = logoObject.AddComponent<Image>();
+        image.sprite = titleLogoSprite;
+        image.type = Image.Type.Simple;
+        image.preserveAspect = true;       // 원본 비율 유지
+        image.color = Color.white;         // 검정 배경 위에 원본 색 그대로
+        image.raycastTarget = false;       // UI Ray 입력을 차단하지 않는다
+
+        titleLogoGroup = logoObject.AddComponent<CanvasGroup>();
+        titleLogoGroup.alpha = 0f;
+        titleLogoGroup.interactable = false;
+        titleLogoGroup.blocksRaycasts = false;
+
+        Debug.Log("[Opening] Title logo attached to ScreenFadeCanvas", this);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 로고를 띄우고 유지한 뒤 지운다. 타이밍은 기존 TMP 타이틀과 같은 필드를 쓴다.
+    /// </summary>
+    private IEnumerator ShowTitleLogo()
+    {
+        yield return FadeTitleLogo(0f, 1f, titleFadeInDuration);
+
+        if (titleHoldDuration > 0f)
+            yield return new WaitForSeconds(titleHoldDuration);
+
+        yield return FadeTitleLogo(1f, 0f, titleFadeOutDuration);
+    }
+
+    private IEnumerator FadeTitleLogo(float from, float to, float duration)
+    {
+        if (titleLogoGroup == null)
+            yield break;
+
+        if (duration <= 0f)
+        {
+            titleLogoGroup.alpha = to;
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+
+            // 스킵 정리로 로고가 사라졌을 수 있다.
+            if (titleLogoGroup == null)
+                yield break;
+
+            titleLogoGroup.alpha = Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+
+        if (titleLogoGroup != null)
+            titleLogoGroup.alpha = to;
+    }
+
+    /// <summary>
+    /// 로고를 치운다.
+    ///
+    /// 영속 ScreenFadeCanvas의 자식이므로 Opening 씬이 언로드돼도 함께 사라지지 않는다.
+    /// 그대로 두면 Lobby에서 로고가 계속 떠 있다. 몇 번 불려도 안전하다.
+    ///
+    /// Destroy는 프레임 끝에 처리되므로 알파를 먼저 0으로 만들어 그 사이에도
+    /// 보이지 않게 한다. (OpeningText를 치우는 방식과 같다)
+    /// </summary>
+    private void DestroyTitleLogo()
+    {
+        if (titleLogoGroup != null)
+            titleLogoGroup.alpha = 0f;
+
+        if (titleLogoRect == null)
+        {
+            titleLogoGroup = null;
+            return;
+        }
+
+        GameObject logoObject = titleLogoRect.gameObject;
+
+        titleLogoRect = null;
+        titleLogoGroup = null;
+
+        Destroy(logoObject);
+
+        Debug.Log("[Opening] Title logo destroyed");
+    }
+
+    /// <summary>
+    /// 정상 종료·스킵 어느 경로로도 <see cref="FinishOpeningCore"/> 를 지나지 못한
+    /// 경우(세션 요청 누락, 예외, 강제 씬 전환)를 위한 안전망.
+    ///
+    /// OpeningText는 기존 동작을 바꾸지 않도록 여기서 건드리지 않는다.
+    /// 이 메서드는 이번에 새로 추가한 로고만 책임진다.
+    /// </summary>
+    private void OnDestroy()
+    {
+        DestroyTitleLogo();
     }
 
     /// <summary>

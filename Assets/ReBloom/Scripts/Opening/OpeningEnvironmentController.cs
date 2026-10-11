@@ -357,6 +357,79 @@ public class OpeningEnvironmentController : MonoBehaviour
     }
 
     /// <summary>
+    /// 이미 올라가 있는 Stage 안에서 **리그만** 다른 촬영 위치로 옮긴다.
+    /// 씬 로드·언로드·정리·조명 전환·Active Scene 전환을 하지 않는다.
+    ///
+    /// <see cref="MoveRigToShot"/> 와 다른 점은 HMD Yaw를 상쇄한다는 것 하나다.
+    /// MoveRigToShot은 리그 Yaw를 절대값으로 넣기 때문에, 플레이어가 물리적으로 몸을
+    /// 돌린 채 시작하면 그만큼 구도가 어긋난다. 멀리서 넓게 보는 기존 구도에서는
+    /// 티가 덜 나지만 가까이 붙는 추가 구도에서는 피사체가 화면 밖으로 나간다.
+    /// 그래서 여기서는 "최종 HMD 월드 Yaw = yaw" 가 되도록 리그 Yaw를 역보정한다.
+    /// (기존 MoveRigToShot은 그대로 두어 Stage1·Stage2 첫 구도의 동작을 보존한다.)
+    ///
+    /// Pitch/Roll은 건드리지 않는다. VR에서 지평선을 강제로 기울이면 멀미가 생기므로
+    /// 상하 시선은 전적으로 HMD에 맡긴다.
+    ///
+    /// 반드시 화면이 완전히 검정인 동안 호출한다. 호출자가 페이드를 담당한다.
+    /// </summary>
+    public void MoveRigToExtraShot(Vector3 position, float yaw)
+    {
+        if (xrOrigin == null)
+        {
+            Debug.LogError(
+                "[Opening] XR Origin을 찾지 못해 추가 구도로 옮기지 못했습니다.", this);
+            return;
+        }
+
+        float rigYaw = yaw - ResolveHeadLocalYaw();
+
+        // 회전을 먼저 적용한다. 자식인 카메라의 월드 위치가 이 대입으로 즉시 갱신되므로
+        // headOffset은 **회전 뒤에** 다시 구해야 머리가 목표 지점에 정확히 온다.
+        xrOrigin.rotation = Quaternion.Euler(0f, rigYaw, 0f);
+
+        Vector3 target = position;
+
+        if (rigCamera != null)
+        {
+            Vector3 headOffset = rigCamera.transform.position - xrOrigin.position;
+            headOffset.y = 0f;   // 수평 보정만. 높이는 트래킹 값을 그대로 쓴다.
+            target -= headOffset;
+        }
+
+        xrOrigin.position = target;
+
+        Debug.Log(
+            $"[Opening] Rig moved to extra shot - head={position}, yaw={yaw}, rigYaw={rigYaw:F1}",
+            this);
+    }
+
+    /// <summary>
+    /// 리그 기준으로 HMD가 돌아가 있는 Yaw. 보정에만 쓴다.
+    ///
+    /// eulerAngles.y를 그대로 빼지 않는 이유:
+    /// 전환 시점은 화면이 검정이라 플레이어가 천장이나 바닥을 보고 있을 수 있다.
+    /// Pitch가 ±90°에 가까우면 eulerAngles.y가 튀므로, 시선 벡터를 수평면에
+    /// 투영해 Yaw를 구한다. 투영 길이가 0에 가까운(= 완전히 수직) 경우에만
+    /// eulerAngles.y로 되돌아간다.
+    /// </summary>
+    private float ResolveHeadLocalYaw()
+    {
+        if (rigCamera == null)
+            return 0f;
+
+        Transform head = rigCamera.transform;
+
+        Vector3 flatForward = head.forward;
+        flatForward.y = 0f;
+
+        float headWorldYaw = flatForward.sqrMagnitude > 0.000001f
+            ? Mathf.Atan2(flatForward.x, flatForward.z) * Mathf.Rad2Deg
+            : head.eulerAngles.y;
+
+        return headWorldYaw - xrOrigin.eulerAngles.y;
+    }
+
+    /// <summary>
     /// 이름이 완전히 일치하는 오브젝트만 비활성화한다. 루트와 자식을 모두 본다.
     /// 추측으로 끄지 않도록 부분 일치는 쓰지 않고, 못 찾은 이름은 로그로 알린다.
     /// </summary>
