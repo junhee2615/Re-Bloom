@@ -393,6 +393,8 @@ MonoBehaviour:
   minGain: 0.05
   tiltGainForward: 1.8
   tiltGainBack: 1.2
+  aimAtSunWhenIdle: 0
+  idleAimSeconds: 0.6
 --- !u!64 &3682245615501268640
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -427,8 +429,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b74ebbf4fff11054988672846c43890e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarBeamAim
-  farDistance: 6
-  nearDistance: 1.6
+  farDistance: 3
+  nearDistance: 1
   candidates: []
 --- !u!114 &3642360939757258708
 MonoBehaviour:

@@ -10,6 +10,12 @@ namespace ReBloom.Solar
     /// 닿은 지점으로 재면 빗나간 빔이 하늘로 사라지는 순간 거리가 수십 m로 튀어
     /// "가까워지는 중"이 드러나지 않는다. 최단 거리는 빔이 표적을 스쳐 지나가도 연속적으로 줄었다 늘어난다.
     ///
+    /// 단 <b>빔 뒤에 있는 판은 세지 않는다.</b> 판 격자가 촘촘해(열 4 m / 줄 5.1 m) 어느 방향을 겨눠도
+    /// 이웃이 거리 안에 들어오므로, 뒤까지 세면 엉뚱한 방향을 겨눠도 진동이 올라가 있다.
+    /// 같은 이유로 <see cref="farDistance"/>는 <b>열 간격보다 좁아야</b> 한다 — pitch 전용 설계상
+    /// 반사광의 x는 태양의 x로 고정돼(z 1 m당 x 0.124 m) <b>다른 열은 영영 맞출 수 없는데</b>,
+    /// 범위가 넓으면 그 판까지 표적으로 잡힌다.
+    ///
     /// <b>조용한 경우는 이 판이 고장났을 때뿐이다.</b> 겨눌 표적이 없어도, 빔이 안 나와도
     /// <see cref="AimState.Scattered"/>로 둔다 — "여기서는 아무 일도 일어나지 않는다"를 약한 진동으로
     /// 계속 알려주는 쪽이, 침묵으로 "고장인지 아닌지" 헷갈리게 하는 것보다 낫다.
@@ -37,12 +43,14 @@ namespace ReBloom.Solar
         }
 
         [Header("거리 → 근접도")]
-        [Tooltip("표적 중심에서 이보다 멀면 근접도 0(완전히 퍼진 상태).")]
-        [Min(0.1f)] public float farDistance = 6f;
+        [Tooltip("빔에서 이보다 먼 고장 판은 근접도 0(완전히 퍼진 상태). " +
+                 "판 열 간격(4 m)보다 좁게 둘 것 — 넓으면 pitch 전용 설계상 영영 맞출 수 없는 " +
+                 "다른 열 판까지 표적으로 잡혀 진동이 거짓으로 올라간다.")]
+        [Min(0.1f)] public float farDistance = 3f;
 
-        [Tooltip("표적 중심에서 이보다 가까우면 근접도 1. 판 반너비(1.59 m) 근처로 두면 " +
-                 "'거의 판에 걸친' 시점에 최대가 된다.")]
-        [Min(0.05f)] public float nearDistance = 1.6f;
+        [Tooltip("빔에서 이보다 가까우면 근접도 1. 빗나감은 대부분 상하(기울기)이므로 " +
+                 "판 반높이(0.96 m) 근처로 둔다.")]
+        [Min(0.05f)] public float nearDistance = 1f;
 
         [Header("표적")]
         [Tooltip("비우면 씬의 모든 SolarReflector를 찾아 쓴다. 그중 broken인 것만 표적이 된다.")]
@@ -109,7 +117,7 @@ namespace ReBloom.Solar
             if (Proximity > 0f) State = AimState.Converging;
         }
 
-        // 빔 선분에서 가장 가까운 고장 판.
+        // 빔이 겨누고 있는 것 중 가장 가까운 고장 판. 빔 뒤에 있는 판은 세지 않는다.
         bool TryFindNearest(out SolarReflector nearest, out float nearestDistance)
         {
             nearest = null;
@@ -120,7 +128,8 @@ namespace ReBloom.Solar
                 SolarReflector r = candidates[i];
                 if (r == null || r == self || !r.broken || !r.isActiveAndEnabled) continue;
 
-                float d = DistanceToSegment(r.Position, beam.Origin, beam.End);
+                if (!TryDistanceAhead(r.Position, beam.Origin, beam.End, out float d)) continue;
+
                 if (d < nearestDistance)
                 {
                     nearest = r;
@@ -131,16 +140,25 @@ namespace ReBloom.Solar
             return nearest != null;
         }
 
-        // 점과 선분의 최단 거리. 선분 밖이면 가까운 끝점까지의 거리다 —
-        // 빔이 표적을 지나치기 전에 멈췄다면 "아직 못 미쳤다"가 거리로 나타나야 한다.
-        static float DistanceToSegment(Vector3 point, Vector3 a, Vector3 b)
+        // 빔 선분과 점의 최단 거리. "겨누고 있는가"를 재는 것이므로 두 가지를 구분한다.
+        //
+        //  - 점이 빔 <b>뒤</b>에 있으면 false. 겨누는 방향과 무관하게 옆·뒤의 판이 늘 걸려
+        //    (격자가 촘촘해서 반드시 걸린다) 엉뚱한 방향을 겨눠도 진동이 올라가 있었다.
+        //  - 점이 빔 <b>앞</b>이지만 선분보다 멀면 끝점까지의 거리를 쓴다 — 빔이 표적에 못 미치고
+        //    멈췄다면 "아직 못 미쳤다"가 거리로 나타나야 한다.
+        static bool TryDistanceAhead(Vector3 point, Vector3 a, Vector3 b, out float distance)
         {
+            distance = 0f;
+
             Vector3 ab = b - a;
             float lengthSq = ab.sqrMagnitude;
-            if (lengthSq < 1e-6f) return Vector3.Distance(point, a);
+            if (lengthSq < 1e-6f) return false;
 
-            float t = Mathf.Clamp01(Vector3.Dot(point - a, ab) / lengthSq);
-            return Vector3.Distance(point, a + ab * t);
+            float t = Vector3.Dot(point - a, ab) / lengthSq;
+            if (t < 0f) return false;   // 빔 뒤 — 겨누고 있지 않다
+
+            distance = Vector3.Distance(point, a + ab * Mathf.Min(t, 1f));
+            return true;
         }
 
         void OnDrawGizmosSelected()

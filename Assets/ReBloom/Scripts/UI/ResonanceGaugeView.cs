@@ -114,14 +114,24 @@ public class ResonanceGaugeView : MonoBehaviour
 
         Color color = fillColor != null ? fillColor.Evaluate(value) : Color.white;
 
-        // 전체 0~1을 칸 수로 나눠 왼쪽부터 순서대로 채운다. 칸이 하나면 fillAmount = value.
-        float perSegment = 1f / segments.Length;
+        // 칸이 하나(한 장짜리 sprite)면 부분 채움으로 보여줄 수밖에 없다.
+        if (segments.Length == 1)
+        {
+            if (segments[0] == null) return;
+            segments[0].fillAmount = value;
+            segments[0].color = color;
+            return;
+        }
+
+        // 칸 단위로 켜고 끈다. 올림이라 조금이라도 남은 칸은 켜져 있다 — 줄어들 땐 다 비어야 꺼지고,
+        // 차오를 땐 시작하자마자 첫 칸이 켜진다. 부동소수 오차로 꽉 찬 값이 한 칸 더 켜지지 않게 살짝 깎는다.
+        int lit = Mathf.Clamp(Mathf.CeilToInt(value * segments.Length - 0.001f), 0, segments.Length);
         for (int i = 0; i < segments.Length; i++)
         {
             Image segment = segments[i];
             if (segment == null) continue;
 
-            segment.fillAmount = Mathf.Clamp01((value - i * perSegment) / perSegment);
+            segment.fillAmount = i < lit ? 1f : 0f;
             segment.color = color;
         }
     }
