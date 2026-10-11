@@ -3,10 +3,10 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 각 AliveStump(뿌리)에 붙는 "활성화 미션" 컴포넌트.
-/// 매니저가 이 뿌리 차례에 BeginActivation()을 호출하면 ActivateCircle과 MissionCanvas를 켜다.
+/// 매니저가 이 뿌리 차례에 BeginActivation()을 호출하면 MissionCanvas를 켠다.
 /// 플레이어가 StartButton을 누르면(OnStartButtonPressed) StartButton이 꺼지고 MissionPanel이 나타나며
 /// 실제 미션(ActivationMission)이 시작된다. 미션을 클리어하면 CompleteActivation()으로
-/// ActivateCircle/MissionCanvas를 끄고 AliveDecal(완료 문양)을 켜 뒤 매니저에 알린다.
+/// MissionCanvas를 끄고 AliveDecal(완료 문양)을 켜 뒤 매니저에 알린다.
 /// (LivingRoot가 "찾기"를 담당했다면, RootActivation은 "활성화"를 담당하는 짝이다.)
 /// </summary>
 public class RootActivation : MonoBehaviour
@@ -15,8 +15,6 @@ public class RootActivation : MonoBehaviour
     public RootMissionManager missionManager;
 
     [Header("Visuals")]
-    [Tooltip("활성화 미션 진행 중 표시되는 원")]
-    [SerializeField] private GameObject activateCircle;
     [Tooltip("활성화 미션 완료 후 생기는 문양")]
     [SerializeField] private GameObject aliveDecal;
 
@@ -54,8 +52,7 @@ public class RootActivation : MonoBehaviour
 
     private void Awake()
     {
-        // 시작 상태 정리: 원/문양/캔버스 모두 꺼 둔다.
-        if (activateCircle != null) activateCircle.SetActive(false);
+        // 시작 상태 정리: 문양/캔버스 모두 꺼 둔다.
         if (aliveDecal != null) aliveDecal.SetActive(false);
         if (missionCanvas != null) missionCanvas.SetActive(false);
 
@@ -71,7 +68,7 @@ public class RootActivation : MonoBehaviour
 
     /// <summary>
     /// 매니저가 이 뿌리 차례가 되면 호출한다.
-    /// ActivateCircle과 MissionCanvas를 켜서 "여기서 미션을 하세요"를 안내한다.
+    /// MissionCanvas를 켜서 "여기서 미션을 하세요"를 안내한다.
     /// (미션은 아직 시작하지 않고 StartButton 입력을 기다린다.)
     /// </summary>
     public void BeginActivation()
@@ -81,9 +78,6 @@ public class RootActivation : MonoBehaviour
 
         IsRunning = true;
         missionStarted = false;
-
-        if (activateCircle != null)
-            activateCircle.SetActive(true);
 
         // 미션 캔버스 켜기: StartButton 보이고, MissionPanel은 숨김
         if (missionCanvas != null)
@@ -127,7 +121,7 @@ public void OnStartButtonPressed()
 
     /// <summary>
     /// 미션을 성공적으로 끝냈을 때 호출된다 (mission.Clear() → OnCleared).
-    /// ActivateCircle/MissionCanvas를 끄고 AliveDecal을 켜 뒤 매니저에 완료를 알린다.
+    /// MissionCanvas를 끄고 AliveDecal을 켜 뒤 매니저에 완료를 알린다.
     /// </summary>
 public void CompleteActivation()
     {
@@ -137,9 +131,6 @@ public void CompleteActivation()
         IsActivated = true;
         IsRunning = false;
         missionStarted = false;
-
-        if (activateCircle != null)
-            activateCircle.SetActive(false);
 
         if (missionCanvas != null)
             missionCanvas.SetActive(false);
@@ -232,7 +223,6 @@ public void NetComplete()
 
         if (mission != null) mission.StopMission();
 
-        if (activateCircle != null) activateCircle.SetActive(false);
         if (missionCanvas != null) missionCanvas.SetActive(false);
         if (aliveDecal != null) aliveDecal.SetActive(true);
 

@@ -77,12 +77,50 @@ public class RootMissionManager : MonoBehaviour
     public int FoundCount => foundRoots.Count;
 
     // 첫 번째 미션 : 뿌리 찾기
-public void OnRootFound(LivingRoot root)
+    // LivingRoot 가 로컬에서 발견을 감지했을 때(ear 가 손을 댔을 때) 호출한다.
+    // 네트워크 연결 시에는 Host 를 거쳐 모든 플레이어에게 전파되고, 각자 MarkRootFound 로 처리한다.
+    public void OnRootFound(LivingRoot root)
+    {
+        if (root == null || root.IsFound)
+            return;
+
+        if (net != null)
+        {
+            int index = IndexOfRoot(root);
+            if (index >= 0 && net.NotifyRootFound(index))
+                return;
+        }
+
+        MarkRootFound(root);
+    }
+
+    /// <summary>네트워크: 어떤 뿌리가 발견됐다는 알림이 모든 머신에 도착했을 때.</summary>
+    public void NetRootFound(int index)
+    {
+        if (index < 0 || index >= activationRoots.Count || activationRoots[index] == null)
+            return;
+
+        LivingRoot root = activationRoots[index].GetComponent<LivingRoot>();
+        if (root != null)
+            MarkRootFound(root);
+    }
+
+    private int IndexOfRoot(LivingRoot root)
+    {
+        for (int i = 0; i < activationRoots.Count; i++)
+            if (activationRoots[i] != null && activationRoots[i].gameObject == root.gameObject)
+                return i;
+        return -1;
+    }
+
+    // 실제 발견 처리: 발견 표시(초록 동심원)를 켜고 개수를 센다.
+    private void MarkRootFound(LivingRoot root)
     {
         if (foundRoots.Contains(root))
             return;
 
         foundRoots.Add(root);
+        root.MarkFound();
 
         Debug.Log($"찾은 뿌리 : {FoundCount}/3");
 
@@ -128,7 +166,10 @@ private IEnumerator DelayedActivation()
         foreach (LivingRoot found in foundRoots)
         {
             if (found != null)
+            {
                 found.enabled = false;
+                found.HideFoundEffect();
+            }
         }
 
         // 네트워크: 상대가 먼저 찾아 전환된 경우, 내가 아직 못 찾은 뿌리의 LivingRoot도 꺼 둔다.
@@ -138,7 +179,11 @@ private IEnumerator DelayedActivation()
             {
                 if (activationRoots[i] == null) continue;
                 LivingRoot lr = activationRoots[i].GetComponentInChildren<LivingRoot>(true);
-                if (lr != null) lr.enabled = false;
+                if (lr != null)
+                {
+                    lr.enabled = false;
+                    lr.HideFoundEffect();
+                }
             }
         }
 

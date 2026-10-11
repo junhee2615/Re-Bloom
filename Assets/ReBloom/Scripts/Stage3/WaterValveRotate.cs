@@ -8,7 +8,7 @@ public class WaterValveRotate : NetworkBehaviour
 {
     [Networked]
     public float CurrentAngle { get; set; }
-    private XRGrabInteractable grabInteractable;
+    private XRBaseInteractable grabInteractable;
     private Transform interactor;
     private float previousHandAngle;
     private bool hasPreviousHandAngle;
@@ -37,7 +37,7 @@ public class WaterValveRotate : NetworkBehaviour
 
     public override void Spawned()
     {
-        grabInteractable = GetComponent<XRGrabInteractable>();
+        grabInteractable = GetComponent<XRBaseInteractable>();
 
         grabInteractable.selectEntered.AddListener(OnGrab);
         grabInteractable.selectExited.AddListener(OnRelease);
@@ -58,9 +58,13 @@ public class WaterValveRotate : NetworkBehaviour
         lastMovementTime = Time.time;
     }
 
-    private void Update()
+    private void Update() // 여기서 핸들 돌리는 작업 
     {
         if (interactor == null)
+            return;
+
+        // mental 역할만 돌릴 수 있다
+        if (!RoleManager.LocalIsMental)
             return;
 
         // 밸브 중심을 기준으로 손이 몇 도 위치에 있는지 읽고, 그 변화량만큼 밸브를 돌린다.

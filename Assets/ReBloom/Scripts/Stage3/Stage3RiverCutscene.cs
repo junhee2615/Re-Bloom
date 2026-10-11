@@ -21,7 +21,7 @@ public class Stage3RiverCutscene : MonoBehaviour
     [Tooltip("카메라가 도착할 지점 (다리 쪽)")]
     [SerializeField] private Transform endPoint;
     [Tooltip("시작 지점에서 도착 지점까지 이동하는 시간(초)")]
-    [SerializeField] private float moveDuration = 5f;
+    [SerializeField] private float moveDuration = 10f;
     [Tooltip("도착한 뒤 그 자리에서 머무는 시간(초)")]
     [SerializeField] private float holdDuration = 1f;
     [SerializeField] private bool smoothCameraMovement = true;
