@@ -49,6 +49,13 @@ namespace ReBloom.Solar
         [Tooltip("쉬는 자세로 들어가고 빠져나오는 시간(초). 0이면 즉시.")]
         [Min(0f)] public float idleAimSeconds = 0.6f;
 
+        [Header("누구에게 보이는가")]
+        [Tooltip("이 역할에게만 빔이 그려진다. 루멘 = mental. none이면 모두에게 보인다.\n" +
+                 "보이지 않는 쪽에서도 계산은 그대로 돈다 — 수리 판정(IsLit)과 에코의 진동이 빔에 의존하므로 " +
+                 "렌더러만 끈다.\n" +
+                 "역할이 아직 정해지지 않았으면 보여준다(세션 없이 에디터에서 단독 확인할 때를 위해).")]
+        public Role visibleToRole = Role.mental;
+
         /// <summary>지금 빔이 나오고 있는가. 고장났거나 해를 등지면 false.</summary>
         public bool IsEmitting { get; private set; }
 
@@ -250,11 +257,21 @@ namespace ReBloom.Solar
             return false;
         }
 
+        // 빔이 이 기기에서 보이면 안 되는가.
+        // 역할이 확정된 뒤에만 숨긴다 — 미지정일 때 숨기면 세션 없이 에디터에서 확인할 수 없고,
+        // 로비·씬 전환 구간이 잠깐 깜빡인다. RiverbedRoleVisibility도 같은 기준이다.
+        // RoleManager.LocalRole은 미지정일 때 enum 기본값 mental을 주므로 HasLocalRole을 함께 본다.
+        bool HiddenForLocalRole =>
+            visibleToRole != Role.none
+            && RoleManager.HasLocalRole
+            && RoleManager.LocalRole != visibleToRole;
+
         void Draw(bool visible)
         {
             if (line == null) return;
 
-            line.enabled = visible;
+            // 계산(Trace·MarkLit)은 이미 끝났다. 여기서는 그리기만 막는다.
+            line.enabled = visible && !HiddenForLocalRole;
             if (!visible) return;
 
             line.positionCount = 2;

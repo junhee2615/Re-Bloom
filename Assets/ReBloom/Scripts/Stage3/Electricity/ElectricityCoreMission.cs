@@ -23,24 +23,49 @@ namespace ReBloom.Electricity
     public class ElectricityCoreMission : NetworkBehaviour
     {
         [Header("시작 조건")]
-        [Tooltip("두 역할이 모두 레버를 잡고 있어야 박자가 돈다. 한 명이라도 놓으면 멈추고 처음부터다.")]
-        public bool requireBothHolding = true;
-
-        [Tooltip("둘 다 잡은 뒤 박자가 시작되기까지의 뜸(초). 잡자마자 첫 박이 와서 놓치는 것을 막는다.")]
+        [Tooltip("처음 누군가 레버를 잡은 뒤 박자가 시작되기까지의 뜸(초). 잡자마자 첫 박이 와서 놓치는 것을 막는다.")]
         [Min(0f)] public float startDelay = 2f;
 
         [Header("성공 조건")]
         [Tooltip("몇 번 맞춰야 클리어인가.")]
-        [Min(1)] public int requiredSuccesses = 3;
+        [Min(1)] public int requiredSuccesses = 1;
 
         [Tooltip("두 사람이 당긴 tick 차이가 이 시간(초) 안이어야 '함께 당겼다'로 본다.")]
         [Min(0.05f)] public float syncWindow = 0.4f;
 
-        /// <summary>박자가 돌고 있는가(= 미션 진행 중). 호스트가 정하고 복제된다.</summary>
+        [Header("디버그")]
+        [Tooltip("스폰·잡기·판정을 콘솔에 찍는다. 미션이 안 돌 때 '스폰은 됐는가'부터 가른다.")]
+        public bool logToConsole;
+
+        /// <summary>박자가 돌고 있는가. <b>한 명만 잡아도</b> 돈다. 호스트가 정하고 복제된다.</summary>
         [Networked] public NetworkBool IsRunning { get; set; }
 
-        /// <summary>박자의 0점(초). 둘 다 잡은 시각 + <see cref="startDelay"/>.</summary>
+        /// <summary>박자의 0점(초). <b>처음</b> 누군가 잡은 시각 + <see cref="startDelay"/>.</summary>
         [Networked] public float RunStartTime { get; set; }
+
+        /// <summary>mental이 레버를 잡고 있는가. 연출이 "내 신호를 내보낼지" 판단할 때 읽는다.</summary>
+        [Networked] public NetworkBool MentalHolding { get; set; }
+
+        /// <summary>ear가 레버를 잡고 있는가.</summary>
+        [Networked] public NetworkBool EarHolding { get; set; }
+
+        /// <summary>
+        /// 스폰되었는가. <b>Networked 프로퍼티는 이게 true일 때만 읽을 수 있다</b> —
+        /// 아니면 접근하는 순간 예외가 난다. 씬의 NetworkObject가 베이크되지 않았거나
+        /// 러너보다 씬이 먼저 뜨면 실제로 겪는 상태이므로, 조용히 꺼져 있어야 한다.
+        /// </summary>
+        public bool IsSpawned { get; private set; }
+
+        /// <summary>그 역할이 지금 레버를 잡고 있는가.</summary>
+        public bool IsHeldBy(Role role)
+        {
+            if (!IsSpawned) return false;
+
+            if (role == Role.mental) return MentalHolding;
+            if (role == Role.ear) return EarHolding;
+
+            return MentalHolding || EarHolding;
+        }
 
         /// <summary>미션이 끝났는가. 호스트가 정하고 모든 피어에 복제된다.</summary>
         [Networked] public NetworkBool IsClear { get; set; }
@@ -57,8 +82,8 @@ namespace ReBloom.Electricity
         /// <summary>클리어된 순간 한 번.</summary>
         public static event Action Cleared;
 
-        /// <summary>박자가 시작되기를 기다리는 중인가(둘 다 잡았지만 아직 뜸). 연출이 읽는다.</summary>
-        public bool IsArming => IsRunning && Runner != null && Runner.SimulationTime < RunStartTime;
+        /// <summary>박자가 시작되기를 기다리는 중인가(잡았지만 아직 뜸). 연출이 읽는다.</summary>
+        public bool IsArming => IsSpawned && IsRunning && Runner.SimulationTime < RunStartTime;
 
         ElectricityPulseClock clock;
 
@@ -66,22 +91,34 @@ namespace ReBloom.Electricity
         int mentalPullTick = -1;
         int earPullTick = -1;
 
-        // 호스트가 보는 현재 레버 점유 상태.
-        bool mentalHolding;
-        bool earHolding;
-
         int raisedSuccesses;   // 로컬에서 Succeeded를 몇 번까지 쏘았는가
         bool raisedClear;
 
         void Awake() => clock = GetComponent<ElectricityPulseClock>();
 
+        public override void Spawned()
+        {
+            IsSpawned = true;
+
+            if (logToConsole)
+                Debug.Log($"[전기코어] Spawned — 권한={HasStateAuthority}, " +
+                          $"내역할={(RoleManager.HasLocalRole ? RoleManager.LocalRole.ToString() : "미정")}", this);
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+
+            IsSpawned = false;
+        }
+
         /// <summary>
         /// 레버를 잡거나 놓았다고 보고한다. <see cref="ElectricityLever"/>가 부른다.
-        /// 둘 다 잡혀 있는 동안에만 박자가 돈다 — 한 명이라도 놓으면 멈추고 다음에 처음부터다.
+        /// <b>한 명만 잡아도 박자는 돈다</b> — 다만 신호는 잡은 사람에게만 간다.
         /// </summary>
         public void ReportHold(Role role, bool holding)
         {
-            if (Runner == null || IsClear) return;
+            if (!IsSpawned || IsClear) return;
 
             RPC_ReportHold((int)role, holding);
         }
@@ -91,19 +128,32 @@ namespace ReBloom.Electricity
         {
             if (!HasStateAuthority || IsClear) return;
 
-            if ((Role)role == Role.mental) mentalHolding = holding;
-            else if ((Role)role == Role.ear) earHolding = holding;
+            if ((Role)role == Role.mental) MentalHolding = holding;
+            else if ((Role)role == Role.ear) EarHolding = holding;
 
-            bool ready = !requireBothHolding || (mentalHolding && earHolding);
+            // 놓은 사람의 "아직 짝을 못 만난 당김"은 버린다. 안 그러면 다시 잡은 뒤
+            // 상대가 당겼을 때 놓기 전의 낡은 tick과 짝지어져 엉뚱한 실패가 난다.
+            if (!holding)
+            {
+                if ((Role)role == Role.mental) mentalPullTick = -1;
+                else if ((Role)role == Role.ear) earPullTick = -1;
+            }
 
-            if (ready && !IsRunning)
+            bool anyone = MentalHolding || EarHolding;
+
+            // 아무도 안 잡고 있다가 처음 잡힌 순간에만 0점을 새로 찍는다.
+            // 나중에 잡는 사람은 이미 돌고 있는 박에 합류한다 — 그래야 응집 순간이 하나로 같다.
+            if (anyone && !IsRunning)
             {
                 IsRunning = true;
                 RunStartTime = Runner.SimulationTime + startDelay;
+
+                if (logToConsole)
+                    Debug.Log($"[전기코어] 박자 시작 예약 — 0점={RunStartTime:F2}s (지금 {Runner.SimulationTime:F2}s)", this);
             }
-            else if (!ready && IsRunning)
+            else if (!anyone && IsRunning)
             {
-                // 중간에 놓으면 멈춘다. 모아둔 보고도 버려 다음 시도가 깨끗하게 시작되도록.
+                // 둘 다 놓으면 멈춘다. 모아둔 보고도 버려 다음 시도가 깨끗하게 시작되도록.
                 IsRunning = false;
                 mentalPullTick = -1;
                 earPullTick = -1;
@@ -113,7 +163,13 @@ namespace ReBloom.Electricity
         // 복제된 상태를 시계에 그대로 물린다. 모든 피어가 같은 0점을 쓰므로 박이 어긋나지 않는다.
         void LateUpdate()
         {
-            if (clock == null || Runner == null) return;
+            if (clock == null) return;
+
+            if (!IsSpawned)
+            {
+                clock.SetRunning(false, 0d);
+                return;
+            }
 
             bool beating = IsRunning && !IsClear && Runner.SimulationTime >= RunStartTime;
             clock.SetRunning(beating, RunStartTime);
@@ -126,7 +182,7 @@ namespace ReBloom.Electricity
         public void ReportPull(Role role)
         {
             // 박자가 돌기 전(뜸 포함)과 클리어 뒤의 당김은 아무 일도 하지 않는다.
-            if (Runner == null || IsClear || !clock.Running) return;
+            if (!IsSpawned || IsClear || !clock.Running) return;
 
             RPC_ReportPull((int)role, Runner.Tick);
         }
@@ -150,14 +206,18 @@ namespace ReBloom.Electricity
             float gap = TicksToSeconds(Mathf.Abs(mentalPullTick - earPullTick));
             bool together = gap <= syncWindow;
 
-            // ② 그 순간이 실제로 겹친 때였는가 — 늦게 온 쪽 기준으로 본다.
+            // ② 그 순간이 실제로 응집 때였는가 — 늦게 온 쪽 기준으로 본다.
             //    시계의 박은 RunStartTime이 0점이므로 경과 시간으로 환산해서 물어야 한다.
             int judgeTick = Mathf.Max(mentalPullTick, earPullTick);
             double elapsed = TickToTime(judgeTick) - RunStartTime;
-            bool onBeat = clock.BeatGap(elapsed) <= clock.convergeWindow;
+            bool onBeat = clock.IsConvergedAt(elapsed);
 
             mentalPullTick = -1;
             earPullTick = -1;
+
+            if (logToConsole)
+                Debug.Log($"[전기코어] 판정 — 간격={gap:F3}s(창 {syncWindow}) 동시={together}, " +
+                          $"경과={elapsed:F2}s 응집={onBeat} → {(together && onBeat ? "성공" : "실패")}", this);
 
             if (together && onBeat) SuccessCount++;
             else RPC_Failed();
@@ -174,6 +234,8 @@ namespace ReBloom.Electricity
         // 복제로 늦게 도착하는 클라이언트에서도 같은 횟수만큼 쏜다.
         void Update()
         {
+            if (!IsSpawned) return;
+
             while (raisedSuccesses < SuccessCount)
             {
                 raisedSuccesses++;

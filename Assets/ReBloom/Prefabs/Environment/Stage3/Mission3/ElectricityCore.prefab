@@ -953,11 +953,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ee33ac81d3d13f41a280ac8b5247592, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityPulseClock
-  lightPeriod: 3
-  buzzPeriod: 5
-  beatDuration: 0.12
+  cycleDuration: 7
+  restDuration: 2.5
+  beatCount: 9
+  accelPower: 1.7
+  beatDuration: 0.08
+  convergeHoldDuration: 0.25
   convergeWindow: 0.25
-  scatterGap: 1.5
 --- !u!114 &526895650865116530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -970,8 +972,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb22c6d6444ead74796801e19d41c3f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityCoreMission
-  requiredSuccesses: 3
+  startDelay: 2
+  requiredSuccesses: 1
   syncWindow: 0.4
+  logToConsole: 0
+  _IsRunning:
+    _value: 0
+  _RunStartTime: 0
+  _MentalHolding:
+    _value: 0
+  _EarHolding:
+    _value: 0
   _IsClear:
     _value: 0
   _SuccessCount: 0
@@ -988,6 +999,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityLightCue
   clock: {fileID: 889733396861388184}
+  mission: {fileID: 526895650865116530}
   lamps:
   - {fileID: 7278999386085829333}
   - {fileID: 7377498336681038290}
@@ -1013,6 +1025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityHapticCue
   clock: {fileID: 889733396861388184}
+  mission: {fileID: 526895650865116530}
   onlyForRole: 2
   driveWhenRoleUnknown: 1
   useLeftHand: 1
@@ -1021,7 +1034,7 @@ MonoBehaviour:
   convergedAmplitude: 1
   minPerceptible: 0.06
   scatteredDuration: 0.05
-  convergedDuration: 0.18
+  convergedDuration: 0.352
 --- !u!1001 &4783576063466939807
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1178,10 +1191,10 @@ PrefabInstance:
       addedObject: {fileID: 7019839958304500495}
     - targetCorrespondingSourceObject: {fileID: 5832372642522959443, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 692088271335314006}
+      addedObject: {fileID: 1490680683060607719}
     - targetCorrespondingSourceObject: {fileID: 5832372642522959443, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1490680683060607719}
+      addedObject: {fileID: 4197694846221380293}
     - targetCorrespondingSourceObject: {fileID: 3101022673088532794, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 684526169406720272}
@@ -1190,10 +1203,10 @@ PrefabInstance:
       addedObject: {fileID: 910269639932756623}
     - targetCorrespondingSourceObject: {fileID: 3101022673088532794, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6660071436391754747}
+      addedObject: {fileID: 5985941650683326816}
     - targetCorrespondingSourceObject: {fileID: 3101022673088532794, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5985941650683326816}
+      addedObject: {fileID: 2890563990705644328}
   m_SourcePrefab: {fileID: 100100000, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
 --- !u!23 &1100166570144474990 stripped
 MeshRenderer:
@@ -1254,7 +1267,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &692088271335314006
+--- !u!114 &1490680683060607719
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1263,9 +1276,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 1338251962022079436}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
+  m_Script: {fileID: 11500000, guid: 26f26149a8ed07749afcfd5f14d5668b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityLever
+  requiredRole: 2
+  allowWhenRoleUnknown: 1
+  mission: {fileID: 0}
+  restAngle: 0
+  pulledAngle: -60
+  maxDegreesPerSecond: 360
+  minHandDistance: 0.05
+  maxJumpDegrees: 60
+  reportThreshold: 0.9
+  debugDrive: 0
+  debugAngle: 0
+  logToConsole: 0
+  _Angle: 0
+--- !u!114 &4197694846221380293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338251962022079436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a35f6cfbfba9b548aaa00d52cfe8a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable
   m_InteractionManager: {fileID: 0}
   m_Colliders: []
   m_InteractionLayers:
@@ -1328,81 +1366,6 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
-  m_AttachTransform: {fileID: 0}
-  m_SecondaryAttachTransform: {fileID: 0}
-  m_UseDynamicAttach: 0
-  m_MatchAttachPosition: 1
-  m_MatchAttachRotation: 1
-  m_SnapToColliderVolume: 1
-  m_ReinitializeDynamicAttachEverySingleGrab: 1
-  m_AttachEaseInTime: 0.15
-  m_MovementType: 2
-  m_PredictedVisualsTransform: {fileID: 0}
-  m_VelocityDamping: 1
-  m_VelocityScale: 1
-  m_AngularVelocityDamping: 1
-  m_AngularVelocityScale: 1
-  m_TrackPosition: 1
-  m_SmoothPosition: 0
-  m_SmoothPositionAmount: 8
-  m_TightenPosition: 0.1
-  m_TrackRotation: 1
-  m_SmoothRotation: 0
-  m_SmoothRotationAmount: 8
-  m_TightenRotation: 0.1
-  m_TrackScale: 1
-  m_SmoothScale: 0
-  m_SmoothScaleAmount: 8
-  m_TightenScale: 0.1
-  m_ThrowOnDetach: 1
-  m_ThrowSmoothingDuration: 0.25
-  m_ThrowSmoothingCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  m_ThrowVelocityScale: 1.5
-  m_ThrowAngularVelocityScale: 1
-  m_ForceGravityOnDetach: 0
-  m_RetainTransformParent: 1
-  m_StartingSingleGrabTransformers: []
-  m_StartingMultipleGrabTransformers: []
-  m_AddDefaultGrabTransformers: 1
-  m_FarAttachMode: 0
-  m_LimitLinearVelocity: 0
-  m_LimitAngularVelocity: 0
-  m_MaxLinearVelocityDelta: 10
-  m_MaxAngularVelocityDelta: 20
---- !u!114 &1490680683060607719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1338251962022079436}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26f26149a8ed07749afcfd5f14d5668b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityLever
-  requiredRole: 2
-  allowWhenRoleUnknown: 1
-  mission: {fileID: 0}
-  restAngle: 0
-  pulledAngle: -60
-  rotateSpeed: 200
-  reportThreshold: 0.9
-  _Angle: 0
 --- !u!4 &5037298623038046836 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 34a1617069a0f534396852dbbd445aa8, type: 3}
@@ -1477,7 +1440,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &6660071436391754747
+--- !u!114 &5985941650683326816
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1486,9 +1449,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 7596348424742368421}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
+  m_Script: {fileID: 11500000, guid: 26f26149a8ed07749afcfd5f14d5668b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityLever
+  requiredRole: 1
+  allowWhenRoleUnknown: 1
+  mission: {fileID: 0}
+  restAngle: 0
+  pulledAngle: -60
+  maxDegreesPerSecond: 360
+  minHandDistance: 0.05
+  maxJumpDegrees: 60
+  reportThreshold: 0.9
+  debugDrive: 0
+  debugAngle: 0
+  logToConsole: 0
+  _Angle: 0
+--- !u!114 &2890563990705644328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7596348424742368421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a35f6cfbfba9b548aaa00d52cfe8a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable
   m_InteractionManager: {fileID: 0}
   m_Colliders: []
   m_InteractionLayers:
@@ -1551,78 +1539,3 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
-  m_AttachTransform: {fileID: 0}
-  m_SecondaryAttachTransform: {fileID: 0}
-  m_UseDynamicAttach: 0
-  m_MatchAttachPosition: 1
-  m_MatchAttachRotation: 1
-  m_SnapToColliderVolume: 1
-  m_ReinitializeDynamicAttachEverySingleGrab: 1
-  m_AttachEaseInTime: 0.15
-  m_MovementType: 2
-  m_PredictedVisualsTransform: {fileID: 0}
-  m_VelocityDamping: 1
-  m_VelocityScale: 1
-  m_AngularVelocityDamping: 1
-  m_AngularVelocityScale: 1
-  m_TrackPosition: 1
-  m_SmoothPosition: 0
-  m_SmoothPositionAmount: 8
-  m_TightenPosition: 0.1
-  m_TrackRotation: 1
-  m_SmoothRotation: 0
-  m_SmoothRotationAmount: 8
-  m_TightenRotation: 0.1
-  m_TrackScale: 1
-  m_SmoothScale: 0
-  m_SmoothScaleAmount: 8
-  m_TightenScale: 0.1
-  m_ThrowOnDetach: 1
-  m_ThrowSmoothingDuration: 0.25
-  m_ThrowSmoothingCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  m_ThrowVelocityScale: 1.5
-  m_ThrowAngularVelocityScale: 1
-  m_ForceGravityOnDetach: 0
-  m_RetainTransformParent: 1
-  m_StartingSingleGrabTransformers: []
-  m_StartingMultipleGrabTransformers: []
-  m_AddDefaultGrabTransformers: 1
-  m_FarAttachMode: 0
-  m_LimitLinearVelocity: 0
-  m_LimitAngularVelocity: 0
-  m_MaxLinearVelocityDelta: 10
-  m_MaxAngularVelocityDelta: 20
---- !u!114 &5985941650683326816
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7596348424742368421}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26f26149a8ed07749afcfd5f14d5668b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityLever
-  requiredRole: 1
-  allowWhenRoleUnknown: 1
-  mission: {fileID: 0}
-  restAngle: 0
-  pulledAngle: -60
-  rotateSpeed: 200
-  reportThreshold: 0.9
-  _Angle: 0

@@ -22,6 +22,9 @@ namespace ReBloom.Electricity
         [Tooltip("박자를 읽어 올 시계. 비우면 같은 오브젝트에서 찾는다.")]
         public ElectricityPulseClock clock;
 
+        [Tooltip("레버 점유를 읽어 올 미션. 비우면 같은 오브젝트에서 찾는다.")]
+        public ElectricityCoreMission mission;
+
         [Tooltip("깜빡일 발광체들. 비우면 자식 Renderer를 전부 쓴다.")]
         public Renderer[] lamps;
 
@@ -59,6 +62,9 @@ namespace ReBloom.Electricity
             if (clock == null) clock = GetComponent<ElectricityPulseClock>();
             if (clock == null) clock = FindFirstObjectByType<ElectricityPulseClock>();
 
+            if (mission == null) mission = GetComponent<ElectricityCoreMission>();
+            if (mission == null) mission = FindFirstObjectByType<ElectricityCoreMission>();
+
             if (lamps == null || lamps.Length == 0) lamps = GetComponentsInChildren<Renderer>(true);
 
             block = new MaterialPropertyBlock();
@@ -76,7 +82,10 @@ namespace ReBloom.Electricity
         void LateUpdate()
         {
             // 역할이 아니면 늘 꺼 둔다. 역할은 Bind보다 늦게 오므로 매 프레임 확인한다.
-            if (clock == null || !RoleMatches())
+            // 그리고 **자기 레버를 잡고 있을 때만** 신호가 간다 — 박자는 공유하되 신호는 각자다.
+            bool holding = mission == null || mission.IsHeldBy(onlyForRole);
+
+            if (clock == null || !RoleMatches() || !holding)
             {
                 Apply(offIntensity);
                 return;

@@ -22,6 +22,9 @@ namespace ReBloom.Electricity
         [Tooltip("박자를 읽어 올 시계. 비우면 같은 오브젝트에서 찾는다.")]
         public ElectricityPulseClock clock;
 
+        [Tooltip("레버 점유를 읽어 올 미션. 비우면 같은 오브젝트에서 찾는다.")]
+        public ElectricityCoreMission mission;
+
         [Header("역할")]
         [Tooltip("이 진동을 느낄 역할.")]
         public Role onlyForRole = Role.ear;
@@ -57,6 +60,9 @@ namespace ReBloom.Electricity
         {
             if (clock == null) clock = GetComponent<ElectricityPulseClock>();
             if (clock == null) clock = FindFirstObjectByType<ElectricityPulseClock>();
+
+            if (mission == null) mission = GetComponent<ElectricityCoreMission>();
+            if (mission == null) mission = FindFirstObjectByType<ElectricityCoreMission>();
         }
 
         /// <summary>이 피어가 진동을 받아야 하는가.</summary>
@@ -70,7 +76,10 @@ namespace ReBloom.Electricity
 
         void Update()
         {
-            if (clock == null || !RoleMatches())
+            // 자기 레버를 잡고 있을 때만 울린다 — 박자는 공유하되 신호는 각자다.
+            bool holding = mission == null || mission.IsHeldBy(onlyForRole);
+
+            if (clock == null || !RoleMatches() || !holding)
             {
                 LastAmplitude = 0f;
                 wasOn = false;
