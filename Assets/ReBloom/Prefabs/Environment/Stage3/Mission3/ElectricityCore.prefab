@@ -958,8 +958,9 @@ MonoBehaviour:
   beatCount: 9
   accelPower: 1.7
   beatDuration: 0.08
-  convergeHoldDuration: 0.25
-  convergeWindow: 0.25
+  convergeLeadSilence: 0.6
+  convergeHoldDuration: 0.4
+  convergeWindow: 0.4
 --- !u!114 &526895650865116530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1030,11 +1031,13 @@ MonoBehaviour:
   driveWhenRoleUnknown: 1
   useLeftHand: 1
   useRightHand: 1
-  scatteredAmplitude: 0.25
-  convergedAmplitude: 1
-  minPerceptible: 0.06
+  scatteredAmplitude: 0.2
+  rampPeakAmplitude: 0.55
   scatteredDuration: 0.05
-  convergedDuration: 0.352
+  rampPeakDuration: 0.09
+  convergedAmplitude: 1
+  convergedDuration: 0.35
+  minPerceptible: 0.06
 --- !u!1001 &4783576063466939807
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1288,6 +1291,7 @@ MonoBehaviour:
   minHandDistance: 0.05
   maxJumpDegrees: 60
   reportThreshold: 0.9
+  rearmThreshold: 0.5
   debugDrive: 0
   debugAngle: 0
   logToConsole: 0
@@ -1461,6 +1465,7 @@ MonoBehaviour:
   minHandDistance: 0.05
   maxJumpDegrees: 60
   reportThreshold: 0.9
+  rearmThreshold: 0.5
   debugDrive: 0
   debugAngle: 0
   logToConsole: 0
