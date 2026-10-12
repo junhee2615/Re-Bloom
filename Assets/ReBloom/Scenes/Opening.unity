@@ -532,6 +532,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningSceneFlow
   testDelay: 3
+--- !u!4 &1877193007
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877193005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -18.58116, y: 1.46967, z: -15.22816}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1877193009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542,7 +557,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e2b8c41df7a09d4b93c6ea15d82f706, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningNarrationController
   initialDelay: 1
   firstFadeInDuration: 1
@@ -565,6 +580,12 @@ MonoBehaviour:
   stage2LineFadeInDuration: 1
   stage2LineHoldDuration: 3.5
   stage2LineFadeOutDuration: 0.8
+  stage3BlackHoldDuration: 0.4
+  stage3FadeInDuration: 1.2
+  stage3LineFadeInDuration: 1
+  stage3LineHoldDuration: 2.5
+  stage3LineFadeOutDuration: 0.8
+  stage3EnvFadeOutDuration: 1
   stage2FadeOutDuration: 1
   hopeInitialDelay: 1
   hopeLine1FadeInDuration: 1
@@ -578,16 +599,34 @@ MonoBehaviour:
   titleFadeInDuration: 1.5
   titleHoldDuration: 3
   titleFadeOutDuration: 0.8
+  skipFadeOutDuration: 0.6
+  skipSceneOperationTimeout: 30
   narrationFontSize: 36
   titleFontSize: 72
+  firstLine: "\uD55C\uB54C \uC774 \uB3C4\uC2DC\uC5D0\uB294 \uBE5B\uC774 \uC788\uC5C8\uB2E4."
+  secondLine: "\uBB3C\uC774 \uD758\uB800\uACE0,\n\uB098\uBB34\uAC00 \uC790\uB790\uACE0,\n\uC0AC\uB78C\uB4E4\uC774
+    \uD568\uAED8 \uC228\uC26C\uC5C8\uB2E4."
+  transitionLine: "\uADF8\uB7EC\uB098 \uC9C0\uAE08,"
+  stage1Line: "\uC804\uAE30\uB294 \uB04A\uACBC\uACE0,"
+  stage2Line: "\uC232\uC740 \uB9D0\uB77C\uAC00\uACE0 \uC788\uC73C\uBA70,"
+  stage3Line: "\uC0DD\uBA85\uC758 \uD754\uC801\uB9C8\uC800 \uC0AC\uB77C\uC84C\uB2E4."
+  hopeLine1: "\uD558\uC9C0\uB9CC \uC544\uC9C1,\n\uBAA8\uB4E0 \uAC83\uC774 \uC0AC\uB77C\uC9C4
+    \uAC83\uC740 \uC544\uB2C8\uB2E4."
+  hopeLine2: "\uC774 \uC138\uACC4\uB97C \uB2E4\uC2DC \uD53C\uC6CC\uB0BC\n\uB450 \uAC1C\uC758
+    \uAC10\uAC01\uC774 \uB0A8\uC544 \uC788\uB2E4."
+  titleLine: Re:Bloom
+  titleLogoSprite: {fileID: 21300000, guid: a8015b87afaa4074184c94c9c4fc9aa3, type: 3}
+  titleLogoSize: {x: 540, y: 180}
+  titleLogoAnchoredPosition: {x: 0, y: 0}
+  titleLogoDistance: 1.6
+  titleLogoLocalScale: 0.00167
   narrationGroup: {fileID: 367364755}
   narrationText: {fileID: 367364753}
   environmentController: {fileID: 1877193010}
-  titleLogoSprite: {fileID: 21300000, guid: a8015b87afaa4074184c94c9c4fc9aa3, type: 3}
+  screenFadeOverride: {fileID: 0}
   textDistance: 1.6
   textLocalScale: 0.00167
   textPanelSize: {x: 600, y: 150}
-  screenFadeOverride: {fileID: 0}
 --- !u!114 &1877193010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -598,7 +637,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a3f17c4e8b2065499d1cb7a4e306f82, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningEnvironmentController
   stageShots:
   - sceneName: Stage1
@@ -612,7 +651,7 @@ MonoBehaviour:
     - PartnerDirectionIndicatorBootstrap
     - MissionOutlineHighlighter
     - TestPartnerTarget
-    - "--- DEBUG (Test Only) ---"
+    - --- DEBUG (Test Only) ---
     - ResonanceSceneContext
     - Stage1ClearDirector
     - Stage1CutsceneCamera
@@ -623,6 +662,7 @@ MonoBehaviour:
     - Fuel
     - ValveMissionPrefab
     createPropFallbacks: 0
+    compensateHeadYaw: 0
   - sceneName: Stage2
     shotPosition: {x: -5, y: 2.5, z: 7}
     shotYaw: 15
@@ -640,6 +680,20 @@ MonoBehaviour:
     - AliveStump2
     - AliveStump3
     createPropFallbacks: 1
+    compensateHeadYaw: 0
+  - sceneName: Stage3
+    shotPosition: {x: -0.7765899, y: 39, z: 107.4834}
+    shotYaw: 9.337
+    disableObjectNames:
+    - Cutscene
+    - RiverCutsceneCamera
+    - TutorialMissionManager
+    - SolarMissionManager
+    - ResonanceSceneContext
+    - RiverWaterLoopAudio
+    - HapticTouchZone
+    createPropFallbacks: 0
+    compensateHeadYaw: 1
   propFallbacks:
   - objectName: Soil
     model: {fileID: 100100000, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
@@ -671,7 +725,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f23599dc99a1478389224ce08d59385b, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningSkipInput
   holdDuration: 3
   narrationController: {fileID: 1877193009}
@@ -686,27 +740,46 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a474c38fba046d3ac335351435f6fae, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningSkipUI
+  hintText: "Y \uBC84\uD2BC\uC744 3\uCD08\uAC04 \uAE38\uAC8C \uB20C\uB7EC \uC2A4\uD0B5"
+  hintFadeInDuration: 0.6
+  hintHoldDuration: 5
+  hintFadeOutDuration: 0.8
+  hintFontSize: 28
+  hintColor: {r: 0.86, g: 0.88, b: 0.86, a: 1}
+  gaugeSize: 120
+  gaugeThickness: 6
+  gaugeTrackColor: {r: 0.16470589, g: 0.16470589, b: 0.16470589, a: 0.4}
+  gaugeFillStartColor: {r: 0.654902, g: 0.9529412, b: 0.7490196, a: 1}
+  gaugeFillEndColor: {r: 0.43137255, g: 0.90588236, b: 0.7176471, a: 1}
+  glowThickness: 18
+  glowBaseAlpha: 0.22
+  glowPeakAlpha: 0.6
+  glowBoostStartProgress: 0.82
+  completionFlashDuration: 0.28
+  completionFlashAlpha: 0.85
+  completionThreshold: 0.9
+  gaugeFadeInDuration: 0.2
+  gaugeFadeOutDuration: 0.25
+  gaugeLabel: Y
+  centerButtonSize: 36
+  centerButtonColor: {r: 0.07, g: 0.08, b: 0.08, a: 0.55}
+  centerButtonBorderColor: {r: 0.62, g: 0.65, b: 0.64, a: 0.55}
+  centerButtonBorderThickness: 1.6
+  gaugeLabelFontSize: 20
+  gaugeLabelColor: {r: 1, g: 1, b: 1, a: 1}
+  uiDistance: 1.6
+  uiLocalScale: 0.00167
+  gaugeAnchoredPosition: {x: 0, y: -230}
+  hintAnchoredPosition: {x: 0, y: -400}
+  hintPanelSize: {x: 1000, y: 120}
   skipInput: {fileID: 1877193011}
   narrationController: {fileID: 1877193009}
   fontAsset: {fileID: 11400000, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
   ringSpriteOverride: {fileID: 0}
---- !u!4 &1877193007
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1877193005}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18.58116, y: 1.46967, z: -15.22816}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  ringResolution: 256
+  discResolution: 128
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

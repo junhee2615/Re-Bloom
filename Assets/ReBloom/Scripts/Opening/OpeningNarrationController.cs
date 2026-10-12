@@ -74,22 +74,27 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다. 장면 1·2 모두 이 값을 쓴다.")]
     [SerializeField, Min(0f)] private float stage2LineFadeOutDuration = 0.8f;
 
-    [Header("Timing - Stage2 장면 1 → 2 구도 전환")]
-    [Tooltip("장면 1 환경을 검정으로 덮는 시간. 이 페이드가 끝난 뒤에 리그를 옮긴다.")]
-    [SerializeField, Min(0f)] private float stage2ShotFadeOutDuration = 1f;
+    [Header("Timing - Stage2 → Stage3 전환")]
+    [Tooltip("Stage3를 올리고 리그를 옮긴 뒤 검정을 유지하는 시간. " +
+             "큰 각도·거리 재배치의 멀미를 줄인다.")]
+    [SerializeField, Min(0f)] private float stage3BlackHoldDuration = 0.4f;
 
-    [Tooltip("리그를 옮긴 뒤 검정을 유지하는 시간. 큰 각도 재배치의 멀미를 줄인다.")]
-    [SerializeField, Min(0f)] private float stage2ShotBlackHoldDuration = 0.4f;
+    [Tooltip("검정이 걷히며 Stage3 환경이 나타나는 시간.")]
+    [SerializeField, Min(0f)] private float stage3FadeInDuration = 1.2f;
 
-    [Tooltip("검정이 걷히며 장면 2 구도가 나타나는 시간.")]
-    [SerializeField, Min(0f)] private float stage2ShotFadeInDuration = 1.2f;
+    [Header("Timing - Stage3 위 문장")]
+    [SerializeField, Min(0f)] private float stage3LineFadeInDuration = 1f;
+    [SerializeField, Min(0f)] private float stage3LineHoldDuration = 2.5f;
 
-    [Header("Timing - Stage2 장면 2 문장")]
-    [SerializeField, Min(0f)] private float stage2Line2FadeInDuration = 1f;
-    [SerializeField, Min(0f)] private float stage2Line2HoldDuration = 2.5f;
+    [Tooltip("텍스트만 먼저 지운다. 환경은 아직 보인다.")]
+    [SerializeField, Min(0f)] private float stage3LineFadeOutDuration = 0.8f;
+
+    [Header("Timing - Stage3 종료")]
+    [Tooltip("Stage3 환경이 검정으로 사라지는 시간. 이후 Stage3를 언로드한다.")]
+    [SerializeField, Min(0f)] private float stage3EnvFadeOutDuration = 1f;
 
     [Header("Timing - Stage2 종료")]
-    [Tooltip("Stage2 환경이 검정으로 사라지는 시간. 이후 Stage2를 언로드한다.")]
+    [Tooltip("Stage2 환경이 검정으로 사라지는 시간. 이 페이드가 끝난 뒤 Stage2를 언로드하고 Stage3를 올린다.")]
     [SerializeField, Min(0f)] private float stage2FadeOutDuration = 1f;
 
     [Header("Timing - 희망 내레이션")]
@@ -144,13 +149,13 @@ public class OpeningNarrationController : MonoBehaviour
     [SerializeField, TextArea(2, 4)]
     private string stage1Line = "전기는 끊겼고,";
 
-    [Tooltip("Stage2 장면 1. 기존 Stage2 구도에서 보여준다.")]
+    [Tooltip("Stage2 구도에서 보여준다.")]
     [SerializeField, TextArea(2, 4)]
     private string stage2Line = "숲은 말라가고 있으며,";
 
-    [Tooltip("Stage2 장면 2. 같은 Stage2 씬에서 리그만 오염된 수로 앞으로 옮긴 뒤 보여준다.")]
+    [Tooltip("Stage3 구도에서 보여준다. 오프닝의 마지막 환경 장면이다.")]
     [SerializeField, TextArea(2, 4)]
-    private string stage2Line2 = "물길은 막혔다.";
+    private string stage3Line = "생명의 흔적마저 사라졌다.";
 
     [SerializeField, TextArea(2, 4)]
     private string hopeLine1 = "하지만 아직,\n모든 것이 사라진 것은 아니다.";
@@ -189,15 +194,6 @@ public class OpeningNarrationController : MonoBehaviour
     [Tooltip("Stage Additive Load / 정리 / 리그 이동 / 조명 전환을 담당한다. " +
              "비워 두면 같은 오브젝트에서 찾는다.")]
     [SerializeField] private OpeningEnvironmentController environmentController;
-
-    [Header("Stage2 장면 2 구도")]
-    [Tooltip("장면 2 구도. x·z는 머리(HMD)가 놓일 월드 좌표이고, " +
-             "y는 리그 바닥 높이다. Floor 트래킹이므로 실제 눈높이는 여기에 " +
-             "HMD 높이(약 1.6m)가 더해진 값이 된다. y 1.6 → 눈높이 약 3.2m.")]
-    [SerializeField] private Vector3 stage2ExtraShotPosition = new Vector3(-16.3f, 1.6f, -20.56f);
-
-    [Tooltip("장면 2에서 바라볼 방향(Yaw). HMD가 어느 쪽을 보고 있어도 이 방향이 정면이 된다.")]
-    [SerializeField] private float stage2ExtraShotYaw = -45.3f;
 
     [Tooltip("비워 두면 Opening 씬에서 자동으로 찾는다.")]
     [SerializeField] private ScreenFade screenFadeOverride;
@@ -369,7 +365,7 @@ public class OpeningNarrationController : MonoBehaviour
         if (screenFade != null)
             yield return screenFade.FadeIn(stage2FadeInDuration);
 
-        // ── 장면 1: 기존 Stage2 구도 위에 첫 문장 ────────────────
+        // ── Stage2 위에 올리는 문장 ──────────────────────────────
         yield return ShowLine(
             stage2Line,
             stage2LineFadeInDuration,
@@ -377,34 +373,36 @@ public class OpeningNarrationController : MonoBehaviour
             0f,
             keepVisible: true);
 
-        Debug.Log("[Opening] Stage2 shot 1 narration shown");
-
-        // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
-        yield return FadeNarration(1f, 0f, stage2LineFadeOutDuration);
-
-        // ── 장면 1 → 장면 2 (같은 씬, 리그만 이동) ──────────────
-        yield return GoToStage2ExtraShot();
-
-        // ── 장면 2: 오염된 수로 구도 위에 두 번째 문장 ───────────
-        yield return ShowLine(
-            stage2Line2,
-            stage2Line2FadeInDuration,
-            stage2Line2HoldDuration,
-            0f,
-            keepVisible: true);
-
-        Debug.Log("[Opening] Stage2 shot 2 narration shown");
+        Debug.Log("[Opening] Stage2 narration shown");
 
         // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
         yield return FadeNarration(1f, 0f, stage2LineFadeOutDuration);
 
         Debug.Log("[Opening] Stage2 narration complete");
 
-        // ── Stage2 환경을 검정으로 덮는다 ────────────────────────
-        if (screenFade != null)
-            yield return screenFade.FadeOut(stage2FadeOutDuration);
+        // ── Stage2 → Stage3 (검정 뒤에서 씬 교체 + 리그 이동) ────
+        yield return GoToStage3();
 
-        // ── 검정 뒤에서 Stage2를 내린다. 다음 Stage는 올리지 않는다 ──
+        // ── Stage3 위에 올리는 문장 ──────────────────────────────
+        yield return ShowLine(
+            stage3Line,
+            stage3LineFadeInDuration,
+            stage3LineHoldDuration,
+            0f,
+            keepVisible: true);
+
+        Debug.Log("[Opening] Stage3 narration shown");
+
+        // ── 텍스트만 먼저 지운다 (환경은 아직 보인다) ────────────
+        yield return FadeNarration(1f, 0f, stage3LineFadeOutDuration);
+
+        Debug.Log("[Opening] Stage3 narration complete");
+
+        // ── Stage3 환경을 검정으로 덮는다 ────────────────────────
+        if (screenFade != null)
+            yield return screenFade.FadeOut(stage3EnvFadeOutDuration);
+
+        // ── 검정 뒤에서 Stage3를 내린다. 다음 Stage는 올리지 않는다 ──
         if (environmentController != null)
             yield return environmentController.UnloadStage();
 
@@ -465,50 +463,49 @@ public class OpeningNarrationController : MonoBehaviour
     }
 
     /// <summary>
-    /// Stage2 안에서 구도만 바꾼다. Stage2를 **다시 로드하지 않는다.**
+    /// Stage2를 내리고 Stage3로 갈아끼운 뒤 Stage3 구도를 보여준다.
     ///
-    /// stageShots에 Stage2를 한 번 더 넣는 방법을 쓰지 않는 이유:
-    /// <see cref="OpeningEnvironmentController.GoToStage"/> 는 맨 먼저 이전 Stage를
-    /// 언로드하므로 Stage2를 내렸다가 다시 올린다. 정리·시각 사본 생성·Active Scene
-    /// 전환·Main Camera 태그 토글까지 전부 다시 일어나 Quest에서 수 초가 걸린다.
-    /// 그래서 여기서는 리그 Transform만 옮기는 경로를 쓴다.
+    /// 씬 교체는 기존 <see cref="OpeningEnvironmentController.GoToStage"/> 를 그대로
+    /// 쓴다. 그 안에서 언로드 → Additive Load → 불필요한 오브젝트 정리 →
+    /// Active Scene 전환 → 리그 이동 → Main Camera 태그 복구가 한 번에 일어나므로
+    /// 중복 로드나 정리 누락이 생기지 않는다. 리그 좌표와 Yaw, HMD Yaw 보정 여부는
+    /// Opening.unity의 stageShots[2]에 들어 있다.
     ///
     /// 멀미 방지 순서 —
-    ///   ① 완전 검정까지 FadeOut을 **기다린다** (알파가 1에 도달한 뒤에 옮긴다)
-    ///   ② 보간 없이 순간이동 (Lerp로 움직이면 전정기관 불일치로 바로 멀미가 난다)
-    ///   ③ 검정을 잠시 유지해 큰 각도 재배치를 흡수한다
+    ///   ① 완전 검정까지 FadeOut을 **기다린다** (알파가 1에 도달한 뒤에 교체한다)
+    ///   ② 검정인 동안 씬 교체 + 보간 없는 순간이동
+    ///      (Lerp로 움직이면 전정기관 불일치로 바로 멀미가 난다)
+    ///   ③ 검정을 잠시 유지해 큰 각도·거리 재배치를 흡수한다
     ///   ④ FadeIn
     ///
     /// ScreenFade.FadeOut은 현재 알파와 무관하게 항상 0 → 1로 보간한다. 이 메서드는
     /// 화면이 보이는 상태(알파 0)에서만 호출되므로 정상 동작하며, 검정 구간으로
     /// 옮기면 첫 프레임에 Stage가 번쩍이므로 호출 위치를 바꾸면 안 된다.
     /// </summary>
-    private IEnumerator GoToStage2ExtraShot()
+    private IEnumerator GoToStage3()
     {
         // ① 완전 검정
         if (screenFade != null)
-            yield return screenFade.FadeOut(stage2ShotFadeOutDuration);
+            yield return screenFade.FadeOut(stage2FadeOutDuration);
 
-        // ② 순간이동 (HMD Yaw 보정은 EnvironmentController가 한다)
+        // ② 검정 뒤에서 Stage2 언로드 → Stage3 로드 → 정리 → 리그 이동
         if (environmentController != null)
         {
-            environmentController.MoveRigToExtraShot(
-                stage2ExtraShotPosition, stage2ExtraShotYaw);
+            yield return environmentController.GoToStage(2);
         }
         else
         {
             Debug.LogWarning(
-                "[Opening] EnvironmentController가 없어 Stage2 추가 구도로 옮기지 " +
-                "못했습니다. 장면 2가 장면 1과 같은 구도로 보입니다.", this);
+                "[Opening] EnvironmentController가 없어 Stage3로 넘어가지 못했습니다.", this);
         }
 
         // ③ 검정 유지
-        if (stage2ShotBlackHoldDuration > 0f)
-            yield return new WaitForSeconds(stage2ShotBlackHoldDuration);
+        if (stage3BlackHoldDuration > 0f)
+            yield return new WaitForSeconds(stage3BlackHoldDuration);
 
-        // ④ 장면 2 등장
+        // ④ Stage3 환경 등장
         if (screenFade != null)
-            yield return screenFade.FadeIn(stage2ShotFadeInDuration);
+            yield return screenFade.FadeIn(stage3FadeInDuration);
     }
 
     /// <summary>

@@ -42,6 +42,12 @@ public class OpeningEnvironmentController : MonoBehaviour
 
         [Tooltip("켜면 이 Stage에서 수로 장애물 시각 사본 처리를 수행한다. Stage2에서만 쓴다.")]
         public bool createPropFallbacks;
+
+        [Tooltip("켜면 리그를 옮길 때 HMD가 물리적으로 돌아가 있는 Yaw를 상쇄한다. " +
+                 "플레이어가 어느 방향을 보고 있어도 shotYaw가 정면이 된다. " +
+                 "가까이 붙거나 피사체가 좁은 구도에서 켠다. " +
+                 "끄면 리그 Yaw를 절대값으로 넣는 기존 동작이다.")]
+        public bool compensateHeadYaw;
     }
 
     /// <summary>
@@ -337,6 +343,14 @@ public class OpeningEnvironmentController : MonoBehaviour
     /// </summary>
     private void MoveRigToShot(StageShot shot)
     {
+        // HMD Yaw 보정이 필요한 구도는 전용 경로로 넘긴다.
+        // 아래 기존 경로는 한 줄도 바뀌지 않으므로 Stage1·Stage2 구도는 그대로다.
+        if (shot.compensateHeadYaw)
+        {
+            MoveRigWithHeadYaw(shot.shotPosition, shot.shotYaw);
+            return;
+        }
+
         if (xrOrigin == null)
         {
             Debug.LogError(
@@ -357,10 +371,14 @@ public class OpeningEnvironmentController : MonoBehaviour
     }
 
     /// <summary>
-    /// 이미 올라가 있는 Stage 안에서 **리그만** 다른 촬영 위치로 옮긴다.
-    /// 씬 로드·언로드·정리·조명 전환·Active Scene 전환을 하지 않는다.
+    /// 리그를 지정한 위치·Yaw로 옮기며 **HMD Yaw를 상쇄한다.**
     ///
-    /// <see cref="MoveRigToShot"/> 와 다른 점은 HMD Yaw를 상쇄한다는 것 하나다.
+    /// 두 곳에서 쓴다 —
+    ///   ① <see cref="StageShot.compensateHeadYaw"/> 가 켜진 Stage 구도 (GoToStage 안에서)
+    ///   ② 이미 올라가 있는 Stage 안에서 리그만 옮기는 추가 구도 (바깥에서 직접 호출)
+    /// 어느 쪽이든 씬 로드·언로드·정리·조명 전환·Active Scene 전환은 하지 않는다.
+    ///
+    /// <see cref="MoveRigToShot"/> 의 기본 경로와 다른 점은 HMD Yaw를 상쇄한다는 것 하나다.
     /// MoveRigToShot은 리그 Yaw를 절대값으로 넣기 때문에, 플레이어가 물리적으로 몸을
     /// 돌린 채 시작하면 그만큼 구도가 어긋난다. 멀리서 넓게 보는 기존 구도에서는
     /// 티가 덜 나지만 가까이 붙는 추가 구도에서는 피사체가 화면 밖으로 나간다.
@@ -372,12 +390,12 @@ public class OpeningEnvironmentController : MonoBehaviour
     ///
     /// 반드시 화면이 완전히 검정인 동안 호출한다. 호출자가 페이드를 담당한다.
     /// </summary>
-    public void MoveRigToExtraShot(Vector3 position, float yaw)
+    public void MoveRigWithHeadYaw(Vector3 position, float yaw)
     {
         if (xrOrigin == null)
         {
             Debug.LogError(
-                "[Opening] XR Origin을 찾지 못해 추가 구도로 옮기지 못했습니다.", this);
+                "[Opening] XR Origin을 찾지 못해 리그를 옮기지 못했습니다. (head yaw 보정 경로)", this);
             return;
         }
 
@@ -399,7 +417,7 @@ public class OpeningEnvironmentController : MonoBehaviour
         xrOrigin.position = target;
 
         Debug.Log(
-            $"[Opening] Rig moved to extra shot - head={position}, yaw={yaw}, rigYaw={rigYaw:F1}",
+            $"[Opening] Rig moved (head yaw compensated) - head={position}, yaw={yaw}, rigYaw={rigYaw:F1}",
             this);
     }
 
