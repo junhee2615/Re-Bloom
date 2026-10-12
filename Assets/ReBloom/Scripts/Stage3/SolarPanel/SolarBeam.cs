@@ -40,6 +40,22 @@ namespace ReBloom.Solar
         [Tooltip("뒤로 기울일 때 배율. 1 = 실제 반사.")]
         [Min(0f)] public float tiltGainBack = 1f;
 
+        [Header("쉬는 자세 — 판은 그대로 두고 빛만 조절한다")]
+        [Tooltip("아무도 올라서 있지 않을 때 빔을 광원 쪽으로 돌린다(해를 향하는 판처럼 보인다). " +
+                 "끄면 항상 실제 반사. 조작 중에는 실제 반사로 돌아가므로 조준에는 영향이 없다. " +
+                 "수리된 판이 자기를 고쳐준 판을 되쏘는 것을 막는 용도다.")]
+        public bool aimAtSunWhenIdle;
+
+        [Tooltip("쉬는 자세로 들어가고 빠져나오는 시간(초). 0이면 즉시.")]
+        [Min(0f)] public float idleAimSeconds = 0.6f;
+
+        [Header("누구에게 보이는가")]
+        [Tooltip("이 역할에게만 빔이 그려진다. 루멘 = mental. none이면 모두에게 보인다.\n" +
+                 "보이지 않는 쪽에서도 계산은 그대로 돈다 — 수리 판정(IsLit)과 에코의 진동이 빔에 의존하므로 " +
+                 "렌더러만 끈다.\n" +
+                 "역할이 아직 정해지지 않았으면 보여준다(세션 없이 에디터에서 단독 확인할 때를 위해).")]
+        public Role visibleToRole = Role.mental;
+
         /// <summary>지금 빔이 나오고 있는가. 고장났거나 해를 등지면 false.</summary>
         public bool IsEmitting { get; private set; }
 
@@ -79,14 +95,60 @@ namespace ReBloom.Solar
         // 빔을 그릴 LineRenderer.
         LineRenderer line;
 
+        // 올라서 있는지 보려고 참조한다. 없으면 항상 쉬는 자세로 친다.
+        SolarPanelTilt tilt;
+
+        // 쉬는 자세 적용 비율 0~1. 조작을 시작하면 0으로, 내려오면 1로 간다.
+        float idleBlend;
+
+        // 직전 프레임에 빔이 나왔는가. 꺼졌다 켜지는 순간(씬 시작·수리 직후)을 가려내 보간을 건너뛴다.
+        bool emittedLastFrame;
+
         void Awake()
         {
             self = GetComponent<SolarReflector>();
             line = GetComponent<LineRenderer>();
+            tilt = GetComponent<SolarPanelTilt>();
+        }
+
+        /// <summary>
+        /// 아무도 올라서 있지 않을 때 반사광을 <b>광원 쪽으로</b> 돌린다.
+        /// 판이 해를 정면으로 볼 때의 반사광과 같은 방향이라, 쉬는 판이 해를 향하는 것처럼 보인다.
+        ///
+        /// 판을 실제로 돌리지 않고 <b>빛의 각도만</b> 조절한다 — 판이 혼자 움직이면
+        /// <see cref="SolarPanelTilt"/>의 전제("올라서 있는 동안에만 움직인다")가 깨진다.
+        /// 이미 <see cref="tiltGainForward"/>로 실제 반사를 벗어나 있으므로 같은 성격의 손질이다.
+        ///
+        /// 쓰는 이유: 고장 판은 빔이 오는 쪽으로 누워 있어야 수평 빔을 받는데, 해가 70° 고각이라
+        /// 그 각도에서 태양을 반사하면 반사광도 <b>자기를 고쳐준 판으로 되돌아간다</b>.
+        /// 기울기 부호를 뒤집어도 대칭으로 같은 일이 생겨 배치로는 못 푼다.
+        ///
+        /// 하늘로 각도를 "들어올리는" 방식과 달리 이쪽은 <b>절대 방향</b>이다 — 판을 최대로 눕혀
+        /// 반사광이 수평 아래로 내려가도 쉬는 자세는 항상 해 고도 그대로라 반드시 하늘로 빠진다.
+        ///
+        /// 조작 중에는 0으로 돌아가므로 조준은 실제 반사 그대로다.
+        /// </summary>
+        Vector3 ApplyIdleAim(Vector3 direction, Vector3 incoming)
+        {
+            float goal = aimAtSunWhenIdle && (tilt == null || !tilt.IsOccupied) ? 1f : 0f;
+
+            // 빔이 막 켜졌으면(씬 시작·수리 직후) 보간 없이 그 자세로 시작한다.
+            // 안 그러면 실제 반사로 한 번 나왔다가 눈앞에서 각도가 돌아간다.
+            // 보간은 빔이 켜져 있는 동안의 전환(올라서기·내려오기)에만 쓴다.
+            idleBlend = !emittedLastFrame || idleAimSeconds <= 0f
+                ? goal
+                : Mathf.MoveTowards(idleBlend, goal, Time.deltaTime / idleAimSeconds);
+
+            if (idleBlend <= 0f) return direction;
+
+            // -incoming = 광원을 향하는 방향. Slerp라 각도로 부드럽게 넘어간다.
+            return Vector3.Slerp(direction, -incoming, idleBlend).normalized;
         }
 
         void LateUpdate()   // 판이 Update에서 기울므로 그 뒤에 계산한다.
         {
+            emittedLastFrame = IsEmitting;   // 리셋 전에 직전 상태를 보관한다(쉬는 자세 스냅 판정용)
+
             IsEmitting = false;
             HasHit = false;
             HitCollider = null;
@@ -137,7 +199,7 @@ namespace ReBloom.Solar
             }
 
             IsEmitting = true;
-            Direction = Vector3.Reflect(incoming, normal).normalized;
+            Direction = ApplyIdleAim(Vector3.Reflect(incoming, normal).normalized, incoming);
             Origin = transform.position;
             End = Trace(Origin, Direction);
 
@@ -195,11 +257,21 @@ namespace ReBloom.Solar
             return false;
         }
 
+        // 빔이 이 기기에서 보이면 안 되는가.
+        // 역할이 확정된 뒤에만 숨긴다 — 미지정일 때 숨기면 세션 없이 에디터에서 확인할 수 없고,
+        // 로비·씬 전환 구간이 잠깐 깜빡인다. RiverbedRoleVisibility도 같은 기준이다.
+        // RoleManager.LocalRole은 미지정일 때 enum 기본값 mental을 주므로 HasLocalRole을 함께 본다.
+        bool HiddenForLocalRole =>
+            visibleToRole != Role.none
+            && RoleManager.HasLocalRole
+            && RoleManager.LocalRole != visibleToRole;
+
         void Draw(bool visible)
         {
             if (line == null) return;
 
-            line.enabled = visible;
+            // 계산(Trace·MarkLit)은 이미 끝났다. 여기서는 그리기만 막는다.
+            line.enabled = visible && !HiddenForLocalRole;
             if (!visible) return;
 
             line.positionCount = 2;

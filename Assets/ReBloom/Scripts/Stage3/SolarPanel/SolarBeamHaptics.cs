@@ -118,7 +118,8 @@ namespace ReBloom.Solar
             if (useLeftHand) Send(XRNode.LeftHand, amplitude);
         }
 
-        // 빔이 꺼졌거나(살릴 판이 없거나), 내 역할이 아니거나, 판에서 내려왔으면 울리지 않는다.
+        // 이 판이 고장이거나(Off), 내 역할이 아니거나, 판에서 내려왔으면 울리지 않는다.
+        // 그 밖에는 반드시 울린다 — 겨눌 표적이 없어도 Scattered(약한 진동)로 온다.
         bool ShouldDrive()
         {
             if (aim == null || aim.State == SolarBeamAim.AimState.Off) return false;
