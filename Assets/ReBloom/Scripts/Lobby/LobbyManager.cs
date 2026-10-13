@@ -412,6 +412,7 @@ public class LobbyManager : NetworkBehaviour
         _fadeRequested = false;
 
         Debug.Log($"[LobbyManager] 역할 선택 완료 - mental={MentalOwner}, ear={EarOwner}. '{sceneToLoad}' 로드.");
+        Runner.SessionInfo.IsOpen = false; // 스테이지 시작 후에는 아무도 못들어옴
         Runner.LoadScene(nextScene);
     }
 

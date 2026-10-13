@@ -67,10 +67,19 @@ public class RightRayModeToggle : MonoBehaviour
         ApplySceneStartMode(SceneManager.GetActiveScene().name, "Start");
     }
 
-    // Fusion은 Single/Additive 어느 쪽으로도 씬을 올릴 수 있으므로 모드로 거르지 않는다.
-    // 이름을 아는 씬(uiModeStartScenes 또는 스테이지)만 처리해 부수 씬 로드에는 반응하지 않는다.
+    // Additive 로드는 무시한다.
+    // StartScene이 타이틀 배경(Stage1_TitleBackground)을 Additive로 올리는데,
+    // 그 이름은 uiModeStartScenes에 없어서 IsUIModeScene이 false를 돌려주고
+    // 결국 StartScene에서 UI Ray가 텔레포트 모드로 바뀌어 버린다.
+    //
+    // Fusion(NetworkSceneManagerDefault)이 스테이지를 Additive로 올리는 경로는
+    // 로드 직후 SetActiveScene을 부르므로 아래 OnActiveSceneChanged가 받아 처리한다.
+    // 따라서 여기서 Additive를 걸러도 스테이지 시작 모드는 그대로 적용된다.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (mode == LoadSceneMode.Additive)
+            return;
+
         ApplySceneStartMode(scene.name, $"sceneLoaded({mode})");
     }
 

@@ -16,6 +16,11 @@ public static class FogRendererFeatureSceneController
     private static readonly HashSet<string> DisableFogScenes = new()
     {
         "StartScene",
+
+        // StartScene이 3D 타이틀 배경으로 Additive Load하는 씬.
+        // sceneLoaded는 Additive 로드에도 발생하므로, 여기에 없으면
+        // 배경이 올라오는 순간 StartScene에서 꺼 둔 FlatKitFog가 다시 켜진다.
+        "Stage1_TitleBackground",
     };
 
     // Renderer features are assets shared by scenes. Keep their configured state so a

@@ -1688,6 +1688,7 @@ MonoBehaviour:
   amplitude: 0.25
   duration: 0.15
   interval: 0.7
+  foundEffect: {fileID: 5012207251602553288}
 --- !u!114 &9145259480590329830
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1701,7 +1702,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RootActivation
   missionManager: {fileID: 0}
-  activateCircle: {fileID: 5012207251602553288}
   aliveDecal: {fileID: 6322556962118349595}
   missionCanvas: {fileID: 841498034715095662}
   startButton: {fileID: 352483452362302155}
@@ -1893,7 +1893,7 @@ GameObject:
   - component: {fileID: 228487307081572394}
   - component: {fileID: 2667708434272951060}
   m_Layer: 0
-  m_Name: ActivateCircle
+  m_Name: FoundCircle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

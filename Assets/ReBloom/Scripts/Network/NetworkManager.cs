@@ -1,4 +1,5 @@
-﻿using Fusion;
+using Fusion;
+using Fusion.Photon.Realtime;
 using Fusion.Sockets;
 using System;
 using System.Collections;
@@ -30,6 +31,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     /// <summary>세션 시작 절차가 이미 진행되었는지.</summary>
     public bool IsSessionStarted => _sessionStarted;
+    // 입장 인원 2명으로 제한
+    public const int MaxPlayersPerSession = 2;
 
     private bool _sessionStarted;
 
@@ -80,7 +83,10 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         var args = new StartGameArgs()
         {
             GameMode = GameMode.AutoHostOrClient,
-            SessionName = roomCode,
+            SessionName = string.IsNullOrEmpty(roomCode) ? null : roomCode, // null이면 자동매칭
+            SessionProperties = new Dictionary<string, SessionProperty> { { "mode", "coop" } },
+            MatchmakingMode = MatchmakingMode.FillRoom,   // 먼저 만들어진 방부터 채우기
+            PlayerCount = MaxPlayersPerSession,
             SceneManager = sceneManager,
             Scene = lobbyScene
         };
@@ -89,7 +95,10 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
         if (!result.Ok)
         {
-            Debug.LogError($"세션 입장 실패 (room={roomCode}): {result.ShutdownReason} / {result.ErrorMessage}", this);
+            if (result.ShutdownReason == ShutdownReason.GameIsFull)
+                Debug.LogWarning($"세션 입장 실패 - 방이 꽉 찼습니다 (room={roomCode}, 최대 {MaxPlayersPerSession}명)", this);
+            else
+                Debug.LogError($"세션 입장 실패 (room={roomCode}): {result.ShutdownReason} / {result.ErrorMessage}", this);
 
             if (Runner != null)
             {
@@ -101,7 +110,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             return false;
         }
 
-        Debug.Log($"세션 입장 성공 - room={roomCode}, mode={Mode}, isHost={Runner.IsServer}, playerId={Runner.LocalPlayer.PlayerId}");
+        // 자동 매칭이라 roomCode 는 null 이다. 실제로 들어간 방 이름은 SessionInfo 에서 읽는다.
+        Debug.Log($"세션 입장 성공 - room={Runner.SessionInfo.Name}, players={Runner.SessionInfo.PlayerCount}/{Runner.SessionInfo.MaxPlayers}, mode={Mode}, isHost={Runner.IsServer}, playerId={Runner.LocalPlayer.PlayerId}");
         return true;
     }
 
