@@ -10806,19 +10806,7 @@ MonoBehaviour:
   decayMultiplier: 1
   onRepaired:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 674650832220306594}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &4471120390215587361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11186,8 +11174,32 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
       addedObject: {fileID: 757616919281276839}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4697859811855075093}
   m_SourcePrefab: {fileID: 100100000, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+--- !u!1 &7044245110095393343 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+  m_PrefabInstance: {fileID: 7855199462699405166}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4697859811855075093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7044245110095393343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2bf99feb0c3be646a0f867d8ce22e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarPanelCleanView
+  brokenMaterial: {fileID: 2100000, guid: c74704074858fe74c976f20ef517a481, type: 2}
+  cleanMaterial: {fileID: 2100000, guid: 6d07c8280e7be9a4ab502c6fb8cbc46d, type: 2}
+  hideAddonsWhenClean: 1
+  alwaysKeepNames: []
 --- !u!4 &7676947653945780357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
