@@ -12,7 +12,7 @@ public class VegetationGrowth : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"[테스트] 게임 시작! 등록된 식생 개수: {vegetationList.Count}개");
+        // Debug.Log($"[테스트] 게임 시작! 등록된 식생 개수: {vegetationList.Count}개");
         int count = 0;
         foreach (Transform veg in vegetationList)
         {
@@ -24,17 +24,17 @@ public class VegetationGrowth : MonoBehaviour
                 count++;
             }
         }
-        Debug.Log($"[테스트] {count}개의 식생 크기를 0으로 만들고 활성화했습니다.");
+        // Debug.Log($"[테스트] {count}개의 식생 크기를 0으로 만들고 활성화했습니다.");
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("[테스트] 스페이스바 입력이 정상적으로 감지되었습니다!");
+            // Debug.Log("[테스트] 스페이스바 입력이 정상적으로 감지되었습니다!");
             if (!isGrowing)
             {
-                Debug.Log("[테스트] 식생 성장 코루틴 시작!");
+                // Debug.Log("[테스트] 식생 성장 코루틴 시작!");
                 StartCoroutine(GrowAllVegetation());
             }
         }
@@ -69,7 +69,7 @@ public class VegetationGrowth : MonoBehaviour
             }
         }
 
-        Debug.Log("[테스트] 식생 성장 완료!");
+        // Debug.Log("[테스트] 식생 성장 완료!");
         isGrowing = false;
     }
 }
