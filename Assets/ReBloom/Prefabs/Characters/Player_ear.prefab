@@ -383,6 +383,8 @@ GameObject:
   - component: {fileID: 902510863947120114}
   - component: {fileID: 6061580104749584584}
   - component: {fileID: 7517917496160518278}
+  - component: {fileID: 7100000000000000001}
+  - component: {fileID: 7100000000000000002}
   m_Layer: 7
   m_Name: Player_ear
   m_TagString: Untagged
@@ -428,6 +430,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 104267420603040855}
   - {fileID: 2244771845460819798}
+  - {fileID: 7100000000000000001}
   - {fileID: 7874007534624037014}
   - {fileID: 6020368098959361095}
   - {fileID: 497737410415720117}
@@ -556,6 +559,34 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &7100000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaedac6fdb9f41c09e525e682d710596, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventory
+  _HeldItem: 0
+  logAcquire: 1
+--- !u!114 &7100000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6e1fe20f9bb4a0cbdb551186f5bed0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemPickupInput
+  acquireCooldownSeconds: 0.5
+  logInput: 1
 --- !u!1 &1165481144042902569
 GameObject:
   m_ObjectHideFlags: 0

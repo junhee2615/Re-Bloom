@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
@@ -112,6 +113,15 @@ public class NetworkPlayer : NetworkBehaviour
         if (IsLocalNetworkRig)
             LocalInstance = this;
 
+        // 월드에 놓인 Grab 아이템(보청기·약통)이 이 플레이어의 몸을 통과하게 한다.
+        // 아바타 CapsuleCollider(Radius 0.3)에 다가가면 작고 가벼운 아이템이 발에 차이듯
+        // 날아가기 때문이다. 쌍 단위 무시라 아이템↔바닥·벽·환경 충돌은 그대로 남는다.
+        //
+        // IsLocalNetworkRig 분기 밖에 두어 **로컬과 원격 아바타 모두** 적용한다.
+        // Spawned는 모든 피어에서 모든 플레이어 오브젝트에 대해 호출되므로,
+        // 스폰 순서나 Host/Client 구분과 무관하게 양쪽에서 같은 결과가 된다.
+        GrabbableItem.IgnoreCollisionWithPlayerBody(GetComponent<Collider>());
+
 
         if (IsLocalNetworkRig)
         {
@@ -134,6 +144,12 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
             if (rigCharacterController != null && myAvatarCollider != null)
                 Physics.IgnoreCollision(myAvatarCollider, rigCharacterController, true);
 
+            // 같은 이유로 물리 손도 내 아바타를 통과해야 한다.
+            // 아바타 캡슐(Radius 0.3)은 로컬에서 렌더러가 꺼져 보이지 않는데,
+            // 손을 허리 쪽으로 가져가면 그 캡슐과 손 MeshCollider가 서로 밀쳐
+            // 손이 떨리고 방향이 틀어진다. (CharacterController와는 별개 콜라이더다)
+            StartCoroutine(IgnoreLocalHandCollisions(myAvatarCollider));
+
             teleportGhostManager =
                 FindFirstObjectByType<TeleportGhostManager>();
 
@@ -152,6 +168,88 @@ hardwareRig = FindFirstObjectByType<HardwareRig>();
             // 내 몸의 렌더러만 숨기기
             SetAvatarVisible(false);
         }
+    }
+
+    /// <summary>
+    /// 내 아바타 콜라이더와 <b>내 물리 손 양쪽</b>의 충돌을 무시시킨다.
+    ///
+    /// 왜 필요한가:
+    /// 로컬 아바타는 <see cref="SetAvatarVisible"/> 로 렌더러만 꺼져 눈에 보이지 않지만
+    /// CapsuleCollider(Radius 0.3 / Height 0.65)는 그대로 살아 있다. 물리 손(hand_l / hand_r)은
+    /// 비-kinematic Rigidbody + MeshCollider라서, 손을 몸 쪽으로 가져가면 그 캡슐과 서로 밀친다.
+    /// PhysicsHand는 매 FixedUpdate에 속도를 대입해 컨트롤러를 추종하므로 솔버와 싸우며 떨린다.
+    /// 게다가 접촉 중에는 PhysicsHand의 스냅 보정이 억제되어 스스로 회복하지도 못한다.
+    ///
+    /// 왜 이 방법인가:
+    /// <see cref="Physics.IgnoreCollision"/> 은 <b>콜라이더 쌍</b> 단위다. 그래서
+    /// 손↔벽·바닥·아이템·상대 플레이어 충돌은 전부 그대로 남고, 내 아바타만 통과한다.
+    /// Layer Collision Matrix를 바꾸면 그 레이어 전체에 영향이 가므로 쓰지 않는다.
+    /// 바로 위의 CharacterController 처리와 같은 방식이다.
+    ///
+    /// 왜 코루틴인가:
+    /// 초기화 순서를 가정하지 않기 위해서다. 영속 XR Rig의 Awake는 보통 훨씬 먼저 끝나지만,
+    /// 리그가 늦게 올라오거나 PhysicsHand.Awake가 아직 콜라이더를 잡지 못한 프레임에
+    /// 호출하면 <see cref="PhysicsHand.IgnoreCollisionWith"/> 가 조용히 아무것도 하지 않는다.
+    /// 그래서 양손이 준비될 때까지 짧게 재시도한다.
+    /// (PhysicsHand.SetupPlantPassThrough 가 쓰는 것과 같은 방식)
+    ///
+    /// 스테이지 전환:
+    /// 아바타는 스테이지마다 재스폰되고 Spawned가 다시 불리므로, 매번 <b>새 아바타 콜라이더</b>에
+    /// 대해 다시 적용된다. 영속 리그의 손 콜라이더는 그대로 재사용된다.
+    ///
+    /// 적용 대상은 InputAuthority를 가진 <b>로컬 플레이어뿐</b>이다. 이 코루틴은 Spawned의
+    /// IsLocalNetworkRig 분기 안에서만 시작되므로 원격 아바타에는 적용되지 않는다.
+    /// </summary>
+    private IEnumerator IgnoreLocalHandCollisions(Collider avatarCollider)
+    {
+        if (avatarCollider == null || hardwareRig == null)
+            yield break;
+
+        const float timeoutSeconds = 5f;
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            // 아바타가 먼저 사라지면(스테이지 전환 등) 더 할 일이 없다.
+            if (avatarCollider == null || hardwareRig == null)
+                yield break;
+
+            PhysicsHand[] hands = hardwareRig.GetComponentsInChildren<PhysicsHand>(true);
+
+            if (hands.Length > 0)
+            {
+                bool allReady = true;
+
+                foreach (PhysicsHand hand in hands)
+                {
+                    if (hand == null)
+                        continue;
+
+                    if (!hand.HasCollider)
+                    {
+                        allReady = false;
+                        continue;
+                    }
+
+                    hand.IgnoreCollisionWith(avatarCollider, true);
+                }
+
+                if (allReady)
+                {
+                    Debug.Log(
+                        $"[NetworkPlayer] 로컬 아바타 ↔ 물리 손 {hands.Length}개 충돌 무시 적용 완료.",
+                        this);
+                    yield break;
+                }
+            }
+
+            yield return null;
+            elapsed += Time.unscaledDeltaTime;
+        }
+
+        Debug.LogWarning(
+            "[NetworkPlayer] 물리 손을 찾지 못해 아바타↔손 충돌 무시를 적용하지 못했습니다. " +
+            "손이 자기 몸에 부딪혀 떨릴 수 있습니다.", this);
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState)

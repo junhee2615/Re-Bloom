@@ -185,6 +185,15 @@ public class PhysicsHand : MonoBehaviour
     }
 
     /// <summary>
+    /// 이 손의 콜라이더가 해석되었는지. <see cref="Awake"/> 에서 설정된다.
+    ///
+    /// <see cref="IgnoreCollisionWith"/> 는 콜라이더가 없으면 조용히 아무것도 하지 않으므로,
+    /// 바깥에서 충돌 무시를 걸 때 "준비됐는지"를 알아야 재시도할 수 있다.
+    /// (영속 XR Rig의 Awake는 보통 훨씬 먼저 끝나지만, 초기화 순서를 가정하지 않는다)
+    /// </summary>
+    public bool HasCollider => myCollider != null;
+
+    /// <summary>
     /// 이 손의 콜라이더와 <paramref name="other"/>의 충돌을 무시하거나(true) 복원한다(false).
     /// 물체를 잡는 동안 손과 잡힌 물체가 서로 밀치며 겹치는 것을 막는 용도다.
     /// 겹친 채로 놓으면 PhysX가 그 겹침을 큰 임펄스로 해소해 물체가 날아간다.
