@@ -57,12 +57,18 @@ public sealed class ResonanceController : MonoBehaviour
     // 제약 연출이 꺼진 상태: 테스트 토글 OFF 또는 공명 해제.
     private bool IsConstraintInactive => !constraintEnabled || isConstraintReleased;
 
-    // 역할별로 잃는 감각이 다르다. mental은 시야를, ear은 청각을 잃는다.
+    // 역할별로 잃는 감각이 다르다. mental은 시야(Bloom/Vignette/weight)를, ear은 청각을 잃는다.
     // 역할이 아직 정해지지 않았으면 둘 다 걸지 않는다.
     // RoleManager.LocalRole은 미지정일 때 enum 기본값 mental이 나오므로, 그대로 읽으면 로비·씬 전환 구간에서 엉뚱한 쪽에 시각 제약이 걸린다.
     // LocalIsMental / LocalIsEar은 HasLocalRole을 함께 보므로 미지정이면 둘 다 false다.
     private bool VisualInactive => IsConstraintInactive || !RoleManager.LocalIsMental;
     private bool AudioInactive => IsConstraintInactive || !RoleManager.LocalIsEar;
+
+    // 안개만은 역할을 가리지 않는다 — 루멘과 에코 둘 다 낀다(2026-10-16 결정).
+    // 공명이 끊긴 세계를 양쪽이 함께 겪게 하려는 것이고, 역할별로 갈리는 것은
+    // Volume 연출(Bloom/Vignette/weight, 루멘 전용)과 청각(에코 전용)뿐이다.
+    // 역할 미확정 구간에도 걸리므로 VisualInactive와 달리 역할 확정을 기다리지 않는다.
+    private bool FogInactive => IsConstraintInactive;
 
     private void Awake()
     {
@@ -155,7 +161,7 @@ public sealed class ResonanceController : MonoBehaviour
         hasContext = true;
 
         ApplyConstraintEffects();                    // Bloom/Vignette + 청각 초기 상태
-        fog.SnapConstrained(!VisualInactive);        // 안개 초기 강도
+        fog.SnapConstrained(!FogInactive);           // 안개 초기 강도 (역할 무관)
         volume.Snap(VisualInactive);                 // 전환 직후 weight 튐 방지
         audioConstraint.UpdateRelief(AudioInactive ? 1f : 0f);
     }
@@ -210,7 +216,7 @@ public sealed class ResonanceController : MonoBehaviour
         float proximity = CalculateProximity(hasDistance, playerDistance);
         float interpolation = DistanceInterpolation();
 
-        fog.Tick(proximity, VisualInactive, interpolation);
+        fog.Tick(proximity, FogInactive, interpolation);
         volume.UpdateWeight(proximity, VisualInactive, interpolation);
         audioConstraint.UpdateRelief(AudioInactive ? 1f : proximity);
 
@@ -296,8 +302,9 @@ public sealed class ResonanceController : MonoBehaviour
 
     /// <summary>
     /// 역할이 확정되거나 바뀌면 <b>이산</b> 상태(믹서 그룹 라우팅, Bloom/Vignette on/off)를 다시 맞춘다.
+    /// 안개는 역할을 보지 않으므로(<see cref="FogInactive"/>) 여기서 다룰 것이 없다.
     ///
-    /// 안개와 Volume weight는 매 프레임 갱신돼 저절로 따라오지만 이 둘은 상태가 바뀔 때만 적용된다.
+    /// Volume weight는 매 프레임 갱신돼 저절로 따라오지만 이 둘은 상태가 바뀔 때만 적용된다.
     /// 역할은 <see cref="NetworkPlayer.Spawned"/>에서 정해지므로 <see cref="Bind"/>보다 늦고,
     /// 그 순간을 놓치면 다음 해제 상태 변화까지 계속 어긋난 채로 남는다.
     ///
@@ -315,7 +322,7 @@ public sealed class ResonanceController : MonoBehaviour
         appliedVisualGate = visual;
         appliedAudioGate = audio;
 
-        // 안개·weight는 스냅하지 않는다.
+        // weight는 스냅하지 않는다.
         // 역할이 확정되는 순간 화면이 튀는 것보다 distanceResponseSpeed로 밀려 들어오는 편이 낫다.
         ApplyConstraintEffects();
     }
