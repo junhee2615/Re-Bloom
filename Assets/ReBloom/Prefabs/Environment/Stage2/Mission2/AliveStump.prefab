@@ -671,6 +671,7 @@ GameObject:
   - component: {fileID: 3222524688766540868}
   - component: {fileID: 5906447570069588437}
   - component: {fileID: 1943724352069436473}
+  - component: {fileID: 7653319123674225786}
   m_Layer: 0
   m_Name: Stump2Inside_low
   m_TagString: Untagged
@@ -750,6 +751,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &7653319123674225786
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4174167476545735948}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -3806067750829081044, guid: 480f7f72224e99647afceed6c4dd828f, type: 3}
 --- !u!1 &4263403639615409876
 GameObject:
   m_ObjectHideFlags: 0
@@ -7055,7 +7078,7 @@ GameObject:
   - component: {fileID: 4727564419430996970}
   - component: {fileID: 153938326095317921}
   - component: {fileID: 8466587937463223103}
-  - component: {fileID: 7354567457101923126}
+  - component: {fileID: 2513539862673920745}
   m_Layer: 0
   m_Name: Stump2_low
   m_TagString: Untagged
@@ -7135,7 +7158,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &7354567457101923126
+--- !u!64 &2513539862673920745
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -7156,7 +7179,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: -3806067750829081044, guid: 480f7f72224e99647afceed6c4dd828f, type: 3}
+  m_Mesh: {fileID: 1540023380598633286, guid: 480f7f72224e99647afceed6c4dd828f, type: 3}
 --- !u!1001 &8547625484496240859
 PrefabInstance:
   m_ObjectHideFlags: 0

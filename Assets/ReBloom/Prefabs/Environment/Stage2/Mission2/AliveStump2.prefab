@@ -600,6 +600,8 @@ GameObject:
   - component: {fileID: 1156976581779076798}
   - component: {fileID: 210558672002686426}
   - component: {fileID: 8525350099763890567}
+  - component: {fileID: 2425568371227526367}
+  - component: {fileID: 7220664271178526594}
   m_Layer: 8
   m_Name: AliveStump2
   m_TagString: Untagged
@@ -1643,6 +1645,50 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!64 &2425568371227526367
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2849420195286899602}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 9019657177421144928, guid: 3b5e97f56be58ef4a804a4cd2a96e891, type: 3}
+--- !u!64 &7220664271178526594
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2849420195286899602}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 5495227957454329085, guid: 3b5e97f56be58ef4a804a4cd2a96e891, type: 3}
 --- !u!1 &4338316665206720938
 GameObject:
   m_ObjectHideFlags: 0
