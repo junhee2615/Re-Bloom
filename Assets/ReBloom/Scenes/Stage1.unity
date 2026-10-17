@@ -771,11 +771,11 @@ PrefabInstance:
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: doorLeft
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 516575468}
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: doorRight
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 516575469}
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: trainFloor
       value: 
@@ -787,7 +787,7 @@ PrefabInstance:
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: audioSource
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 516575470}
     - target: {fileID: 7594905293284975969, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
       propertyPath: doorOpenClip
       value: 
@@ -2091,6 +2091,21 @@ PrefabInstance:
 --- !u!4 &516575467 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &516575468 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2465872441064893264, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &516575469 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7676965070998714142, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &516575470 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 6048490511224281864, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
   m_PrefabInstance: {fileID: 516575466}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &530430109
@@ -5196,7 +5211,7 @@ GameObject:
   - component: {fileID: 1645341422}
   - component: {fileID: 1645341421}
   - component: {fileID: 1645341420}
-  - component: {fileID: 1645341419}
+  - component: {fileID: 1645341427}
   m_Layer: 31
   m_Name: TrainFloor
   m_TagString: Untagged
@@ -5219,22 +5234,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 516575467}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1645341419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1645341417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d27dedea93cb2a4281de08eadae050b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TrainFloor_stage2
-  audioSource: {fileID: 0}
-  doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
-  doorRight: {fileID: 0}
-  doorLeft: {fileID: 0}
 --- !u!114 &1645341420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5252,7 +5251,7 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 1645341419}
+  - {fileID: 1645341427}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &1645341421
 Rigidbody:
@@ -5464,6 +5463,24 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1645341417}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1645341427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645341417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8a8f328380eb5c4293e372691500f57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrainFloor
+  boardingZone: {fileID: 1645341422}
+  verticalTolerance: 2
+  audioSource: {fileID: 516575470}
+  doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
+  doorRight: {fileID: 516575469}
+  doorLeft: {fileID: 516575468}
 --- !u!4 &1647888150 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1975052002655302060, guid: faa6c173d6cdafc46b2cd45cd774a60d, type: 3}
