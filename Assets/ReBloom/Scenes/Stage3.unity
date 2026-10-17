@@ -3137,6 +3137,94 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8849444021316775064, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1666625809 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 775270304983918568, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1666625810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1666625809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f6bf3d943ac7945842268c9ef1dca6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea
+  m_InteractionManager: {fileID: 0}
+  m_Colliders: []
+  m_InteractionLayers:
+    m_Bits: 4294967295
+  m_DistanceCalculationMode: 1
+  m_SelectMode: 1
+  m_FocusMode: 1
+  m_CustomReticle: {fileID: 0}
+  m_AllowGazeInteraction: 0
+  m_AllowGazeSelect: 0
+  m_OverrideGazeTimeToSelect: 0
+  m_GazeTimeToSelect: 0.5
+  m_OverrideTimeToAutoDeselectGaze: 0
+  m_TimeToAutoDeselectGaze: 3
+  m_AllowGazeAssistance: 0
+  m_FirstHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_HoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_HoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FirstSelectEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastSelectExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_SelectEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_SelectExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FirstFocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastFocusExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Activated:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Deactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  m_StartingHoverFilters: []
+  m_StartingSelectFilters: []
+  m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
+  m_TeleportationProvider: {fileID: 0}
+  m_MatchOrientation: 0
+  m_MatchDirectionalInput: 0
+  m_TeleportTrigger: 0
+  m_FilterSelectionByHitNormal: 0
+  m_UpNormalToleranceDegrees: 30
+  m_Teleporting:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &1670730633 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3866837789543951530, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -3219,7 +3307,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 2fb1a2270d0ff824a88aac8616242389, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -3581,7 +3669,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 2c27cdc6ea276d243b978fa08ad4a073, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -3730,7 +3818,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 986d39cf2703d9f4c9d62a4493d1fb4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialMissionManager_3
-  initialDelay: 5
+  initialDelay: 3
   solarMission: {fileID: 2103485905}
   riverbedMission: {fileID: 3846063778224516756}
   waterValve: {fileID: 1707178426}
@@ -4388,6 +4476,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3694168963254407462, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 92004261}
+    - targetCorrespondingSourceObject: {fileID: 775270304983918568, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1666625810}
     - targetCorrespondingSourceObject: {fileID: 412597485300000053, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 355216366}

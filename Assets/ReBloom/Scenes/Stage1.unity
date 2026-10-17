@@ -1943,6 +1943,135 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8838874822756602166, guid: 438ecb8c778e2d24b98ab304e96ba00c, type: 3}
   m_PrefabInstance: {fileID: 452006380}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &477425703
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 477425705}
+  - component: {fileID: 477425704}
+  m_Layer: 0
+  m_Name: TrainDepartureAudio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &477425704
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 477425703}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: d7c7e856cd83c3f40b510d7995d4863c, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &477425705
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 477425703}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &483225595
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2018,10 +2147,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: NestedObjects.Array.size
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       propertyPath: 'NestedObjects.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2105062645}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: 'NestedObjects.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2112284848}
+    - target: {fileID: 6070640001493653637, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      propertyPath: 'NestedObjects.Array.data[2]'
       value: 
       objectReference: {fileID: 1645341420}
     - target: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
@@ -2080,13 +2217,21 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 929653763687330913, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+    - {fileID: 2211226155285066324, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 6392678162664965363, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1645341418}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6439224585619329141, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2105062645}
+    - targetCorrespondingSourceObject: {fileID: 3738593702674995355, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2112284848}
   m_SourcePrefab: {fileID: 100100000, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
 --- !u!4 &516575467 stripped
 Transform:
@@ -2108,6 +2253,17 @@ AudioSource:
   m_CorrespondingSourceObject: {fileID: 6048490511224281864, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
   m_PrefabInstance: {fileID: 516575466}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &516575471 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -4060599768809639524, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Outline
 --- !u!1001 &530430109
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2221,7 +2377,7 @@ MonoBehaviour:
   - {fileID: 1926102066}
   - {fileID: 1926102065}
   lastOutlines:
-  - {fileID: 0}
+  - {fileID: 516575471}
 --- !u!4 &577104881
 Transform:
   m_ObjectHideFlags: 0
@@ -2510,6 +2666,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e1fced25018f8074dbdb28e5da2730bb, type: 3}
+--- !u!4 &664783382 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2468099695430173972, guid: e1fced25018f8074dbdb28e5da2730bb, type: 3}
+  m_PrefabInstance: {fileID: 664783381}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &721852438
 GameObject:
   m_ObjectHideFlags: 0
@@ -3193,6 +3354,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+--- !u!4 &1042811738 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7010249750224727932, guid: f2f31f7832433cd4684761696b00bd1a, type: 3}
+  m_PrefabInstance: {fileID: 1042811737}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1062511680 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7215969925609299884, guid: e5b597fd93effd44b8166a7bd85ad6ce, type: 3}
@@ -5212,6 +5378,7 @@ GameObject:
   - component: {fileID: 1645341421}
   - component: {fileID: 1645341420}
   - component: {fileID: 1645341427}
+  - component: {fileID: 1645341428}
   m_Layer: 31
   m_Name: TrainFloor
   m_TagString: Untagged
@@ -5252,6 +5419,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 1645341427}
+  - {fileID: 1645341428}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &1645341421
 Rigidbody:
@@ -5481,6 +5649,39 @@ MonoBehaviour:
   doorCloseClip: {fileID: 8300000, guid: 7631b6b8c218b994c837e478e0ba4bcd, type: 3}
   doorRight: {fileID: 516575469}
   doorLeft: {fileID: 516575468}
+--- !u!114 &1645341428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645341417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e3a956aa6b2c84a9e79e1546bc008d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrainDepartureManager
+  movingRoots:
+  - {fileID: 1599178304}
+  - {fileID: 664783382}
+  - {fileID: 4929873773227719500}
+  - {fileID: 3578282095247875138}
+  - {fileID: 1887335084}
+  - {fileID: 1755068787}
+  - {fileID: 1042811738}
+  - {fileID: 1995655493}
+  - {fileID: 2064725025}
+  scrollDirection: {x: -1, y: 0, z: 0}
+  delayAfterDoorClose: 1
+  maxSpeed: 8
+  accelerationTime: 4
+  travelDuration: 9
+  fadeDuration: 1.5
+  nextSceneName: Stage2
+  clientWaitTimeout: 15
+  departureAudioSource: {fileID: 477425704}
+  departureLoopClip: {fileID: 8300000, guid: d7c7e856cd83c3f40b510d7995d4863c, type: 3}
+  hideTutorialCanvas: 1
 --- !u!4 &1647888150 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1975052002655302060, guid: faa6c173d6cdafc46b2cd45cd774a60d, type: 3}
@@ -7369,6 +7570,29 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5509270180476976677, guid: e1fced25018f8074dbdb28e5da2730bb, type: 3}
   m_PrefabInstance: {fileID: 664783381}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2105062644 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6439224585619329141, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2105062645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2105062644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3756990295
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours: []
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &2107632369 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2914719374353934819, guid: c1e3ccc87ee6a8d47b6c8a2c7b7ea62b, type: 3}
@@ -7403,6 +7627,29 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2107632370}
+  ForceRemoteRenderTimeframe: 0
+--- !u!1 &2112284847 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3738593702674995355, guid: 85b7efba26beb944ca7959fd33451d50, type: 3}
+  m_PrefabInstance: {fileID: 516575466}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2112284848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112284847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 1635551682
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2112943896 stripped
 MonoBehaviour:
@@ -8413,6 +8660,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f416ea6c5edc41344bf0a62566243ce9, type: 3}
+--- !u!4 &4929873773227719500 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6213914330059219270, guid: f416ea6c5edc41344bf0a62566243ce9, type: 3}
+  m_PrefabInstance: {fileID: 4929873773227719499}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6044362871863828769
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9031,3 +9283,4 @@ SceneRoots:
   - {fileID: 858733729}
   - {fileID: 1447454554}
   - {fileID: 516575466}
+  - {fileID: 477425705}

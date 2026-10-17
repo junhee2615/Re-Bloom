@@ -17,6 +17,8 @@ public class RootMissionManager : MonoBehaviour
     [Header("전환 딜레이")]
     [Tooltip("마지막 뿌리를 찾은 뒤 활성화 미션으로 넘어가기까지 대기(초)")]
     [SerializeField] private float activationDelay = 3f;
+    [Tooltip("세 뿌리를 모두 찾은 뒤 발견 표시(FoundCircle)를 끄기까지 대기(초)")]
+    [SerializeField] private float foundEffectHideDelay = 5f;
     private bool activationStarted;
     // 네트워크: 발견 완료를 이미 Host에 알렸는지 (중복 RPC 방지)
     private bool findNotified;
@@ -160,16 +162,16 @@ private IEnumerator DelayedActivation()
         // activationStarted 래치 넭분에 오프라인·네트워크 경로 모두에서 정확히 1회만 호출된다.
         RootsFound?.Invoke();
 
+        // 발견 표시(FoundCircle)는 활성화 전환과 별개로 foundEffectHideDelay 뒤에 한꺼번에 끈다.
+        StartCoroutine(HideFoundEffectsAfterDelay());
+
         yield return new WaitForSeconds(activationDelay);
 
         // 찾기 미션 종료 → LivingRoot(찾기용) 비활성화 (이후 계속 꺼 둔다)
         foreach (LivingRoot found in foundRoots)
         {
             if (found != null)
-            {
                 found.enabled = false;
-                found.HideFoundEffect();
-            }
         }
 
         // 네트워크: 상대가 먼저 찾아 전환된 경우, 내가 아직 못 찾은 뿌리의 LivingRoot도 꺼 둔다.
@@ -179,11 +181,7 @@ private IEnumerator DelayedActivation()
             {
                 if (activationRoots[i] == null) continue;
                 LivingRoot lr = activationRoots[i].GetComponentInChildren<LivingRoot>(true);
-                if (lr != null)
-                {
-                    lr.enabled = false;
-                    lr.HideFoundEffect();
-                }
+                if (lr != null) lr.enabled = false;
             }
         }
 
@@ -196,6 +194,23 @@ private IEnumerator DelayedActivation()
             StartActivationSequence();
     }
 
+
+    // 세 뿌리를 모두 찾은 뒤 foundEffectHideDelay 초가 지나면 모든 뿌리의 발견 표시를 끈다.
+    private IEnumerator HideFoundEffectsAfterDelay()
+    {
+        yield return new WaitForSeconds(foundEffectHideDelay);
+
+        foreach (LivingRoot found in foundRoots)
+            if (found != null)
+                found.HideFoundEffect();
+
+        for (int i = 0; i < activationRoots.Count; i++)
+        {
+            if (activationRoots[i] == null) continue;
+            LivingRoot lr = activationRoots[i].GetComponentInChildren<LivingRoot>(true);
+            if (lr != null) lr.HideFoundEffect();
+        }
+    }
 
     // 두 번째 미션 : 뿌리 활성화 (순차 진행)
     private void StartActivationSequence()

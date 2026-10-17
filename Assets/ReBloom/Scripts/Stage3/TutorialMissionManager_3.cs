@@ -10,7 +10,7 @@ using UnityEngine;
 ///
 /// 흐름
 ///  - Spawned 직후 : None (아무 미션도 안내하지 않는 상태)
-///  - initialDelay(기본 5초) 뒤                         : Initial
+///  - initialDelay(기본 3초) 뒤                         : Initial
 ///  - SolarMissionManager.IsClear                       : PanelComplete
 ///  - RiverbedFlowController.onMissionComplete          : RiverbedComplete
 ///  - WaterValveRotate.IsCleared + PlantCoreSeedButton.IsPressed : PlantMachineComplete
@@ -25,7 +25,7 @@ public class TutorialMissionManager_3 : NetworkBehaviour
 
     [Header("첫 튜토리얼 지연")]
     [Tooltip("씬 진입 후 MISSION 1 안내를 띄우기까지 대기(초). 그 전까지는 None 상태.")]
-    [SerializeField] private float initialDelay = 5f;
+    [SerializeField] private float initialDelay = 3f;
 
     [Header("미션 (비우면 씬에서 자동으로 찾는다)")]
     [SerializeField] private SolarMissionManager solarMission;
