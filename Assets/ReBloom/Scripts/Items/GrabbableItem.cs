@@ -67,6 +67,12 @@ public class GrabbableItem : MonoBehaviour
 
     private bool removed;
 
+    /// <summary>
+    /// 이 아이템이 이미 월드에서 치워졌는지. 안내 UI가 "획득되어 사라졌다"를 알 때 쓴다.
+    /// 모델은 즉시 사라지지만 UI는 잠시 더 페이드되어야 하므로 이 값으로 구분한다.
+    /// </summary>
+    public bool IsRemoved => removed;
+
     private void Awake()
     {
         grab = GetComponent<XRGrabInteractable>();
@@ -268,6 +274,16 @@ public class GrabbableItem : MonoBehaviour
                 itemCollider.enabled = false;
         }
 
+        // 모델은 같은 프레임에 즉시 지운다.
+        //
+        // 이 순서가 중요하다 — grab.enabled = false 는 선택 중인 Interactable을
+        // Interaction Manager에서 등록 해제시키고, XRI가 그것을 "강제 Detach"로 처리해
+        // SetupRigidbodyDrop()이 isKinematic=false / useGravity=true 를 복원한다.
+        // 즉 아이템은 그 순간부터 자유 낙하하는 강체가 된다.
+        // 렌더러를 같은 프레임에 끄면 그 낙하가 화면에 보이지 않는다.
+        // (렌더러를 늦게 끄면 "손에서 떨어진 뒤 사라지는" 것으로 보인다)
+        //
+        // 상자(ItemBox_low)와 Particle System은 형제이므로 영향받지 않는다.
         foreach (Renderer itemRenderer in renderers)
         {
             if (itemRenderer != null)

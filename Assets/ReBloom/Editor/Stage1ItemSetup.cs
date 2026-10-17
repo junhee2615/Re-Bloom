@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
+using TMPro;
 
 /// <summary>
 /// Stage1의 아이템 모델을 손으로 잡을 수 있게 만드는 1회용 셋업 도구.
@@ -44,6 +45,9 @@ public static class Stage1ItemSetup
 
     /// <summary>Fuel / GeneratorPart 와 같은 레이어 이름.</summary>
     private const string InteractableLayerName = "Interactable";
+
+    /// <summary>안내 문구에 쓸 한글 TMP 폰트. 내레이션·StartScene과 같은 에셋이다.</summary>
+    private const string KoreanFontPath = "Assets/ReBloom/UI/Fonts/KoPub Dotum Medium SDF.asset";
 
     /// <summary>(아이템 부모, Grab을 붙일 모델, 아이템 종류)</summary>
     private static readonly (string parentName, string modelName, ItemKind kind)[] Targets =
@@ -408,6 +412,9 @@ public static class Stage1ItemSetup
             Debug.Log("  = XRGeneralGrabTransformer 이미 있음 (설정 건드리지 않음)", target);
         }
 
+        // ── 획득 안내 UI ────────────────────────────────────────
+        anyChange |= SetupPrompt(target, apply);
+
         // ── GrabbableItem ───────────────────────────────────────
         var item = target.GetComponent<GrabbableItem>();
 
@@ -435,6 +442,151 @@ public static class Stage1ItemSetup
         }
 
         return anyChange;
+    }
+
+    /// <summary>
+    /// 획득 안내 UI(World Space Canvas + TMP)를 아이템 <b>자식</b>으로 만든다.
+    ///
+    /// 이미 있으면 다시 만들지 않는다(요구: 중복 생성 금지). 이름으로 찾는다.
+    ///
+    /// XR 입력을 방해하지 않도록 —
+    ///   · Canvas에 <c>GraphicRaycaster</c> 를 <b>붙이지 않는다</b> → UI Ray가 이 캔버스를 보지 않는다
+    ///   · TMP의 <c>raycastTarget</c> 을 false 로 둔다
+    ///   · Collider를 만들지 않으므로 물리 기반 Grab 판정에도 걸리지 않는다
+    ///
+    /// 바운드 계산에 영향이 없는 이유:
+    /// World Space Canvas와 TMP는 <c>CanvasRenderer</c> 로 그려지며 <c>Renderer</c> 컴포넌트가
+    /// 아니다. 그래서 <see cref="TryGetLocalBounds"/> 의 Renderer 수집에 끼지 않고,
+    /// GrabbableItem이 획득 시 끄는 renderers / colliders 목록에도 들어가지 않는다.
+    /// </summary>
+    private static bool SetupPrompt(GameObject target, bool apply)
+    {
+        const string canvasName = "PickupPrompt";
+        const string textName = "PromptText";
+
+        bool anyChange = false;
+
+        // ── ItemPickupPromptUI ──────────────────────────────────
+        var prompt = target.GetComponent<ItemPickupPromptUI>();
+
+        if (prompt == null)
+        {
+            Debug.Log("  + ItemPickupPromptUI", target);
+            anyChange = true;
+
+            if (apply)
+                prompt = Undo.AddComponent<ItemPickupPromptUI>(target);
+        }
+        else
+        {
+            Debug.Log("  = ItemPickupPromptUI 이미 있음", target);
+        }
+
+        // ── 캔버스 ──────────────────────────────────────────────
+        Transform existing = target.transform.Find(canvasName);
+
+        if (existing != null)
+        {
+            Debug.Log($"  = '{canvasName}' 이미 있음 (다시 만들지 않음)", existing.gameObject);
+            return anyChange;
+        }
+
+        Debug.Log($"  + '{canvasName}' (World Space Canvas + TMP, GraphicRaycaster 없음)", target);
+
+        if (!apply)
+            return true;
+
+        // 캔버스 루트
+        var canvasObject = new GameObject(canvasName, typeof(RectTransform));
+        Undo.RegisterCreatedObjectUndo(canvasObject, "Create Pickup Prompt");
+        Undo.SetTransformParent(canvasObject.transform, target.transform, "Create Pickup Prompt");
+
+        canvasObject.layer = target.layer;
+
+        var canvasRect = (RectTransform)canvasObject.transform;
+        canvasRect.localPosition = Vector3.zero;
+        canvasRect.localRotation = Quaternion.identity;
+        canvasRect.localScale = Vector3.one * 0.0012f;   // 런타임에 스크립트가 다시 보정한다
+        canvasRect.anchorMin = new Vector2(0.5f, 0.5f);
+        canvasRect.anchorMax = new Vector2(0.5f, 0.5f);
+        canvasRect.pivot = new Vector2(0.5f, 0.5f);
+        canvasRect.sizeDelta = new Vector2(600f, 120f);
+
+        var canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        // GraphicRaycaster 를 일부러 넣지 않는다. CanvasScaler 도 World Space에서는 불필요하다.
+
+        var group = canvasObject.AddComponent<CanvasGroup>();
+        group.alpha = 0f;
+        group.interactable = false;
+        group.blocksRaycasts = false;
+
+        // 텍스트
+        var textObject = new GameObject(textName, typeof(RectTransform));
+        Undo.RegisterCreatedObjectUndo(textObject, "Create Pickup Prompt");
+        Undo.SetTransformParent(textObject.transform, canvasObject.transform, "Create Pickup Prompt");
+
+        textObject.layer = target.layer;
+
+        var textRect = (RectTransform)textObject.transform;
+        textRect.localPosition = Vector3.zero;
+        textRect.localRotation = Quaternion.identity;
+        textRect.localScale = Vector3.one;
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        var tmp = textObject.AddComponent<TextMeshProUGUI>();
+        tmp.text = "Y 버튼을 눌러 획득";
+        tmp.fontSize = 44f;
+        tmp.enableAutoSizing = false;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = Color.white;
+        tmp.raycastTarget = false;        // UI Ray가 이 글자를 집지 않게 한다
+
+        TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(KoreanFontPath);
+
+        if (font != null)
+        {
+            tmp.font = font;
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"[Stage1ItemSetup] 한글 TMP 폰트를 찾지 못했습니다: {KoreanFontPath}\n" +
+                "TMP 기본 폰트에는 한글 글리프가 없어 문구가 깨질 수 있습니다. " +
+                "PromptText의 Font Asset을 직접 지정하세요.", textObject);
+        }
+
+        // 스크립트에 참조 연결 (private SerializeField라 SerializedObject로 넣는다)
+        if (prompt != null)
+        {
+            var so = new SerializedObject(prompt);
+            SetObjectRef(so, "promptGroup", group, prompt);
+            SetObjectRef(so, "promptText", tmp, prompt);
+            so.ApplyModifiedProperties();
+        }
+
+        canvasObject.SetActive(false);   // 잡기 전에는 숨김
+
+        return true;
+    }
+
+    private static void SetObjectRef(
+        SerializedObject so, string propertyName, Object value, Object context)
+    {
+        SerializedProperty prop = so.FindProperty(propertyName);
+
+        if (prop == null)
+        {
+            Debug.LogError(
+                $"[Stage1ItemSetup] ItemPickupPromptUI 의 '{propertyName}' 필드를 찾지 못했습니다. " +
+                "인스펙터에서 직접 연결하세요.", context);
+            return;
+        }
+
+        prop.objectReferenceValue = value;
     }
 
     /// <summary>
