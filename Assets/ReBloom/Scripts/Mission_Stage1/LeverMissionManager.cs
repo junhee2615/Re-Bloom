@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using System;
 using System.Collections;
 using System.Linq;
@@ -165,6 +165,17 @@ public class LeverMissionManager : NetworkBehaviour
             }
         }
 
+        // 문 열기는 모든 피어가 각자 재생한다 (문 Transform은 동기화되지 않으므로
+        // Host만 움직이면 Client 화면에서는 문이 닫힌 채로 보인다)
+        if (IsDoorOpen &&
+            !playedDoorAnimation)
+        {
+            playedDoorAnimation = true;
+
+            StartCoroutine(
+                OpenDoorAnimation());
+        }
+
         if (!HasStateAuthority)
             return;
 
@@ -178,14 +189,6 @@ public class LeverMissionManager : NetworkBehaviour
             IsMissionClear = true;
         }
 
-        if (IsDoorOpen &&
-            !playedDoorAnimation)
-        {
-            playedDoorAnimation = true;
-
-            StartCoroutine(
-                OpenDoorAnimation());
-        }
     }
 
     // =================================================
