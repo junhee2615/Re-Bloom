@@ -5917,6 +5917,7 @@ GameObject:
   - component: {fileID: 8612314911608537987}
   - component: {fileID: 8831405803387831808}
   - component: {fileID: 892145919039930809}
+  - component: {fileID: 4334869561205388298}
   m_Layer: 8
   m_Name: AliveStump3
   m_TagString: Untagged
@@ -6960,6 +6961,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!65 &4334869561205388298
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7699370525682168746}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1134187, y: 0.64809906, z: 1.0794904}
+  m_Center: {x: 0.016964138, y: 0.224668, z: 0}
 --- !u!1 &8613034587550896452
 GameObject:
   m_ObjectHideFlags: 0

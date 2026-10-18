@@ -602,6 +602,7 @@ GameObject:
   - component: {fileID: 8525350099763890567}
   - component: {fileID: 2425568371227526367}
   - component: {fileID: 7220664271178526594}
+  - component: {fileID: 5363497915288625965}
   m_Layer: 8
   m_Name: AliveStump2
   m_TagString: Untagged
@@ -1689,6 +1690,27 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5495227957454329085, guid: 3b5e97f56be58ef4a804a4cd2a96e891, type: 3}
+--- !u!65 &5363497915288625965
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2849420195286899602}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1134187, y: 0.64809906, z: 1.0794904}
+  m_Center: {x: 0.016964138, y: 0.224668, z: 0}
 --- !u!1 &4338316665206720938
 GameObject:
   m_ObjectHideFlags: 0

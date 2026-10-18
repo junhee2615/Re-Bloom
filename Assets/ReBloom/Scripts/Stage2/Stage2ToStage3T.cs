@@ -38,6 +38,16 @@ public class Stage2ToStage3T : NetworkBehaviour
     [Tooltip("이동할 다음 씬 이름. Build Profiles > Scene List에 등록되어 있어야 한다.")]
     [SerializeField] private string nextSceneName = "Stage3";
 
+    [Header("유리문")]
+    [SerializeField] private Transform glassDoor; // 유리문
+    [SerializeField] private float doorRotateAngle = 100f; // 각도
+    [SerializeField] private float doorRotateDuration = 1.5f;
+    [Header("사운드")]
+    [Tooltip("텔레포트할 때 재생할 AudioSource. 비우면 이 오브젝트의 AudioSource 를 쓴다")]
+    [SerializeField] private AudioSource teleportAudio;
+    private Quaternion doorInitialLocalRotation; // 유리문의 원래 각도
+    private bool doorInitialCaptured;
+
     [Networked] private NetworkBool Player1On { get; set; }
     [Networked] private NetworkBool Player2On { get; set; }
     [Networked] private NetworkBool IsUnlocked { get; set; }
@@ -52,11 +62,23 @@ public class Stage2ToStage3T : NetworkBehaviour
     private void Start()
     {
         ResolveBoardingZone();
+
+        if (teleportAudio == null)
+            teleportAudio = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
     {
         Stage2TeleporterCutscene.CutsceneFinished += OnStage2CutsceneFinished;
+    }
+
+    private void CaptureDoorInitialRotation()
+    {
+        if (doorInitialCaptured || glassDoor == null)
+            return;
+
+        doorInitialLocalRotation = glassDoor.localRotation;
+        doorInitialCaptured = true;
     }
 
     private void OnDisable()
@@ -150,11 +172,39 @@ public class Stage2ToStage3T : NetworkBehaviour
         return true;
     }
 
-    // Host: 두 플레이어 감지 후 delayBeforeTransition 대기 → 전 피어 페이드 시작
+    // Host: 두 플레이어 감지 후 delayBeforeTransition 대기 → 모든 피어에 전환 시작 알림
+    // (유리문 회전은 각 피어가 TransitionRoutine 에서 직접 재생한다. 문에 NetworkObject 는 필요 없다)
     private IEnumerator BeginTransitionAfterDelay()
     {
         yield return new WaitForSeconds(delayBeforeTransition);
         RPC_BeginTransition();
+    }
+
+    // 유리문 회전
+    private IEnumerator RotateDoor()
+    {
+        if (glassDoor == null)
+            yield break;
+
+        // 항상 원래 각도에서 시작한다 (여러 번 써도 각도가 누적되지 않게)
+        CaptureDoorInitialRotation();
+        Quaternion startRotation = doorInitialLocalRotation;
+        Quaternion targetRotation = startRotation * Quaternion.Euler(0f, doorRotateAngle, 0f);
+
+        float elapsed = 0f;
+
+        while (elapsed < doorRotateDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / doorRotateDuration);
+            // 부드럽게 회전
+            t = Mathf.SmoothStep(0f, 1f, t);
+
+            glassDoor.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+            yield return null;
+        }
+        glassDoor.localRotation = targetRotation;
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -163,9 +213,17 @@ public class Stage2ToStage3T : NetworkBehaviour
         StartCoroutine(TransitionRoutine());
     }
 
-    // 각 피어: 로컬 화면 페이드아웃 → Host에 완료 보고
+    // 각 피어: 유리문 닫기 → 텔레포트 소리 + 페이드아웃 → Host에 완료 보고
     private IEnumerator TransitionRoutine()
     {
+        // 1. 유리문이 닫히는 것을 끝까지 보여 준다
+        yield return StartCoroutine(RotateDoor());
+
+        // 2. 텔레포트 소리
+        if (teleportAudio != null)
+            teleportAudio.Play();
+
+        // 3. 페이드아웃
         if (screenFade == null)
             screenFade = FindFirstObjectByType<ScreenFade>();
 

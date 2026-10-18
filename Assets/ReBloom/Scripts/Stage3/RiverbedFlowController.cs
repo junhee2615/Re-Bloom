@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -181,6 +181,12 @@ namespace ReBloom.Water
 
         [Tooltip("미션이 실제로 시작된 순간 (둘 다 선 직후)")]
         public UnityEvent onMissionStarted;
+
+        [Tooltip("물결(진짜/페이크) 하나가 다가오기 시작할 때")]
+        public UnityEvent onWaveStarted;
+
+        [Tooltip("이번 물결 실패 (잘못 누름 / 진짜 물결을 놓침). 물결당 한 번")]
+        public UnityEvent onWaveFailed;
 
         [Tooltip("3회 모두 성공. 여기서 수면 메시를 올린다")]
         public UnityEvent onMissionComplete;
@@ -485,6 +491,8 @@ namespace ReBloom.Water
 
             if (logToConsole)
                 Debug.Log("[Riverbed] net wave #" + index + " (" + (isReal ? "REAL" : "FAKE") + ")");
+
+            if (onWaveStarted != null) onWaveStarted.Invoke();
         }
 
         public void ApplyNetworkSuccess(int count, float baseline)
@@ -593,6 +601,8 @@ namespace ReBloom.Water
             if (logToConsole)
                 Debug.Log("[Riverbed] wave #" + waveIndex + " (" + (waveIsReal ? "REAL" : "FAKE")
                     + ") beat in " + r.approachDuration.ToString("F2") + "s");
+
+            if (onWaveStarted != null) onWaveStarted.Invoke();
         }
 
         [Header("물결 순서")]
@@ -834,6 +844,7 @@ namespace ReBloom.Water
             }
             if (feedbackAudio != null && wrongClip != null)
                 feedbackAudio.PlayOneShot(wrongClip, feedbackVolume);
+            if (onWaveFailed != null) onWaveFailed.Invoke();
         }
 
         // ---------------------------------------------------------------

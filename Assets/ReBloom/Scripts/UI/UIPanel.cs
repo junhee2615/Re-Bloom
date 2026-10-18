@@ -140,6 +140,8 @@ public class UIPanel : MonoBehaviour
         switch (step)
         {
             case TutorialStep_3.Initial:
+                // Stage3 입장 안내는 튜토리얼 패널이 꺼져 있어도 강제로 켜서 보여 준다.
+                ForceTutorialCanvasActive();
                 ShowTutorial(stage3InitialMessage);
                 break;
 
@@ -154,6 +156,26 @@ public class UIPanel : MonoBehaviour
             case TutorialStep_3.PlantMachineComplete:
                 ShowTutorial(stage3PlantMachineCompleteMessage);
                 break;
+        }
+    }
+
+    // 튜토리얼 캔버스(이 오브젝트)가 꺼져 있으면 켠다.
+    // 컷씬 등으로 HardwareRig가 숨긴 경우에는 리그를 통해 되돌려 숨김 상태 기록도 맞춘다.
+    // 그래도 꺼져 있으면(직접 꺼 둔 경우) 리그 아래에서 꺼져 있는 부모까지 직접 켠다.
+    private void ForceTutorialCanvasActive()
+    {
+        if (gameObject.activeInHierarchy)
+            return;
+
+        HardwareRig rig = GetComponentInParent<HardwareRig>(true);
+        if (rig != null)
+            rig.SetTutorialCanvasVisible(true);
+
+        Transform stop = rig != null ? rig.transform : null;
+        for (Transform t = transform; t != null && t != stop && !gameObject.activeInHierarchy; t = t.parent)
+        {
+            if (!t.gameObject.activeSelf)
+                t.gameObject.SetActive(true);
         }
     }
 
