@@ -124,7 +124,8 @@ namespace ReBloom.Solar
         {
             if (aim == null || aim.State == SolarBeamAim.AimState.Off) return false;
             if (!RoleMatches()) return false;
-            if (requireStandingOnPanel && (tilt == null || !tilt.IsOccupied)) return false;
+            // IsOccupied(누구든)가 아니라 IsLocallyOccupied(나)를 본다 — 상대가 올라선 판에서 내 손이 울리면 안 된다.
+            if (requireStandingOnPanel && (tilt == null || !tilt.IsLocallyOccupied)) return false;
 
             return true;
         }

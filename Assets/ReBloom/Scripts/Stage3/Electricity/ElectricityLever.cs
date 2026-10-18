@@ -95,6 +95,11 @@ namespace ReBloom.Electricity
         float prevHandAngle;    // 직전 프레임의 손 각도. 매 프레임 갱신한다.
         bool hasPrevHandAngle;
         bool reported;
+        bool lastRejected;      // 마지막 당김을 미션이 버렸는가(박자 시작 전 등). 재무장 문턱이 달라진다.
+
+        // 버려진 당김 뒤에는 이만큼만 되올리면 다시 당길 수 있다(report 문턱 기준).
+        // 너무 좁으면 바닥에서 손이 떨리기만 해도 당김이 찍힌다.
+        const float RejectedRearmMargin = 0.15f;
 
         // 경첩이 사는 좌표계와 그 안에서의 경첩 위치. **Awake에서 한 번 캐시한다.**
         // 살아 있는 transform.parent를 그때그때 읽으면 안 된다 — XRI가 잡는 순간
@@ -224,8 +229,16 @@ namespace ReBloom.Electricity
             // 당긴 채로 놓고 다시 잡으면 이미 문턱 위이니, 되밀어 내려오기 전까지는
             // 다시 보고하지 않는다. rearm을 report보다 낮게 강제해 양쪽으로 막힌다 —
             // 같으면 문턱에서 떨 때마다 보고가 쏟아지고, 높으면 영원히 재무장되지 않는다.
+            //
+            // 단, 미션이 버린 당김(박자 시작 전 뜸 등)은 소모로 치지 않는다 — 문턱 조금 아래까지만
+            // 살짝 올렸다 내리면 다시 보고된다. 버려진 당김에도 절반까지 되밀기를 요구하면
+            // 일찍 한 번 당긴 레버가 바닥에 굳어, 응집 때 당겨도 아무 일도 일어나지 않는다.
+            // (문턱 위에 머물러 있다고 자동으로 다시 보내지는 않는다 — 박자가 시작되는 순간
+            //  저절로 당김이 찍혀 상대의 당김과 엉뚱하게 짝지어지기 때문이다.)
             float pull = Pull01;
-            float rearm = Mathf.Min(rearmThreshold, reportThreshold - 0.05f);
+            float rearm = lastRejected
+                ? reportThreshold - RejectedRearmMargin
+                : Mathf.Min(rearmThreshold, reportThreshold - 0.05f);
 
             if (reported)
             {
@@ -236,7 +249,10 @@ namespace ReBloom.Electricity
             if (pull < reportThreshold) return;
 
             reported = true;
-            if (mission != null) mission.ReportPull(requiredRole);
+            lastRejected = mission == null || !mission.ReportPull(requiredRole);
+
+            if (logToConsole && lastRejected)
+                Debug.Log($"[Lever] {name} 당김 버려짐(박자 시작 전·클리어 뒤) — 살짝 올렸다 다시 당기면 된다", this);
         }
 
         /// <summary>

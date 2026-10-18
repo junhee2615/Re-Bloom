@@ -23,6 +23,14 @@ namespace ReBloom.Solar
     ///  - 입력(플레이어 위치)이 이미 네트워크로 복제되므로, 각 피어가 같은 각도를 독립적으로
     ///    계산할 수 있다. 각도를 따로 동기화할 필요가 없다.
     ///
+    /// 그러려면 <b>모든 피어가 모든 플레이어를 봐야 한다.</b> 로컬 플레이어만 보면 상대가 올라선 판이
+    /// 내 화면에서는 움직이지 않는다(루멘이 기울인 판이 에코에게 안 보이던 원인).
+    /// 둘이 한 판에 서면 두 발 위치의 평균을 쓴다 — 어느 피어에서 계산해도 같은 규칙이다.
+    ///
+    /// 원격 플레이어 위치는 보간돼 늦게 오므로 내려오는 순간의 진행도가 피어마다 다르다.
+    /// 그래서 내려와도 즉시 멈추지 않고 <b>마지막 목표각까지 마저 간다</b> — 최종 각도가
+    /// "마지막 발 위치"만으로 정해져 피어 간 오차가 거의 사라진다.
+    ///
     /// 배치: 판 면 Transform에 붙인다. 이 Transform이 회전한다.
     /// </summary>
     [AddComponentMenu("ReBloom/Solar Panel Tilt")]
@@ -38,7 +46,7 @@ namespace ReBloom.Solar
         public float smoothTime = 0.25f;
 
         [Header("누가 올라서는가")]
-        [Tooltip("이 판을 맡을 역할. none이면 로컬 플레이어를 쓴다.")]
+        [Tooltip("이 판을 맡을 역할. none이면 누구든(모든 플레이어) 올라서면 움직인다.")]
         public Role occupantRole = Role.none;
         [Tooltip("발밑으로 이만큼(m) 내려 쏴서 이 판을 밟고 있는지 확인한다. " +
                  "리그 루트가 발 높이에 있으므로 0.5면 충분하다.")]
@@ -51,8 +59,14 @@ namespace ReBloom.Solar
         [Tooltip("앞뒤 기울기 −1~1. 1이면 maxPitch만큼 기운다.")]
         [Range(-1f, 1f)] public float debugForward;
 
-        /// <summary>지금 누군가 올라서 있는가.</summary>
+        /// <summary>지금 누군가(어느 플레이어든) 올라서 있는가. 모든 피어에서 같은 값이다.</summary>
         public bool IsOccupied { get; private set; }
+
+        /// <summary>
+        /// 이 기기의 로컬 플레이어가 올라서 있는가. 피어마다 다르다.
+        /// "내가 이 판 위에 있다"가 필요한 로컬 연출(진동 등)은 <see cref="IsOccupied"/>가 아니라 이것을 본다.
+        /// </summary>
+        public bool IsLocallyOccupied { get; private set; }
 
         /// <summary>지금 이 판의 법선(월드). 기울기가 반영된 현재 값이다.</summary>
         public Vector3 Normal => transform.up;
@@ -69,6 +83,13 @@ namespace ReBloom.Solar
         // 정규화된 현재 앞뒤 기울기 (-1..1).
         float current;
         float velocity;
+
+        // 마지막으로 올라서 있던 동안의 목표. 내려온 뒤 여기까지 마저 간다.
+        float target;
+        bool settling;
+
+        // 이 이하로 남으면 도착으로 본다(정규화 값, maxPitch 35°면 약 0.02°).
+        const float SettleEpsilon = 0.0005f;
 
         void Awake()
         {
@@ -89,16 +110,19 @@ namespace ReBloom.Solar
             if (reflector != null && reflector.broken)
             {
                 IsOccupied = false;
+                IsLocallyOccupied = false;
+                settling = false;
                 return;
             }
 
-            float target;
+            bool localOnDeck = false;
 
             if (debugManualTilt)
             {
                 target = debugForward;
+                localOnDeck = true;
             }
-            else if (TryGetFootPoint(out Vector3 foot))
+            else if (TryGetFootPoint(out Vector3 foot, out localOnDeck))
             {
                 // 감도는 판 크기가 아니라 fullDeflectionDistance로 정한다. 좌우 위치는 보지 않는다.
                 Vector3 local = ToLevelLocal(foot);
@@ -107,22 +131,43 @@ namespace ReBloom.Solar
             }
             else
             {
-                // 아무도 없으면 각도를 건드리지 않는다. 마지막 자세 그대로 남는다.
                 IsOccupied = false;
+                IsLocallyOccupied = false;
+
+                // 아무도 없으면 마지막 목표각까지만 마저 가고, 그 뒤로는 건드리지 않는다.
+                // 내려오는 순간 멈추면 피어마다 멈춘 자리가 달라 각도가 영구히 갈린다.
+                if (!settling) return;
+
+                current = Mathf.SmoothDamp(current, target, ref velocity, smoothTime);
+                if (Mathf.Abs(current - target) < SettleEpsilon)
+                {
+                    current = target;
+                    settling = false;
+                }
+
+                ApplyTilt();
                 return;
             }
 
             // 올라선 첫 프레임에는 지금 판이 놓인 각도에서 이어가야 한다.
             // 안 그러면 current 0에서 출발해 판이 수평으로 한 번 튄다.
-            if (!IsOccupied)
+            // 마저 가는 중(settling)에 다시 올라서면 이미 그 자리에서 이어지고 있으니 그대로 둔다.
+            if (!IsOccupied && !settling)
             {
                 current = CurrentTiltNormalized();
                 velocity = 0f;
-                IsOccupied = true;
             }
 
-            current = Mathf.SmoothDamp(current, target, ref velocity, smoothTime);
+            IsOccupied = true;
+            IsLocallyOccupied = localOnDeck;
+            settling = true;
 
+            current = Mathf.SmoothDamp(current, target, ref velocity, smoothTime);
+            ApplyTilt();
+        }
+
+        void ApplyTilt()
+        {
             // 앞에 서면 앞이 내려간다(시소). 기준은 씬 배치 각도가 아니라 수평이다.
             transform.rotation = restYaw * Quaternion.Euler(current * maxPitch, 0f, 0f);
         }
@@ -147,29 +192,41 @@ namespace ReBloom.Solar
             return Quaternion.Inverse(restYaw) * (world - transform.position);
         }
 
-        // 이 판을 맡은 플레이어의 발(리그 루트) 위치. 올라서 있지 않으면 false.
+        // 이 판을 밟고 있는 플레이어들의 발(리그 루트) 위치 평균. 아무도 없으면 false.
+        // localOnDeck = 그중에 이 기기의 로컬 플레이어가 있는가.
+        //
+        // 로컬 플레이어도 원격과 똑같이 네트워크 리그(PlayerTransform)로 잰다 — 하드웨어 리그를 쓰면
+        // 내 쪽만 보간 지연이 없어 피어 간 입력이 달라진다.
         //
         // 주의: 리그 루트는 조이스틱 이동·텔레포트로만 움직인다. 룸스케일로 몸만 옮기면
         // 헤드셋만 움직이고 여기에는 잡히지 않는다.
-        bool TryGetFootPoint(out Vector3 foot)
+        bool TryGetFootPoint(out Vector3 foot, out bool localOnDeck)
         {
             foot = default;
+            localOnDeck = false;
 
-            NetworkPlayer player;
-            if (occupantRole == Role.none)
-                player = NetworkPlayer.LocalInstance;
-            else if (!NetworkPlayer.TryGetByRole(occupantRole, out player))
-                return false;
+            Vector3 sum = Vector3.zero;
+            int count = 0;
 
-            if (player == null) return false;
+            foreach (NetworkPlayer player in NetworkPlayer.All)
+            {
+                if (player == null) continue;
+                if (occupantRole != Role.none && player.AssignedRole != occupantRole) continue;
 
-            Transform rig = player.PlayerTransform;
-            if (rig == null) return false;
+                Transform rig = player.PlayerTransform;
+                if (rig == null) continue;
 
-            Vector3 p = rig.position;
-            if (!StandingOnDeck(p)) return false;
+                Vector3 p = rig.position;
+                if (!StandingOnDeck(p)) continue;
 
-            foot = p;
+                sum += p;
+                count++;
+                if (player == NetworkPlayer.LocalInstance) localOnDeck = true;
+            }
+
+            if (count == 0) return false;
+
+            foot = sum / count;
             return true;
         }
 

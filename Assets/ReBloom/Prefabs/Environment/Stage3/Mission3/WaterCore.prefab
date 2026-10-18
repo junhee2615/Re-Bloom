@@ -274,6 +274,8 @@ GameObject:
   - component: {fileID: 5995859233099045448}
   - component: {fileID: 7871659825429312979}
   - component: {fileID: 8375989586693988298}
+  - component: {fileID: 4705612110867040771}
+  - component: {fileID: 5959698032738629447}
   m_Layer: 8
   m_Name: WaterCore
   m_TagString: Untagged
@@ -1203,6 +1205,85 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &4705612110867040771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443699499467080479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8886fe93b18434b48bbac0acb1cf74a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Water.RisingWater
+  target: {fileID: 8929543835237599104}
+  hideUntilPlayed: 1
+  alsoActivate: []
+  startY: -2.3625
+  endY: -1.3625
+  useLocalPosition: 1
+  duration: 6
+  startDelay: 0.4
+  ease:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1.8
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.35
+      value: 0.62
+      inSlope: 1.4
+      outSlope: 1.4
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.08
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  onRiseStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  onRiseCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  logToConsole: 1
+  allowReplay: 0
+--- !u!114 &5959698032738629447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443699499467080479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 870d723a8b37d0340a0880a3b67a636b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityClearTrigger
+  mission: {fileID: 0}
+  risingWaters:
+  - {fileID: 4705612110867040771}
+  onCleared:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2473026217530163789
 GameObject:
   m_ObjectHideFlags: 0
