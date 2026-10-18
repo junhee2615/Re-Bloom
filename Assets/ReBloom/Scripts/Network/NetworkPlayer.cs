@@ -415,6 +415,34 @@ public void RequestRevivePlant(int plantId)
         ReBloom.Water.RiverbedMissionNet.HostReceiveHit(waveIndex, (Role)role);
     }
 
+    // ── 네트워크 잡기 물체(NetworkGrabSync) ─────────────────────────────────
+    // 씬 잡기 물체는 StateAuthority가 호스트라 클라이언트의 이동이 복제되지 않는다.
+    // 클라이언트는 잡기/손 기준 자세/놓기를 호스트에 알리고, 호스트는 "잡은 사람"을 전원에 알린다.
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_GrabReport(NetworkId target, NetworkBool isLeft, Vector3 offsetPos, Quaternion offsetRot, RpcInfo info = default)
+    {
+        NetworkGrabSync.HostReceiveGrab(target, info.Source, isLeft, offsetPos, offsetRot);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_GrabOffset(NetworkId target, Vector3 offsetPos, Quaternion offsetRot, RpcInfo info = default)
+    {
+        NetworkGrabSync.HostReceiveOffset(target, info.Source, offsetPos, offsetRot);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_GrabRelease(NetworkId target, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, RpcInfo info = default)
+    {
+        NetworkGrabSync.HostReceiveRelease(target, info.Source, position, rotation, velocity, angularVelocity);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_GrabHolder(NetworkId target, PlayerRef holder, NetworkBool isLeft)
+    {
+        NetworkGrabSync.OnHolderChanged(target, holder, isLeft);
+    }
+
     // 물결 미션 시작 여부
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void Rpc_RiverbedStart()
