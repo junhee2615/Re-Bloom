@@ -329,6 +329,7 @@ GameObject:
   - component: {fileID: 3300096220577556117}
   - component: {fileID: 7100000000000000001}
   - component: {fileID: 7100000000000000002}
+  - component: {fileID: 8545685302875823709}
   m_Layer: 7
   m_Name: Player_mental
   m_TagString: Untagged
@@ -516,6 +517,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventory
   _HeldItem: 0
+  _AcquiredItem: 0
+  _EffectRemainingSeconds: 0
+  _EffectHardDeadline: 0
+  effectSeconds: 30
+  hardDeadlineMultiplier: 6
   logAcquire: 1
 --- !u!114 &7100000000000000002
 MonoBehaviour:
@@ -531,6 +537,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemPickupInput
   acquireCooldownSeconds: 0.5
   logInput: 1
+--- !u!114 &8545685302875823709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1084002099886820816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb65181708194d4782ac30e73048c8e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSensoryEffect
+  logEffect: 1
 --- !u!1 &1165481144042902569
 GameObject:
   m_ObjectHideFlags: 0

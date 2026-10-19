@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,6 +42,20 @@ public class WristInventoryView : MonoBehaviour
     [Tooltip("아이콘에 곱해지는 색. 전용 스프라이트로 교체하면 보통 흰색으로 둔다.")]
     [SerializeField] private Color iconTint = Color.white;
 
+    [Header("효과 타이머")]
+    [Tooltip("아이콘 위에 덮이는 진행률 오버레이. Image Type = Filled / Fill Method = Vertical / Origin = Top. " +
+             "비우면 자식 'Overlay'에서 찾는다.")]
+    [SerializeField] private Image overlayImage;
+
+    [Tooltip("아이콘 중앙의 남은 시간 숫자. 비우면 자식 'TimerText'에서 찾는다.")]
+    [SerializeField] private TMP_Text timerText;
+
+    [Tooltip("오버레이 색. 반투명 검정을 쓴다.")]
+    [SerializeField] private Color overlayColor = new Color(0f, 0f, 0f, 0.65f);
+
+    [Tooltip("남은 시간 숫자 색.")]
+    [SerializeField] private Color timerTextColor = Color.white;
+
     [Header("표시")]
     [Tooltip("보이기/숨기기에 쓰는 CanvasGroup. 비우면 이 오브젝트에서 찾는다.")]
     [SerializeField] private CanvasGroup canvasGroup;
@@ -72,12 +87,30 @@ public class WristInventoryView : MonoBehaviour
     // 어떤 인벤토리를 보고 있었는지. 재스폰으로 바뀌면 유예 시간을 다시 센다.
     private PlayerItemInventory trackedInventory;
 
+    // ── 효과 타이머 표시 상태 ──────────────────────────────────────────────
+    //
+    // displayedKind와 같은 이유로 래치한다. 스테이지 전환 중에는 LocalInstance가 null이라
+    // 네트워크 값을 읽을 수 없으므로, 마지막으로 본 값을 그대로 유지해야 UI가 깜빡이지 않는다.
+    //
+    // 로컬 타이머는 두지 않는다. 여기 담기는 값은 전부 [Networked] EffectRemainingSeconds를
+    // 그대로 복사한 것이다. 컷씬·로딩으로 호스트가 깎지 않으면 이 값도 그대로 멈춘다.
+    private bool displayedTimerVisible;
+    private float displayedRemaining;
+    private float displayedTotal = 30f;
+
+    // 숫자를 매 프레임 다시 대입하지 않기 위한 캐시(TMP 메시 재생성을 줄인다).
+    private int appliedTimerSeconds = -1;
+    private bool timerApplied;
+
     private Canvas ownCanvas;
     private float alpha;
 
     // 임시 아이콘. 에셋이 아니라 코드로 만든 텍스처라 씬에 저장되지 않는다.
     private static Sprite placeholderHearingAid;
     private static Sprite placeholderMedicine;
+
+    // 오버레이용 단색 스프라이트. Image.Type.Filled 는 sprite가 없으면 동작하지 않는다.
+    private static Sprite overlayFillSprite;
 
     private void Reset()
     {
@@ -106,16 +139,57 @@ public class WristInventoryView : MonoBehaviour
         if (iconImage != null)
             iconImage.raycastTarget = false;
 
+        ResolveTimerParts();
+
         // 최초 진입은 언제나 미보유 상태다.
         displayedKind = ItemKind.None;
+        displayedTimerVisible = false;
+        displayedRemaining = 0f;
         alpha = 0f;
         ApplyAlpha(0f);
+        ApplyTimer(false);
+    }
+
+    /// <summary>
+    /// 오버레이와 숫자 참조를 보강하고 XR 입력을 받지 않게 한다.
+    /// 프리팹에서 이미 연결·설정돼 있지만, 비어 있어도 동작하도록 이름으로 한 번 더 찾는다.
+    /// </summary>
+    private void ResolveTimerParts()
+    {
+        if (overlayImage == null)
+        {
+            Transform child = transform.Find("Overlay");
+
+            if (child != null)
+                overlayImage = child.GetComponent<Image>();
+        }
+
+        if (timerText == null)
+        {
+            Transform child = transform.Find("TimerText");
+
+            if (child != null)
+                timerText = child.GetComponent<TMP_Text>();
+        }
+
+        if (overlayImage != null)
+        {
+            overlayImage.raycastTarget = false;
+            overlayImage.color = overlayColor;
+        }
+
+        if (timerText != null)
+        {
+            timerText.raycastTarget = false;
+            timerText.color = timerTextColor;
+        }
     }
 
     private void Update()
     {
         UpdateDisplayedKind();
         ApplyIcon(displayedKind);
+        ApplyTimer(displayedKind != ItemKind.None && displayedTimerVisible);
         UpdateFade(displayedKind != ItemKind.None);
     }
 
@@ -143,11 +217,47 @@ public class WristInventoryView : MonoBehaviour
         }
 
         ItemKind observed = inventory.HeldItem;
+        bool effectActive = inventory.IsEffectActive;
+
+        // 효과가 돌고 있으면 손에 없어도 아이콘을 유지한다.
+        // 사용하면 HeldItem은 즉시 None이 되지만, 남은 시간을 아이콘 위에 보여줘야 하므로
+        // 획득 이력(AcquiredItem)으로 같은 아이콘을 계속 띄운다.
+        if (observed == ItemKind.None && effectActive)
+            observed = inventory.AcquiredItem;
+
+        // 타이머 표시 값은 인벤토리를 볼 수 있을 때만 갱신한다.
+        // 전환 중(LocalInstance == null)에는 위에서 이미 return 했으므로 마지막 값이 유지된다.
+        displayedTimerVisible = effectActive;
+
+        if (effectActive)
+        {
+            displayedRemaining = inventory.EffectRemainingSeconds;
+
+            float total = inventory.EffectTotalSeconds;
+
+            if (total > 0f)
+                displayedTotal = total;
+        }
 
         if (observed != ItemKind.None)
         {
             emptyStreak = 0f;
             SetDisplayedKind(observed);
+            return;
+        }
+
+        // 여기까지 왔으면 손에도 없고 효과도 끝났다.
+        //
+        // 소비가 확정된 경우에는 유예 없이 즉시 지운다.
+        // clearGraceSeconds는 "스테이지 재스폰 직후 [Networked] 값이 아직 안 온 공백"을
+        // 흡수하기 위한 장치다. 소비는 그 공백과 성질이 다르다 — AcquiredItem이 남아 있는데
+        // HeldItem과 남은 시간이 모두 비었다는 것은 효과까지 끝났다는 뜻이고, 되돌아올 값이 없다.
+        // 한 번 지워진 뒤에는 다시 채워지지 않으므로 아이콘도 되살아나지 않는다.
+        if (inventory.IsConsumed)
+        {
+            emptyStreak = 0f;
+            displayedRemaining = 0f;
+            SetDisplayedKind(ItemKind.None);
             return;
         }
 
@@ -209,6 +319,107 @@ public class WristInventoryView : MonoBehaviour
             default:
                 return null;
         }
+    }
+
+    /// <summary>
+    /// 진행률 오버레이와 남은 시간 숫자를 반영한다.
+    ///
+    /// 진행률은 <c>1 - 남은시간/총시간</c> 이다. 효과 시작 시 0이라 아이콘이 전부 보이고,
+    /// 시간이 줄수록 1에 가까워져 어두운 영역이 넓어진다. Fill Origin이 Top이므로
+    /// 어두운 영역은 <b>위에서 아래로</b> 차오른다.
+    ///
+    /// 여기서 쓰는 값은 전부 네트워크 타이머를 복사한 것이다. 별도의 로컬 카운트다운이 없으므로
+    /// 컷씬·로딩으로 <c>EffectRemainingSeconds</c> 가 멈추면 숫자와 오버레이도 함께 멈춘다.
+    /// </summary>
+    private void ApplyTimer(bool show)
+    {
+        if (overlayImage != null)
+        {
+            if (overlayImage.enabled != show)
+                overlayImage.enabled = show;
+
+            if (show)
+            {
+                EnsureOverlayFill();
+
+                float ratio = displayedTotal > 0f
+                    ? displayedRemaining / displayedTotal
+                    : 0f;
+
+                overlayImage.fillAmount = Mathf.Clamp01(1f - ratio);
+            }
+        }
+
+        if (timerText != null)
+        {
+            if (timerText.enabled != show)
+                timerText.enabled = show;
+
+            if (show)
+            {
+                int seconds = Mathf.Max(0, Mathf.CeilToInt(displayedRemaining));
+
+                if (!timerApplied || seconds != appliedTimerSeconds)
+                {
+                    timerApplied = true;
+                    appliedTimerSeconds = seconds;
+                    timerText.text = seconds.ToString();
+                }
+            }
+        }
+
+        if (!show)
+        {
+            timerApplied = false;
+            appliedTimerSeconds = -1;
+        }
+    }
+
+    /// <summary>
+    /// 오버레이가 Filled로 동작할 수 있게 보장한다.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Image"/> 는 sprite가 null이면 type을 무시하고 단순 사각형을 그린다.
+    /// 즉 <c>fillAmount</c> 가 전혀 반영되지 않는다. 전용 에셋을 만들지 않기 위해
+    /// 단색 스프라이트를 코드로 한 번 만들어 쓴다. <c>SpriteMeshType.FullRect</c> 는
+    /// Filled에 필수다(Tight 메시는 채움 계산이 어긋난다).
+    /// 프리팹 쪽에서 이미 설정돼 있으면 이 메서드는 아무것도 바꾸지 않는다.
+    /// </remarks>
+    private void EnsureOverlayFill()
+    {
+        if (overlayImage.sprite == null)
+        {
+            if (overlayFillSprite == null)
+                overlayFillSprite = CreateSolidSprite();
+
+            overlayImage.sprite = overlayFillSprite;
+        }
+
+        if (overlayImage.type != Image.Type.Filled)
+            overlayImage.type = Image.Type.Filled;
+
+        if (overlayImage.fillMethod != Image.FillMethod.Vertical)
+            overlayImage.fillMethod = Image.FillMethod.Vertical;
+
+        // 위에서 아래로 차오르게 한다.
+        if (overlayImage.fillOrigin != (int)Image.OriginVertical.Top)
+            overlayImage.fillOrigin = (int)Image.OriginVertical.Top;
+    }
+
+    /// <summary>오버레이용 흰색 단색 스프라이트. 색은 Image.color가 결정한다.</summary>
+    private static Sprite CreateSolidSprite()
+    {
+        const int size = 4;
+        Texture2D texture = CreateTexture(size);
+        Color[] pixels = new Color[size * size];
+
+        for (int i = 0; i < pixels.Length; i++)
+            pixels[i] = Color.white;
+
+        texture.SetPixels(pixels);
+        texture.Apply(false, false);
+
+        return CreateSprite(texture);
     }
 
     private void UpdateFade(bool show)
