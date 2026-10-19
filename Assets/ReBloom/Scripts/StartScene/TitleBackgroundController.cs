@@ -339,8 +339,30 @@ public class TitleBackgroundController : MonoBehaviour
     }
 
     /// <summary>
-    /// 배경 씬 안의 XR 상호작용 컴포넌트만 꺼서, 플레이어가 미션 오브젝트를
-    /// 잡거나 레이로 선택하지 못하게 한다.
+    /// 배경 씬 안의 XR 상호작용 컴포넌트와 <see cref="Outline"/> 을 꺼서, 플레이어가 미션
+    /// 오브젝트를 잡거나 레이로 선택하지 못하게 하고 아웃라인도 보이지 않게 한다.
+    ///
+    /// 아웃라인을 여기서 끄는 이유 (2026-10-20):
+    /// 배경 씬 <c>Stage1_TitleBackground</c> 에는 Outline 컴포넌트가 7개 있고, 타이틀 화면은
+    /// UI만 고르는 곳이라 강조할 미션 대상이 없다. 그 씬은 이 컨트롤러만 Additive로 올리므로
+    /// (<c>backgroundSceneName</c>), 여기서 끄면 <b>StartScene에만</b> 적용된다.
+    /// Stage1~3의 아웃라인 연출은 각자 자기 씬에서 그대로 동작한다.
+    ///
+    /// 왜 씬이나 프리팹을 고치지 않는가:
+    /// Outline이 붙은 7개는 모두 공유 프리팹 인스턴스다. 프리팹을 고치면 Stage1·Stage2의
+    /// 아웃라인 연출이 함께 죽고, 씬 쪽 오버라이드로 꺼도 다음에 프리팹을 갱신하면 되살아난다.
+    /// 코드로 끄면 대상이 몇 개로 늘어나든 자동으로 따라온다.
+    ///
+    /// 끄는 시점이 안전한 이유:
+    /// 이 메서드는 <c>yield return load</c> 뒤에 호출되므로 배경 씬의 모든 <c>Awake</c> 가
+    /// 이미 끝났다. QuickOutline은 <c>Awake</c> 에서 renderers를 캐시하고 <c>OnDisable</c> 에서
+    /// 그 배열을 쓰기 때문에, 로드가 끝난 뒤에 끄는 것이 중요하다.
+    ///
+    /// 런타임에 되살아나지 않는 근거:
+    /// 아웃라인을 다시 켜는 유일한 경로는 <c>MissionOutlineHighlighter.OnTutorialChanged</c> 이고,
+    /// 그 이벤트는 <c>TutorialMissionManager.Update</c> 에서만 발행된다. 그 Update는
+    /// <c>if (Object == null || !Object.IsValid) return;</c> 로 시작하는데, StartScene에는
+    /// Fusion Runner가 없어 NetworkObject가 스폰되지 않으므로 이벤트가 발행되지 않는다.
     ///
     /// 왜 필요한가:
     /// DoorRotate / LeverSwitch / ValveRotate / GeneratorDoorRotate 는 잡히는 순간
@@ -381,11 +403,14 @@ public class TitleBackgroundController : MonoBehaviour
             // 나중에 누군가 그 오브젝트를 켜도 상호작용이 되살아나지 않는다.
             disabled += DisableAll(root.GetComponentsInChildren<IXRInteractable>(true), seen, byType);
             disabled += DisableAll(root.GetComponentsInChildren<IXRInteractor>(true), seen, byType);
+
+            // 미션 오브젝트의 아웃라인. 타이틀 화면은 UI만 고르는 곳이라 강조할 대상이 없다.
+            disabled += DisableAll(root.GetComponentsInChildren<Outline>(true), seen, byType);
         }
 
         if (disabled == 0)
         {
-            Debug.Log($"[TitleBackground] '{scene.name}'에 끌 XR 상호작용 컴포넌트가 없습니다.", this);
+            Debug.Log($"[TitleBackground] '{scene.name}'에 끌 컴포넌트가 없습니다.", this);
             return;
         }
 
@@ -395,7 +420,7 @@ public class TitleBackgroundController : MonoBehaviour
             summary.Append($" {pair.Key}×{pair.Value}");
 
         Debug.Log(
-            $"[TitleBackground] '{scene.name}'의 XR 상호작용 {disabled}개 비활성화 -{summary}", this);
+            $"[TitleBackground] '{scene.name}'의 상호작용·아웃라인 {disabled}개 비활성화 -{summary}", this);
     }
 
     /// <summary>
