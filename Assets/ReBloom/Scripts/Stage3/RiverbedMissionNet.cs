@@ -150,6 +150,7 @@ namespace ReBloom.Water
             waveCloseTime = Time.time + r.approachDuration + 1.2f;
 
             Broadcast_Wave(waveIndex, waveIsReal, r.approachDuration);
+            ResearchRiverbedTracker.WaveStart(waveIndex, waveIsReal, r.approachDuration);   // 연구 로그
             if (logToConsole)
                 Debug.Log("[RiverbedNet] wave #" + waveIndex + " (" + (waveIsReal ? "REAL" : "FAKE") + ") 송출", this);
         }
@@ -212,6 +213,7 @@ namespace ReBloom.Water
             // 둘 다 맞췄다
             waveOpen = false;
             successCount++;
+            ResearchRiverbedTracker.WaveSuccess(index);   // 연구 로그
 
             RiverbedFlowController.RoundSetup r = controller.CurrentRound;
             float baseline = r != null ? r.wetBaselineOnSuccess : 0.2f;
@@ -266,6 +268,21 @@ namespace ReBloom.Water
             NetworkPlayer local = NetworkPlayer.LocalInstance;
             if (local == null) return;
             local.RequestRiverbedHit(index, (int)local.AssignedRole);
+        }
+
+        // 연구 로그: 로컬 플레이어의 물결 입력 하나를 호스트에 알린다. result = ResearchRiverbedTracker.ResultHit/Wrong/Empty
+        public static void ReportLocalInput(int index, Role role, float sinceWaveStart, float errorSeconds, int result)
+        {
+            NetworkPlayer local = NetworkPlayer.LocalInstance;
+            if (local == null) return;
+            local.RequestRiverbedInput(index, (int)role, sinceWaveStart, errorSeconds, result);
+        }
+
+        // 연구 로그: 호스트가 입력 보고를 받는 곳 (NetworkPlayer RPC 가 호출)
+        public static void HostReceiveInput(int index, Role role, float sinceWaveStart, float errorSeconds, int result)
+        {
+            if (Instance == null || !Instance.IsHost) return;
+            ResearchRiverbedTracker.Input(index, role, sinceWaveStart, errorSeconds, result);
         }
 
         void Broadcast_Start()
