@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -720,7 +720,12 @@ namespace ReBloom.Water
             {
                 if (Time.time - lastEmptyPressTime < emptyPressCooldown) return;
                 lastEmptyPressTime = Time.time;
-                if (networkDriven) { lastOutcomeText = "헛침"; lastOutcomeTime = Time.time; return; }
+                if (networkDriven)
+                {
+                    lastOutcomeText = "헛침"; lastOutcomeTime = Time.time;
+                    RiverbedMissionNet.ReportLocalInput(waveIndex, role, 0f, 0f, ResearchRiverbedTracker.ResultEmpty);   // 연구 로그
+                    return;
+                }
                 Resolve(WaveOutcome.FalseAlarm, 0f);
                 return;
             }
@@ -735,6 +740,9 @@ namespace ReBloom.Water
                 bool netHit = waveIsReal && (role == Role.ear
                     ? hapticIntensity >= earPlateauThreshold
                     : IsMentalHit(err));
+                // 연구 로그: 이 입력의 타이밍과 판정을 호스트에 알린다
+                RiverbedMissionNet.ReportLocalInput(waveIndex, role, t - waveStartTime, err,
+                    netHit ? ResearchRiverbedTracker.ResultHit : ResearchRiverbedTracker.ResultWrong);
 
                 if (netHit)
                 {

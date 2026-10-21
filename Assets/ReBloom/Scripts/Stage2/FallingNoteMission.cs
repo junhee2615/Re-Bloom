@@ -212,6 +212,7 @@ public class FallingNoteMission : ActivationMission
 
             if (judge) SubmitResult(key, success);
             ClearRoundKeys(PhaseNotes, attempt, notes.Count);
+            ResearchReportAttempt("Notes", attempt, success, true);   // 연구 로그
 
             // (4) 결과 처리
             if (gamePanel != null) gamePanel.SetActive(false);

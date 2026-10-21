@@ -53,6 +53,9 @@ public class CombinedMission : ActivationMission
     [Header("효과음")]
     [SerializeField] private AudioSource pulseAudioSource;
     [SerializeField] private AudioClip pulseClip;
+    [Tooltip("이 미션에서만 쓰는 휘슬 볼륨 배율. 실제 크기 = Pulse Audio Source 볼륨 × 이 값")]
+    [Range(0f, 1f)]
+    [SerializeField] private float pulseVolume = 0.2f;
 
     [Header("협동 역할")]
     [Tooltip("리듬 소리를 듣는 역할 (기본 Host)")]
@@ -159,7 +162,7 @@ private IEnumerator RunMission()
     {
         if (!LocalMatches(soundRole)) return;
         if (pulseAudioSource != null && pulseClip != null)
-            AudioSource.PlayClipAtPoint(pulseClip, transform.position);
+            pulseAudioSource.PlayOneShot(pulseClip, pulseVolume);
     }
 
     // (10) Grab 박자 판정 (grabRole 입력만 카운트)
@@ -475,6 +478,7 @@ private void ResetNoteRound()
 
             if (iJudge && connected) net.SubmitResult(key, success);
             if (connected) net.ClearResult(key);
+            ResearchReportAttempt("Notes", attempt, success, true);   // 연구 로그 (2부)
 
             // (3) 결과
             if (gameNotes != null) gameNotes.SetActive(false);
@@ -563,6 +567,7 @@ private void ResetNoteRound()
                     yield return null;
             }
             if (connected) net.ClearResult(key);
+            ResearchReportAttempt("Sound", attempt, success, false);   // 연구 로그 (1부)
 
             // (11)
             if (buttonImage != null) buttonImage.SetActive(false);
