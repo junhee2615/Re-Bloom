@@ -131,13 +131,10 @@ namespace ReBloom.Electricity
             if ((Role)role == Role.mental) MentalHolding = holding;
             else if ((Role)role == Role.ear) EarHolding = holding;
 
-            // 놓은 사람의 "아직 짝을 못 만난 당김"은 버린다. 안 그러면 다시 잡은 뒤
-            // 상대가 당겼을 때 놓기 전의 낡은 tick과 짝지어져 엉뚱한 실패가 난다.
-            if (!holding)
-            {
-                if ((Role)role == Role.mental) mentalPullTick = -1;
-                else if ((Role)role == Role.ear) earPullTick = -1;
-            }
+            // 놓았다고 그 사람의 "아직 짝을 못 만난 당김"을 버리면 안 된다 — VR에서는 **당기고 바로 놓는** 게
+            // 자연스러운 동작이라, 그러면 상대가 0.2초 뒤에 당겨도 짝이 사라져 판정 자체가 안 난다
+            // (2026-10-22 "동시에 내렸는데 클리어가 안 된다"). 낡은 당김과 짝지어지는 문제는
+            // 놓기가 아니라 **시간**으로 막는다 — JudgeIfBothPulled에서 창보다 오래된 당김은 버린다.
 
             bool anyone = MentalHolding || EarHolding;
 
@@ -201,6 +198,10 @@ namespace ReBloom.Electricity
             if ((Role)role == Role.mental) mentalPullTick = tick;
             else if ((Role)role == Role.ear) earPullTick = tick;
 
+            if (logToConsole)
+                Debug.Log($"[전기코어] 당김 수신 — {(Role)role}, 경과={TickToTime(tick) - RunStartTime:F2}s, " +
+                          $"응집 창 안={clock.IsConvergedAt(TickToTime(tick) - RunStartTime)}", this);
+
             JudgeIfBothPulled();
         }
 
@@ -208,9 +209,21 @@ namespace ReBloom.Electricity
         {
             if (mentalPullTick < 0 || earPullTick < 0) return;
 
-            // ① 두 사람이 충분히 같은 순간에 당겼는가
+            // ① 두 사람이 충분히 같은 순간에 당겼는가. 창보다 벌어졌으면 **실패가 아니라 짝이 아닌 것**이다 —
+            //    오래된 쪽만 버리고 새 당김은 남겨 둔다(상대가 곧 다시 당길 수 있다).
             float gap = TicksToSeconds(Mathf.Abs(mentalPullTick - earPullTick));
-            bool together = gap <= syncWindow;
+            if (gap > syncWindow)
+            {
+                if (logToConsole)
+                    Debug.Log($"[전기코어] 짝 없음 — 간격 {gap:F2}s > 창 {syncWindow}s, 오래된 " +
+                              $"{(mentalPullTick < earPullTick ? "mental" : "ear")} 당김을 버림", this);
+
+                if (mentalPullTick < earPullTick) mentalPullTick = -1;
+                else earPullTick = -1;
+                return;
+            }
+
+            bool together = true;
 
             // ② 그 순간이 실제로 응집 때였는가 — 늦게 온 쪽 기준으로 본다.
             //    시계의 박은 RunStartTime이 0점이므로 경과 시간으로 환산해서 물어야 한다.
