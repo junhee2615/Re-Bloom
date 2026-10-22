@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 2259819779348811936}
   - component: {fileID: 4162222266881106023}
   - component: {fileID: 2476433307915023617}
+  - component: {fileID: 5159590105274479809}
   m_Layer: 8
   m_Name: Fuel
   m_TagString: Untagged
@@ -255,6 +256,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
@@ -1231,6 +1233,24 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5159590105274479809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4868179538887660178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a355f8693bf875469eee96892c7b782, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkGrabSync
+  offsetSendRate: 15
+  offsetPositionEpsilon: 0.002
+  offsetAngleEpsilon: 0.5
+  maxReleaseSpeed: 2.5
+  maxReleaseAngularSpeed: 10
+  logToConsole: 1
 --- !u!1001 &7376017106048347101
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -9,15 +9,26 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 /// <summary>
 /// StartScene 타이틀 화면의 3D 배경과 시점을 담당한다.
 ///
-/// 하는 일은 넷뿐이다.
-///   ① 영속 XR Rig의 Locomotion을 꺼서 낙하·이동을 막는다
-///   ② 리그를 촬영 시점으로 옮긴다 (수평 Head Offset 보정)
-///   ③ TitleCanvas / MenuCanvas를 같은 양만큼 함께 옮겨 구도를 보존한다
-///   ④ Stage1_TitleBackground를 Additive로 올린다
+/// 하는 일은 셋뿐이다.
+///   ① 리그를 촬영 시점으로 옮긴다 (수평 Head Offset 보정)
+///   ② TitleCanvas / MenuCanvas를 같은 양만큼 함께 옮겨 구도를 보존한다
+///   ③ Stage1_TitleBackground를 Additive로 올린다
 ///
-/// 그리고 StartScene을 떠날 때 ①②를 **원래대로 되돌린다.**
+/// 그리고 StartScene을 떠날 때 ①을 **원래대로 되돌린다.**
 ///
-/// 왜 되돌려야 하는가:
+/// Locomotion은 더 이상 잠그지 않는다 (2026-10-18):
+/// StartScene을 "이동 제한이 없는 일반 맵"으로 쓰기로 했다. 걷기·텔레포트·중력·
+/// 점프가 스테이지와 똑같이 동작해야 하므로 <see cref="lockLocomotionDuringTitle"/>
+/// 기본값이 false다. 켜면 예전처럼 Locomotion 루트를 끈다(롤백 경로).
+///
+/// 중력을 켜 두어도 떨어지지 않는 근거:
+/// StartScene의 <c>Floor</c>(Layer 31)는 Plane 메시를 scale (5,1,5)로 깐 것이라
+/// x·z 각각 ±25, 윗면 y 0.08인 50×50 바닥이다. 리그의 씬 배치 위치
+/// (0, 0, -0.4786)와 촬영 시점 <see cref="shotPosition"/> (1.5, 0, -18) 모두
+/// 그 안에 들어가므로 두 지점 다 접지된다. MeshCollider는 convex가 아니라
+/// 평면 그대로 충돌한다.
+///
+/// 왜 리그 포즈는 여전히 되돌려야 하는가:
 /// XR Rig은 DontDestroyOnLoad라 Opening까지 살아서 넘어간다.
 /// OpeningEnvironmentController.Awake()가 그 시점의 리그 포즈를
 /// "연출 전 원래 포즈"로 저장했다가 타이틀이 끝나면 그 자리로 되돌린 뒤
@@ -54,6 +65,12 @@ public class TitleBackgroundController : MonoBehaviour
     [SerializeField] private Transform titleCanvas;
     [SerializeField] private Transform menuCanvas;
 
+    [Header("이동")]
+    [Tooltip("켜면 타이틀 동안 XR Rig의 Locomotion 루트를 꺼서 걷기·텔레포트·중력·점프를 모두 막는다. " +
+             "StartScene을 일반 맵으로 쓰기로 해 기본값은 꺼짐이다. " +
+             "실기에서 추락이나 끼임이 생기면 이것만 켜서 예전 동작으로 되돌릴 수 있다.")]
+    [SerializeField] private bool lockLocomotionDuringTitle = false;
+
     [Header("Debug")]
     [Tooltip("HMD 트래킹이 유효해질 때까지 기다릴 최대 프레임. 헤드셋 없는 에디터에서 무한 대기를 막는 상한이다.")]
     [SerializeField, Min(1)] private int trackingWaitTimeoutFrames = 180;
@@ -79,8 +96,9 @@ public class TitleBackgroundController : MonoBehaviour
     private bool destroyed;
 
     /// <summary>
-    /// 첫 프레임이 그려지기 전에 Locomotion부터 끈다.
+    /// 리그 위치와 UI 배치를 기억해 둔다. Locomotion은 기본적으로 건드리지 않는다.
     ///
+    /// <see cref="lockLocomotionDuringTitle"/> 를 켠 경우에만 첫 프레임 전에 Locomotion을 끈다.
     /// Awake에서 끄는 이유는 Opening과 같다 — GravityProvider는 접지하지 못하면
     /// 종단속도까지 가속하고, 쌓인 낙하 속도는 Transform을 직접 옮겨도 초기화되지 않는다.
     /// 리그 이동보다 먼저 꺼 두어야 한 프레임도 떨어지지 않는다.
@@ -321,8 +339,30 @@ public class TitleBackgroundController : MonoBehaviour
     }
 
     /// <summary>
-    /// 배경 씬 안의 XR 상호작용 컴포넌트만 꺼서, 플레이어가 미션 오브젝트를
-    /// 잡거나 레이로 선택하지 못하게 한다.
+    /// 배경 씬 안의 XR 상호작용 컴포넌트와 <see cref="Outline"/> 을 꺼서, 플레이어가 미션
+    /// 오브젝트를 잡거나 레이로 선택하지 못하게 하고 아웃라인도 보이지 않게 한다.
+    ///
+    /// 아웃라인을 여기서 끄는 이유 (2026-10-20):
+    /// 배경 씬 <c>Stage1_TitleBackground</c> 에는 Outline 컴포넌트가 7개 있고, 타이틀 화면은
+    /// UI만 고르는 곳이라 강조할 미션 대상이 없다. 그 씬은 이 컨트롤러만 Additive로 올리므로
+    /// (<c>backgroundSceneName</c>), 여기서 끄면 <b>StartScene에만</b> 적용된다.
+    /// Stage1~3의 아웃라인 연출은 각자 자기 씬에서 그대로 동작한다.
+    ///
+    /// 왜 씬이나 프리팹을 고치지 않는가:
+    /// Outline이 붙은 7개는 모두 공유 프리팹 인스턴스다. 프리팹을 고치면 Stage1·Stage2의
+    /// 아웃라인 연출이 함께 죽고, 씬 쪽 오버라이드로 꺼도 다음에 프리팹을 갱신하면 되살아난다.
+    /// 코드로 끄면 대상이 몇 개로 늘어나든 자동으로 따라온다.
+    ///
+    /// 끄는 시점이 안전한 이유:
+    /// 이 메서드는 <c>yield return load</c> 뒤에 호출되므로 배경 씬의 모든 <c>Awake</c> 가
+    /// 이미 끝났다. QuickOutline은 <c>Awake</c> 에서 renderers를 캐시하고 <c>OnDisable</c> 에서
+    /// 그 배열을 쓰기 때문에, 로드가 끝난 뒤에 끄는 것이 중요하다.
+    ///
+    /// 런타임에 되살아나지 않는 근거:
+    /// 아웃라인을 다시 켜는 유일한 경로는 <c>MissionOutlineHighlighter.OnTutorialChanged</c> 이고,
+    /// 그 이벤트는 <c>TutorialMissionManager.Update</c> 에서만 발행된다. 그 Update는
+    /// <c>if (Object == null || !Object.IsValid) return;</c> 로 시작하는데, StartScene에는
+    /// Fusion Runner가 없어 NetworkObject가 스폰되지 않으므로 이벤트가 발행되지 않는다.
     ///
     /// 왜 필요한가:
     /// DoorRotate / LeverSwitch / ValveRotate / GeneratorDoorRotate 는 잡히는 순간
@@ -363,11 +403,14 @@ public class TitleBackgroundController : MonoBehaviour
             // 나중에 누군가 그 오브젝트를 켜도 상호작용이 되살아나지 않는다.
             disabled += DisableAll(root.GetComponentsInChildren<IXRInteractable>(true), seen, byType);
             disabled += DisableAll(root.GetComponentsInChildren<IXRInteractor>(true), seen, byType);
+
+            // 미션 오브젝트의 아웃라인. 타이틀 화면은 UI만 고르는 곳이라 강조할 대상이 없다.
+            disabled += DisableAll(root.GetComponentsInChildren<Outline>(true), seen, byType);
         }
 
         if (disabled == 0)
         {
-            Debug.Log($"[TitleBackground] '{scene.name}'에 끌 XR 상호작용 컴포넌트가 없습니다.", this);
+            Debug.Log($"[TitleBackground] '{scene.name}'에 끌 컴포넌트가 없습니다.", this);
             return;
         }
 
@@ -377,7 +420,7 @@ public class TitleBackgroundController : MonoBehaviour
             summary.Append($" {pair.Key}×{pair.Value}");
 
         Debug.Log(
-            $"[TitleBackground] '{scene.name}'의 XR 상호작용 {disabled}개 비활성화 -{summary}", this);
+            $"[TitleBackground] '{scene.name}'의 상호작용·아웃라인 {disabled}개 비활성화 -{summary}", this);
     }
 
     /// <summary>
@@ -437,16 +480,25 @@ public class TitleBackgroundController : MonoBehaviour
     }
 
     /// <summary>
-    /// Locomotion GameObject 전체를 끈다.
+    /// Locomotion GameObject 전체를 끈다. <see cref="lockLocomotionDuringTitle"/> 가 꺼져 있으면
+    /// <b>아무것도 하지 않는다</b> — 그것이 기본값이고, 그 경우 Locomotion 루트와 모든 하위
+    /// Provider는 XR Rig 프리팹의 원래 활성 상태를 그대로 유지한다.
     ///
-    /// GravityProvider만 끄지 않고 GameObject를 끄는 이유는 복구할 상태가 bool 하나로
+    /// 켠 경우: GravityProvider만 끄지 않고 GameObject를 끄는 이유는 복구할 상태가 bool 하나로
     /// 끝나기 때문이다. InputActionManager는 XR Origin **루트**에 있고 Locomotion의
     /// 자식(Turn/Move/Grab/Teleportation/Climb/Gravity/Jump)에는 없으므로,
     /// 이 호출은 공유 XRI Input Actions를 건드리지 않는다.
     /// Main Camera / Controller / PhysicsHands도 그대로라 UI Ray와 손 추적은 유지된다.
+    ///
+    /// 다만 Locomotion 오브젝트에는 <c>LocomotionMediator</c> 와 <c>XRBodyTransformer</c> 가
+    /// 함께 붙어 있어, 끄면 Provider뿐 아니라 <b>이동을 적용하는 경로 전체</b>가 멈춘다.
+    /// 텔레포트가 StartScene에서 전혀 동작하지 않았던 이유가 이것이다.
     /// </summary>
     private void LockLocomotion()
     {
+        if (!lockLocomotionDuringTitle)
+            return;
+
         if (locomotionStateCaptured || rigRoot == null)
             return;
 

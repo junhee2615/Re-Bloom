@@ -168,6 +168,7 @@ public void CompleteActivation()
         if (mission != null)
         {
             mission.OnCleared = CompleteActivation;
+            mission.ResearchBegin();   // 연구 로그: 실패 횟수 초기화
             mission.StartMission();
         }
         else
@@ -191,6 +192,7 @@ public void CompleteActivation()
         {
             mission.SetMissionIndex(MissionIndex);
             mission.OnCleared = OnMissionClearedNet;
+            mission.ResearchBegin();   // 연구 로그: 실패 횟수 초기화
             mission.StartMission();
 
             if (mission.CanLocalPlayerPlay())

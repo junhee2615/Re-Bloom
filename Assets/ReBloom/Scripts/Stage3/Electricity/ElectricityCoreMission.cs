@@ -179,12 +179,18 @@ namespace ReBloom.Electricity
         /// 레버를 당겼다고 보고한다. <b>레버 쪽 컴포넌트가 로컬에서 당긴 순간</b> 부른다.
         /// 호스트든 클라이언트든 같은 입구를 쓴다.
         /// </summary>
-        public void ReportPull(Role role)
+        /// <returns>
+        /// 보고가 나갔는가. 박자가 돌기 전(뜸 포함)·클리어 뒤에는 false — 레버는 이 값으로
+        /// "당김을 소모했는지"를 정해야 한다. 버려진 당김을 소모로 치면 레버가 당겨진 채 굳어
+        /// 정작 응집 때 다시 당겨도 보고가 나가지 않는다.
+        /// </returns>
+        public bool ReportPull(Role role)
         {
             // 박자가 돌기 전(뜸 포함)과 클리어 뒤의 당김은 아무 일도 하지 않는다.
-            if (!IsSpawned || IsClear || !clock.Running) return;
+            if (!IsSpawned || IsClear || !clock.Running) return false;
 
             RPC_ReportPull((int)role, Runner.Tick);
+            return true;
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]

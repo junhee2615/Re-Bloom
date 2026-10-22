@@ -136,4 +136,47 @@ public abstract class ActivationMission : MonoBehaviour
     {
         OnCleared?.Invoke();
     }
+
+    // ------------------------------------------------------------------
+    // 연구 로그: 뿌리별 미션 실패 횟수
+    // 두 머신 모두 호출하지만 CSV는 호스트만 기록하므로 중복되지 않는다.
+    //  - RootMissionStart | 뿌리 이름
+    //  - RootMissionFail  | 뿌리 이름 | 페이즈 | 몇 번째 시도인지 | 이 뿌리의 누적 실패 횟수
+    //  - RootMissionClear | 뿌리 이름 | 이 뿌리의 총 실패 횟수
+    // ------------------------------------------------------------------
+
+    private int researchFailCount;
+
+    private string ResearchRootName
+    {
+        get
+        {
+            RootActivation root = GetComponentInParent<RootActivation>(true);
+            return root != null ? root.name : name;
+        }
+    }
+
+    /// <summary>RootActivation이 미션을 시작하기 직전에 호출한다. 실패 횟수를 초기화한다.</summary>
+    public void ResearchBegin()
+    {
+        researchFailCount = 0;
+        ResearchLog.Event("RootMissionStart", ResearchRootName);
+    }
+
+    /// <summary>
+    /// 한 시도의 판정이 확정된 직후(결과 문구를 보여주기 전)에 호출한다.
+    /// finalPhase가 true인 페이즈를 성공하면 이 뿌리의 총 실패 횟수를 남긴다.
+    /// </summary>
+    protected void ResearchReportAttempt(string phase, int attempt, bool success, bool finalPhase)
+    {
+        if (!success)
+        {
+            researchFailCount++;
+            ResearchLog.Event("RootMissionFail", ResearchRootName, phase, attempt + 1, researchFailCount);
+            return;
+        }
+
+        if (finalPhase)
+            ResearchLog.Event("RootMissionClear", ResearchRootName, researchFailCount);
+    }
 }

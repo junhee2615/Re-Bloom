@@ -69,6 +69,14 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
     public bool IsLocomotionLocked { get; private set; }
 
     /// <summary>
+    /// Fusion이 씬을 교체하는 중인지. <see cref="OnSceneLoadStart"/> ~ <see cref="OnSceneLoadDone"/> 사이가 true다.
+    ///
+    /// 아이템 효과 타이머(<see cref="ItemEffectClock"/>)가 로딩 중에 시간을 깎지 않도록 쓴다.
+    /// 로딩이 끝나면 <see cref="OnSceneLoadDone"/> 이 무조건 false로 되돌리므로 영구히 true로 남지 않는다.
+    /// </summary>
+    public bool IsSceneLoading { get; private set; }
+
+    /// <summary>
     /// 이동/회전/텔레포트를 잠그거나 푼다. 중력은 항상 유지한다.
     /// 잠글 때 실제로 켜져 있던 대상만 기억했다가 그대로 되돌리므로,
     /// 원래 꺼져 있던 프로바이더를 임의로 켜지 않는다.
@@ -314,6 +322,7 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
         // 이전 씬의 연출이 이동을 잠그거나 UI를 숨긴 채로 끝났더라도
         // 새 씬에서는 반드시 정상 상태로 시작한다.
+        IsSceneLoading = false;
         SetLocomotionLocked(false);
         SetTutorialCanvasVisible(true);
 
@@ -322,7 +331,7 @@ public class HardwareRig : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadStart(NetworkRunner runner)
     {
-
+        IsSceneLoading = true;
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)

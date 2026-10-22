@@ -30,6 +30,33 @@ public sealed class ResonanceSceneContext : MonoBehaviour
     public float FogActiveIntensity => fogActiveIntensity;
     public bool StartReleased => startReleased;
 
-    private void Awake() => ResonanceController.Register(this);
+    // ── 등록 수명 ──────────────────────────────────────────────────────────
+    //
+    // 등록을 Awake가 아니라 OnEnable에서 하는 이유 (2026-10-19):
+    //
+    // Opening은 Stage1~3을 Additive로 올려 연출 배경으로만 쓰고, 미션·연출 오브젝트를
+    // 이름으로 비활성화한다(OpeningEnvironmentController.disableObjectNames). 그 목록에
+    // 이 컨텍스트도 들어 있다 — 세 스테이지 전부.
+    //
+    // 그런데 Awake에서 등록하면 그 비활성화가 아무 효과가 없었다.
+    //   · Awake는 씬 로드 시점에 이미 실행된다. 비활성화는 로드가 끝난 뒤에 수행된다.
+    //   · 해제가 OnDestroy에만 있어, GameObject를 꺼도 등록이 남는다.
+    // 결과적으로 ResonanceController.hasContext가 true로 유지되고, Opening에는
+    // 플레이어가 없어 proximity가 0이므로 제약 안개가 최대 강도로 고정됐다.
+    //
+    // OnEnable/OnDisable 짝으로 두면 "켜져 있는 동안만 등록"이 되어 그 비활성화가
+    // 의도대로 동작한다. 로드 시 등록 시점은 사실상 그대로다 — Unity는 Awake 직후
+    // OnEnable을 호출하므로 첫 프레임 전에 등록이 끝난다.
+    //
+    // 비활성 상태로 authoring된 경우의 동작도 전과 같다. Unity는 비활성 GameObject의
+    // Awake도 OnEnable도 부르지 않으므로, 어느 쪽이든 등록되지 않는다.
+    //
+    // OnDestroy를 남겨 두는 이유:
+    // 활성 오브젝트가 파괴될 때는 OnDisable이 먼저 불려 이미 해제되지만, 해제가
+    // 한 번 더 불려도 Unregister의 가드(_currentContext != context)가 조용히 무시한다.
+    // 공짜인 안전망이라 지우지 않는다.
+
+    private void OnEnable() => ResonanceController.Register(this);
+    private void OnDisable() => ResonanceController.Unregister(this);
     private void OnDestroy() => ResonanceController.Unregister(this);
 }

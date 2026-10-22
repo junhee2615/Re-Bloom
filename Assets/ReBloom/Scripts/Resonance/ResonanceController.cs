@@ -61,8 +61,13 @@ public sealed class ResonanceController : MonoBehaviour
     // 역할이 아직 정해지지 않았으면 둘 다 걸지 않는다.
     // RoleManager.LocalRole은 미지정일 때 enum 기본값 mental이 나오므로, 그대로 읽으면 로비·씬 전환 구간에서 엉뚱한 쪽에 시각 제약이 걸린다.
     // LocalIsMental / LocalIsEar은 HasLocalRole을 함께 보므로 미지정이면 둘 다 false다.
-    private bool VisualInactive => IsConstraintInactive || !RoleManager.LocalIsMental;
-    private bool AudioInactive => IsConstraintInactive || !RoleManager.LocalIsEar;
+    // 아이템(약통/보청기) 효과로 감각 제약을 일시 해제했는지. 로컬 전용 연출 플래그다.
+    // ItemSensoryEffect가 로컬 플레이어의 아이템 효과에 맞춰 켜고 끈다.
+    private bool visualItemOverride;
+    private bool audioItemOverride;
+
+    private bool VisualInactive => visualItemOverride || IsConstraintInactive || !RoleManager.LocalIsMental;
+    private bool AudioInactive => audioItemOverride || IsConstraintInactive || !RoleManager.LocalIsEar;
 
     // 안개만은 역할을 가리지 않는다 — 루멘과 에코 둘 다 낀다(2026-10-16 결정).
     // 공명이 끊긴 세계를 양쪽이 함께 겪게 하려는 것이고, 역할별로 갈리는 것은
@@ -298,6 +303,57 @@ public sealed class ResonanceController : MonoBehaviour
     {
         volume.ApplyPostFx(VisualInactive);
         audioConstraint.Apply(AudioInactive);
+    }
+
+    // ── 아이템 효과(감각 제약 일시 해제) ──────────────────────────────────────
+
+    /// <summary>
+    /// 아이템 효과로 <b>해당 역할의 감각 제약만</b> 일시 해제하거나 되돌린다.
+    /// 로컬 플레이어 자신의 아이템에 대해서만 호출해야 한다.
+    ///
+    /// 역할 매핑은 <see cref="VisualInactive"/> / <see cref="AudioInactive"/> 와 같다 —
+    /// mental(루멘)은 시각(Bloom/Vignette/weight), ear(에코)는 청각이다.
+    /// <see cref="FogInactive"/> 는 건드리지 않으므로 <b>공통 환경 안개는 그대로 유지된다.</b>
+    ///
+    /// 복구 방식:
+    /// 플래그만 내리고 <see cref="ApplyConstraintEffects"/> 로 이산 상태(믹서 라우팅,
+    /// Bloom/Vignette on/off)를 다시 맞춘다. 연속값(Volume weight, 청각 완화량)은
+    /// <see cref="Update"/> 가 매 프레임 그 시점의 <c>proximity</c> 로 다시 밀어 넣으므로,
+    /// 효과가 끝나면 <b>당시 파트너 거리와 해제 상태에 맞는 제약</b>으로 자연히 수렴한다.
+    /// 즉 이 메서드는 원래 값을 저장하지 않고, 저장할 필요도 없다.
+    /// </summary>
+    public void SetSensoryItemOverride(Role role, bool active)
+    {
+        bool visual = role == Role.mental ? active : visualItemOverride;
+        bool audio = role == Role.ear ? active : audioItemOverride;
+
+        if (visual == visualItemOverride && audio == audioItemOverride)
+            return;
+
+        visualItemOverride = visual;
+        audioItemOverride = audio;
+
+        ApplyConstraintEffects();
+
+        Debug.Log(
+            $"[Resonance] 아이템 감각 오버라이드 - role={role} active={active} " +
+            $"(visual={visualItemOverride}, audio={audioItemOverride}, 안개는 유지)", this);
+    }
+
+    /// <summary>
+    /// 아이템 오버라이드를 모두 해제한다. 스테이지 전환·아바타 파괴 같은 비정상 종료 대비다.
+    /// </summary>
+    public void ClearSensoryItemOverrides()
+    {
+        if (!visualItemOverride && !audioItemOverride)
+            return;
+
+        visualItemOverride = false;
+        audioItemOverride = false;
+
+        ApplyConstraintEffects();
+
+        Debug.Log("[Resonance] 아이템 감각 오버라이드 전체 해제", this);
     }
 
     /// <summary>

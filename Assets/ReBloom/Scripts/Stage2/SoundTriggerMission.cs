@@ -148,6 +148,7 @@ public class SoundTriggerMission : ActivationMission
             }
 
             ClearRoundKeys(PhasePlay, attempt, SignalSlotCount());
+            ResearchReportAttempt("Sound", attempt, success, true);   // 연구 로그
 
             // (9) 결과 처리
             if (buttonImage != null) buttonImage.SetActive(false);

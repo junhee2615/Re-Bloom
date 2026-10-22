@@ -86,15 +86,36 @@ namespace ReBloom.Electricity
         // 세션이 없거나 씬 NetworkObject가 베이크되지 않아 스폰되지 않을 때도 돌아가도록
         // 로컬 값을 따로 들고 간다. Object.IsValid 로는 '스폰 전'을 거르지 못해 예외가 난다.
         public bool IsSpawned { get; private set; }
-        float CurrentAngle => IsSpawned ? Angle : localAngle;
+
+        // **내가 움직이는 동안에는 로컬 값이 진실이다.** 복제값(Angle)을 기준으로 누적하면 안 된다 —
+        // 클라이언트가 RPC로 보낸 값은 왕복 지연 뒤에야 Angle로 돌아오므로, 그 사이 프레임마다
+        // "낡은 Angle + 이번 프레임 손 변화"를 다시 계산해 **앞 프레임들의 움직임이 통째로 버려진다.**
+        // 증상은 "한 번에 안 내려가고 여러 번 당겨야 내려간다"였다(클라이언트 쪽 레버만).
+        // 호스트는 Angle을 바로 쓰므로 둘이 같아 영향이 없다.
+        float CurrentAngle => IsSpawned && !DrivingLocally ? Angle : localAngle;
+
+        bool DrivingLocally => hand != null || Time.unscaledTime < localHoldUntil;
 
         float localAngle;
+
+        // 놓은 뒤에도 마지막 RPC가 돌아올 때까지는 로컬 값을 보여 준다. 바로 Angle로 바꾸면
+        // 아직 갱신 안 된 값으로 한 번 튀어 올랐다가 다시 내려온다.
+        float localHoldUntil;
+        const float ReleaseSyncTimeout = 1f;
+        const float SyncedEpsilon = 0.5f;
+
+        float lastSentAngle = float.NaN;
 
         XRBaseInteractable grab;
         Transform hand;
         float prevHandAngle;    // 직전 프레임의 손 각도. 매 프레임 갱신한다.
         bool hasPrevHandAngle;
         bool reported;
+        bool lastRejected;      // 마지막 당김을 미션이 버렸는가(박자 시작 전 등). 재무장 문턱이 달라진다.
+
+        // 버려진 당김 뒤에는 이만큼만 되올리면 다시 당길 수 있다(report 문턱 기준).
+        // 너무 좁으면 바닥에서 손이 떨리기만 해도 당김이 찍힌다.
+        const float RejectedRearmMargin = 0.15f;
 
         // 경첩이 사는 좌표계와 그 안에서의 경첩 위치. **Awake에서 한 번 캐시한다.**
         // 살아 있는 transform.parent를 그때그때 읽으면 안 된다 — XRI가 잡는 순간
@@ -162,6 +183,8 @@ namespace ReBloom.Electricity
 
             if (!roleOk) return;
 
+            // 지금 보이는 각도(복제값)에서 이어 간다. 이 순간부터 로컬 값이 진실이 된다.
+            localAngle = CurrentAngle;
             hand = h;
 
             // 기준 각도는 여기서 잡지 않는다. VR에서는 이 직후 물리 손이 한 번 튀어서
@@ -177,6 +200,8 @@ namespace ReBloom.Electricity
             bool wasHeld = hand != null;
             hand = null;
             hasPrevHandAngle = false;
+
+            if (wasHeld) localHoldUntil = Time.unscaledTime + ReleaseSyncTimeout;
 
             // 각도는 **그대로 둔다.** 실제 레버는 놓은 자리에 남고, 쉼 위치로 되돌리면
             // 당긴 결과가 눈에서 사라져 둘이 서로의 상태를 말로 확인할 수조차 없다.
@@ -224,8 +249,16 @@ namespace ReBloom.Electricity
             // 당긴 채로 놓고 다시 잡으면 이미 문턱 위이니, 되밀어 내려오기 전까지는
             // 다시 보고하지 않는다. rearm을 report보다 낮게 강제해 양쪽으로 막힌다 —
             // 같으면 문턱에서 떨 때마다 보고가 쏟아지고, 높으면 영원히 재무장되지 않는다.
+            //
+            // 단, 미션이 버린 당김(박자 시작 전 뜸 등)은 소모로 치지 않는다 — 문턱 조금 아래까지만
+            // 살짝 올렸다 내리면 다시 보고된다. 버려진 당김에도 절반까지 되밀기를 요구하면
+            // 일찍 한 번 당긴 레버가 바닥에 굳어, 응집 때 당겨도 아무 일도 일어나지 않는다.
+            // (문턱 위에 머물러 있다고 자동으로 다시 보내지는 않는다 — 박자가 시작되는 순간
+            //  저절로 당김이 찍혀 상대의 당김과 엉뚱하게 짝지어지기 때문이다.)
             float pull = Pull01;
-            float rearm = Mathf.Min(rearmThreshold, reportThreshold - 0.05f);
+            float rearm = lastRejected
+                ? reportThreshold - RejectedRearmMargin
+                : Mathf.Min(rearmThreshold, reportThreshold - 0.05f);
 
             if (reported)
             {
@@ -236,7 +269,10 @@ namespace ReBloom.Electricity
             if (pull < reportThreshold) return;
 
             reported = true;
-            if (mission != null) mission.ReportPull(requiredRole);
+            lastRejected = mission == null || !mission.ReportPull(requiredRole);
+
+            if (logToConsole && lastRejected)
+                Debug.Log($"[Lever] {name} 당김 버려짐(박자 시작 전·클리어 뒤) — 살짝 올렸다 다시 당기면 된다", this);
         }
 
         /// <summary>
@@ -270,8 +306,16 @@ namespace ReBloom.Electricity
 
             if (!IsSpawned) return;
 
-            if (HasStateAuthority) Angle = clamped;
-            else RPC_SetAngle(clamped);
+            if (HasStateAuthority)
+            {
+                Angle = clamped;
+                return;
+            }
+
+            // 손이 멈춰 있는 프레임까지 매번 보내지 않는다.
+            if (clamped == lastSentAngle) return;
+            lastSentAngle = clamped;
+            RPC_SetAngle(clamped);
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -281,6 +325,11 @@ namespace ReBloom.Electricity
         // 세션 없이 에디터에서 돌려 보면 레버가 아예 움직이지 않는다.
         void LateUpdate()
         {
+            // 놓은 뒤 복제값이 따라잡았으면 로컬 유지를 끝낸다.
+            if (hand == null && localHoldUntil > 0f && IsSpawned &&
+                Mathf.Abs(Mathf.DeltaAngle(Angle, localAngle)) < SyncedEpsilon)
+                localHoldUntil = 0f;
+
             Quaternion hinge = Quaternion.Euler(CurrentAngle, 0f, 0f);
 
             // 부모가 그대로면 로컬로 넣는다. 누군가 부모를 떼어 간 상태라면
