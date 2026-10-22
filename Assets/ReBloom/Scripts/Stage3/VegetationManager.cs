@@ -29,26 +29,37 @@ public class VegetationGrowth : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // Debug.Log("[테스트] 스페이스바 입력이 정상적으로 감지되었습니다!");
-            if (!isGrowing)
-            {
-                // Debug.Log("[테스트] 식생 성장 코루틴 시작!");
-                StartCoroutine(GrowAllVegetation());
-            }
-        }
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    // Debug.Log("[테스트] 스페이스바 입력이 정상적으로 감지되었습니다!");
+        //    if (!isGrowing)
+        //    {
+        //        // Debug.Log("[테스트] 식생 성장 코루틴 시작!");
+        //        StartCoroutine(GrowAllVegetation());
+        //    }
+        //}
     }
 
-    IEnumerator GrowAllVegetation()
+    /// <summary>식생을 0에서 원래 크기로 키운다. 엔딩 컷씬이 호출한다.</summary>
+    public void Grow() => Grow(growDuration);
+
+    /// <summary>자라는 시간을 정해서 키운다. 타임라인 클립 길이를 그대로 넘길 때 쓴다.</summary>
+    public void Grow(float duration)
+    {
+        if (isGrowing) return;
+        StartCoroutine(GrowAllVegetation(duration));
+    }
+
+    IEnumerator GrowAllVegetation(float duration)
     {
         isGrowing = true;
         float elapsedTime = 0f;
+        duration = Mathf.Max(0.01f, duration);
 
-        while (elapsedTime < growDuration)
+        while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-            float t = elapsedTime / growDuration;
+            float t = Mathf.Clamp01(elapsedTime / duration);
             float curve = Mathf.Sin(t * Mathf.PI * 0.5f);
 
             foreach (Transform veg in vegetationList)

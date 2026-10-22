@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2952467058431775327}
   - component: {fileID: 1556138499769269574}
   - component: {fileID: 8335396933885221565}
+  - component: {fileID: 6173920485716230941}
   m_Layer: 8
   m_Name: EndingCore
   m_TagString: Untagged
@@ -916,6 +917,33 @@ MonoBehaviour:
     - {x: 0.0031105655, y: -0.9999937, z: 0.001714622}
     - {x: -0.0032167558, y: -0.9999949, z: -0.00019436124}
     - {x: -0.003208314, y: -0.99999464, z: 0.00070607563}
+--- !u!114 &6173920485716230941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5002288999078359746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5763ff122fc4692b6de872c5638aa5b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlantCoreTreeGrow
+  mission: {fileID: 0}
+  leaves: {fileID: 0}
+  growAudio: {fileID: 0}
+  startDelay: 1
+  startScale: 0
+  targetScale: 1
+  growDuration: 6
+  growPivot: {x: 0, y: 3.53, z: 0}
+  overshoot: 1.7
+  leafBurstPrefabs:
+  - {fileID: 198759988390340424, guid: e4750f980d832e54c814d95d35f2af8a, type: 3}
+  - {fileID: 198759988390340424, guid: aa8176dad11a5944d8df6a324acc5bb1, type: 3}
+  burstCount: 10
+  burstLifetime: 4
+  burstRadius: 1.2
 --- !u!64 &8335396933885221565
 MeshCollider:
   m_ObjectHideFlags: 0
