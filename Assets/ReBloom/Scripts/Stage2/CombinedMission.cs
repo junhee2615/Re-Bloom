@@ -25,11 +25,11 @@ public class CombinedMission : ActivationMission
 
     [Header("안내 문구 (기억하기 1~3)")]
     [TextArea]
-    [SerializeField] private string msgRemember1 = "체력이 고갈되었습니다!\n청각 제약 캐릭터는 잠시 동안 소리를 들을 수 없고,\n정신 제약 캐릭터는\n떨어지는 노트가 이상하게 보이게 됩니다.";
+    [SerializeField] private string msgRemember1 = "체력이 고갈되었습니다!\n에코는 잠시 동안 소리를 들을 수 없고,\n루멘은\n떨어지는 노트가 이상하게 보이게 됩니다.";
     [TextArea]
-    [SerializeField] private string msgRemember2 = "두 캐릭터는 협동하며 미션을 해결해야 합니다.";
+    [SerializeField] private string msgRemember2 = "두 플레이어는 협동하며 미션을 해결해야 합니다.";
     [TextArea]
-    [SerializeField] private string msgRemember3 = "정신 제약 캐릭터는 들리는 소리의 박자를\n청각 제약 캐릭터에게 전달해주세요.";
+    [SerializeField] private string msgRemember3 = "루멘은 들리는 소리의 박자를\n에코에게 전달해주세요.";
     [SerializeField] private string msgListen = "듣기";
     [SerializeField] private string msgReady = "준비";
     [SerializeField] private string msgPlay = "플레이";
@@ -81,7 +81,7 @@ public class CombinedMission : ActivationMission
     [Tooltip("노트 터치를 카운트하는 역할 (기본 Host)")]
     [SerializeField] private MissionRole noteRole = MissionRole.MentalOnly;
     [TextArea]
-    [SerializeField] private string msgNoteIntro = "청각 제약 캐릭터는 노트가 빨간 선에 닿을 때\n노트가 몇 번 레인에 있는지 알려주세요.";
+    [SerializeField] private string msgNoteIntro = "에코는 노트가 빨간 선에 닿을 때\n노트가 몇 번 레인에 있는지 알려주세요.";
     [SerializeField] private float phaseGap = 3f;          // 1부 클리어 후 대기
     [SerializeField] private float noteIntroDuration = 2f;
     [SerializeField] private float scrollSpeed = 150f;
