@@ -21,6 +21,12 @@ public class ScreenFade : MonoBehaviour
         StartCoroutine(FadeIn(1f));
     }
 
+    /// <summary>검정 정도를 바로 정한다(0 = 화면 보임, 1 = 완전 검정). 타임라인이 진행도로 밀 때 쓴다.</summary>
+    public void SetAlpha(float alpha)
+    {
+        canvasGroup.alpha = Mathf.Clamp01(alpha);
+    }
+
     public IEnumerator FadeOut(float duration)
     {
         float time = 0f;

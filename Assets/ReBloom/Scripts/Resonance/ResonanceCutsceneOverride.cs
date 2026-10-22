@@ -32,6 +32,12 @@ public class ResonanceCutsceneOverride
     private bool builtinFogOverridden;
     private bool applied;
 
+    // FreezeForFogClear 이후 SetFogAmount가 0~1 배율을 곱할 기준값.
+    private FogConstraint frozenFog;
+    private float frozenFogIntensity;
+    private float originalBuiltinFogDensity;
+    private bool builtinFogDensityOverridden;
+
     public bool Applied => applied;
 
     // =================================================
@@ -131,6 +137,85 @@ public class ResonanceCutsceneOverride
     }
 
     // =================================================
+    // Freeze (안개가 걷히는 연출용)
+    // =================================================
+
+    /// <summary>
+    /// Disable과 달리 안개를 끄지 않고 <b>짙게 깐 채로</b> Resonance 제어만 멈춘다.
+    /// 이후 <see cref="SetFogAmount"/>로 안개를 직접 걷어낸다. 화면이 검을 때 부른다.
+    /// </summary>
+    /// <param name="fogStrength">FlatKit 안개 기본 강도(ActiveIntensity)에 곱할 배율.</param>
+    public void FreezeForFogClear(float fogStrength)
+    {
+        if (applied)
+            return;
+
+        applied = true;
+
+        originalBuiltinFog = RenderSettings.fog;
+        builtinFogOverridden = true;
+        originalBuiltinFogDensity = RenderSettings.fogDensity;
+        builtinFogDensityOverridden = true;
+
+        if (Resolve() && constraintEnabledField != null)
+        {
+            originalConstraintEnabled =
+                (bool)constraintEnabledField.GetValue(controller);
+
+            // Update()가 매 프레임 안개를 다시 밀어넣지 않도록 멈춘다.
+            constraintEnabledField.SetValue(controller, false);
+
+            frozenFog = fogField != null
+                ? fogField.GetValue(controller) as FogConstraint
+                : null;
+
+            // 공명이 이미 풀려 안개가 0이어도 연출 시작에는 짙은 안개를 깐다.
+            if (frozenFog != null)
+                frozenFogIntensity = frozenFog.ActiveIntensity * Mathf.Max(0f, fogStrength);
+
+            // 시야 제약(Bloom/Vignette)은 엔딩에서 걷어 둔다.
+            object volume = volumeField != null
+                ? volumeField.GetValue(controller)
+                : null;
+
+            if (volume != null)
+            {
+                MethodInfo snapMethod =
+                    volume.GetType().GetMethod("Snap", Flags);
+
+                if (snapMethod != null)
+                    snapMethod.Invoke(volume, new object[] { true });
+
+                MethodInfo postFxMethod =
+                    volume.GetType().GetMethod("ApplyPostFx", Flags);
+
+                if (postFxMethod != null)
+                    postFxMethod.Invoke(volume, new object[] { true });
+            }
+        }
+
+        SetFogAmount(1f);
+    }
+
+    /// <summary>
+    /// <see cref="FreezeForFogClear"/> 이후에만 의미가 있다. 1 = 시작 안개, 0 = 완전히 걷힘.
+    /// FlatKit 안개와 씬 RenderSettings 안개를 같은 배율로 줄인다.
+    /// </summary>
+    public void SetFogAmount(float amount)
+    {
+        if (!applied)
+            return;
+
+        amount = Mathf.Clamp01(amount);
+
+        if (frozenFog != null)
+            frozenFog.Apply(frozenFogIntensity * amount);
+
+        if (builtinFogDensityOverridden)
+            RenderSettings.fogDensity = originalBuiltinFogDensity * amount;
+    }
+
+    // =================================================
     // Restore
     // =================================================
 
@@ -150,6 +235,14 @@ public class ResonanceCutsceneOverride
             RenderSettings.fog = originalBuiltinFog;
             builtinFogOverridden = false;
         }
+
+        if (builtinFogDensityOverridden)
+        {
+            RenderSettings.fogDensity = originalBuiltinFogDensity;
+            builtinFogDensityOverridden = false;
+        }
+
+        frozenFog = null;
 
         if (controller == null || constraintEnabledField == null)
             return;

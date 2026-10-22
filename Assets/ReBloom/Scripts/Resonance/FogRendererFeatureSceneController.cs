@@ -81,6 +81,39 @@ public static class FogRendererFeatureSceneController
         }
     }
 
+    /// <summary>
+    /// 지금 씬에서 FlatKit 안개 렌더러 피처를 끄거나(<paramref name="suppressed"/> = true) 원래 설정으로 되돌린다.
+    /// 엔딩처럼 안개를 완전히 걷어야 할 때 쓴다. 렌더러 에셋은 공유되므로 끝날 때(Play 종료·앱 종료)
+    /// <see cref="RestoreConfiguredFeatureStates"/>가 원래 상태로 되돌린다.
+    /// </summary>
+    public static void SetFogSuppressed(bool suppressed)
+    {
+        UniversalRenderPipelineAsset pipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+
+        if (pipelineAsset == null) return;
+
+        var rendererDataList = pipelineAsset.rendererDataList;
+        for (int rendererIndex = 0; rendererIndex < rendererDataList.Length; rendererIndex++)
+        {
+            ScriptableRendererData rendererData = rendererDataList[rendererIndex];
+            if (rendererData == null) continue;
+
+            foreach (ScriptableRendererFeature feature in rendererData.rendererFeatures)
+            {
+                if (feature is not FlatKitFog) continue;
+
+                int featureId = feature.GetInstanceID();
+                if (!ConfiguredFeatureStates.TryGetValue(featureId, out bool configuredState))
+                {
+                    configuredState = feature.isActive;
+                    ConfiguredFeatureStates.Add(featureId, configuredState);
+                }
+
+                feature.SetActive(!suppressed && configuredState);
+            }
+        }
+    }
+
     private static void RestoreConfiguredFeatureStates()
     {
         UniversalRenderPipelineAsset pipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
