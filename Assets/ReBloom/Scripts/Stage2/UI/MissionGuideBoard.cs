@@ -205,8 +205,14 @@ public class MissionGuideBoard : MonoBehaviour
     [SerializeField] private string participationEchoOnly = "에코가 담당하는 구간이에요.";
 
     [Header("표시 조건")]
-    [Tooltip("이 단계일 때만 보인다. MISSION 1 조작 설명은 Initial.")]
+    [Tooltip("이 단계일 때만 보인다. MISSION 1 조작 설명은 Initial. " +
+             "Step Source 를 연결하면 이 값 대신 그쪽 판정을 쓴다.")]
     [SerializeField] private TutorialStep_2 visibleStep = TutorialStep_2.Initial;
+
+    [Tooltip("다른 Stage의 단계로 판정할 때 연결한다. " +
+             "비워 두면 지금까지처럼 Stage2 매니저(TutorialMissionManager_2)를 직접 읽는다. " +
+             "Stage2 안내판은 비워 두는 것이 정상이다.")]
+    [SerializeField] private MissionStepSource stepSource;
 
     [Tooltip("컷씬·씬 로딩 중에는 숨긴다. 미션 완료 컷씬이 도는 동안에도 단계는 아직 " +
              "넘어가지 않으므로, 이것을 끄면 컷씬 카메라가 지나갈 때 설명이 보인다.")]
@@ -328,7 +334,10 @@ public class MissionGuideBoard : MonoBehaviour
     /// </summary>
     private void LateUpdate()
     {
-        RefreshStepFromManager();
+        // stepSource 가 있으면 단계를 그쪽에서 받는다. Stage2 매니저를 찾을 이유가 없다
+        // (다른 Stage에서는 찾아도 없어서 0.5초마다 헛도는 탐색이 된다).
+        if (stepSource == null)
+            RefreshStepFromManager();
 
         Camera cam = ResolveCamera();
 
@@ -396,10 +405,25 @@ public class MissionGuideBoard : MonoBehaviour
         currentStep = manager.CurrentTutorial;
     }
 
+    /// <summary>
+    /// 지금이 이 안내판을 띄울 단계인가.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="stepSource"/> 를 비워 두면 지금까지와 똑같이 Stage2 매니저에서 읽은
+    /// <see cref="currentStep"/> 을 쓴다. 이미 배치된 Stage2 안내판은 전부 이 경로를 탄다.
+    /// </remarks>
+    private bool IsOnTargetStep()
+    {
+        if (stepSource != null)
+            return stepSource.IsOnTargetStep;
+
+        return currentStep == visibleStep;
+    }
+
     private bool ShouldShow(Camera cam)
     {
         // 지정 단계가 아니면 거리를 보지 않는다. 단계가 넘어가면 여기서 저절로 꺼진다.
-        if (currentStep != visibleStep)
+        if (!IsOnTargetStep())
             return false;
 
         // 컷씬·로딩 중에는 숨긴다. 미션 완료 컷씬 동안 단계가 아직 Initial인 구간을 덮는다.
