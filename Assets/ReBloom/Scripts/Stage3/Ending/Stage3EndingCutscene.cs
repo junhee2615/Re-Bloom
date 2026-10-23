@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.Events;
 using UnityEngine.Playables;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 /// <summary>
@@ -55,6 +56,28 @@ public class Stage3EndingCutscene : MonoBehaviour
         [NonSerialized] public Vector3 walkStartPosition;
         [NonSerialized] public Quaternion walkStartRotation;
         [NonSerialized] public bool walkCaptured;
+
+        // 엔딩을 시작했던 자리(온실 문 앞). 크레딧의 손 흔들기 컷에서 이 자리로 돌아온다.
+        [NonSerialized] public Vector3 homePosition;
+        [NonSerialized] public Quaternion homeRotation;
+
+        // 발소리: 걷는 중인가, 두 발 뼈, 발마다 땅에 닿았는지 보는 상태, 소리 낼 곳
+        [NonSerialized] public bool walking;
+        [NonSerialized] public FootTracker[] feet;
+        [NonSerialized] public AudioSource stepSource;
+    }
+
+    // 발 하나가 땅에 닿는 순간을 찾는다. 걷는 동안 발 높이(캐릭터 발밑 기준)의 최저·최고를 익히고,
+    // 내려오던 발이 최저점 근처에서 다시 올라가기 시작하면 "디딤"으로 본다.
+    public class FootTracker
+    {
+        public Transform bone;
+        public float previous;
+        public bool lifted;
+        public float min = float.MaxValue;
+        public float max = float.MinValue;
+        public float lastStep = -1f;
+        public int frames;
     }
 
     private static readonly int IsWalkingId = Animator.StringToHash("IsWalking");
@@ -116,6 +139,25 @@ public class Stage3EndingCutscene : MonoBehaviour
 
     [Tooltip("멈춘 뒤 바라볼 방향(WalkTarget의 방향)으로 몸을 돌리는 시간(초).")]
     [SerializeField, Min(0.05f)] private float turnToView = 0.9f;
+
+    [Header("발소리")]
+    [Tooltip("걸을 때 쓸 발소리. 여러 걸음이 이어진 긴 클립이면 엔딩 시작 때 걸음 하나씩 잘라 쓴다(Grass Footstep Long).")]
+    [SerializeField] private AudioClip footstepClip;
+
+    [SerializeField, Range(0f, 1f)] private float footstepVolume = 0.7f;
+
+    [Tooltip("0이면 화면 어디서든 같은 크기(2D), 1이면 캐릭터 위치에서 들린다(3D).")]
+    [SerializeField, Range(0f, 1f)] private float footstepSpatialBlend = 0.5f;
+
+    [Header("크레딧 손 흔들기 컷")]
+    [Tooltip("크레딧 마지막에 온실 문 앞의 두 사람을 찍는 카메라 자리·방향. 비우면 이 컷이 빠진다.")]
+    [SerializeField] private Transform waveCameraPose;
+
+    [Tooltip("손을 좌우로 흔드는 빠르기(초당 왕복 횟수).")]
+    [SerializeField, Min(0.1f)] private float waveSpeed = 1.4f;
+
+    [Tooltip("팔꿈치를 축으로 아래팔이 좌우로 흔들리는 각도(도). 가운데에서 한쪽으로 이만큼 기운다.")]
+    [SerializeField, Range(0f, 60f)] private float waveAngle = 25f;
 
     [Header("자라는 식생 그룹")]
     [Tooltip("엔딩에서 자라날 그룹(Flower&Tree&Building&Ivy). 바로 아래 자식들이 가까운 것부터 차례로 자란다. " +
@@ -346,16 +388,31 @@ public class Stage3EndingCutscene : MonoBehaviour
         // 다시 제약으로 돌아가지 않는다(엔딩은 크레딧으로 끝난다).
         resonance.ClearSensoryConstraints();
 
+        // 엔딩부터는 미션 강조 Outline을 모두 끈다(강조 스크립트가 다시 켜도 Update에서 계속 끈다)
+        outlinesOff = true;
+        DisableOutlines();
+
         SuspendOtherBrains();
         CollapseGrowGroup();
 
         if (cameraRoot != null)
             cameraRoot.SetActive(true);
 
+        foreach (EndingActor actor in actors)
+        {
+            if (actor?.root == null) continue;
+            actor.homePosition = actor.root.transform.position;
+            actor.homeRotation = actor.root.transform.rotation;
+        }
+
         StepActorsCloser();
 
         foreach (EndingActor actor in actors)
             PrepareActor(actor);
+
+        BuildStepSlices();
+        foreach (EndingActor actor in actors)
+            PrepareFootsteps(actor);
 
         UpdateWalkCenter();
 
@@ -567,6 +624,8 @@ public class Stage3EndingCutscene : MonoBehaviour
 
             if (actor.animator != null)
                 actor.animator.SetBool(IsWalkingId, walking);
+
+            actor.walking = walking;
         }
 
         UpdateWalkCenter();
@@ -755,12 +814,380 @@ public class Stage3EndingCutscene : MonoBehaviour
                 player.SetAvatarVisible(visible);
     }
 
+    // ── 발소리 ──────────────────────────────────────────────────────────
+
+#if UNITY_EDITOR
+    private const string DefaultFootstepPath = "Assets/ReBloom/AssetStore/Rain Forest SFX/Footstep/Grass Footstep Long.wav";
+
+    // 발소리 칸이 비어 있으면 기본 클립을 넣는다. 스크립트가 다시 컴파일될 때도 불리므로
+    // 엔딩 셋업(Apply)을 다시 돌리지 않아도 연결된다(씬을 저장해야 남는다).
+    private void OnValidate()
+    {
+        if (footstepClip != null || Application.isPlaying) return;
+
+        footstepClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(DefaultFootstepPath);
+        if (footstepClip != null)
+            UnityEditor.EditorUtility.SetDirty(this);
+    }
+#endif
+
+    // Assets/Resources/Ending/EndingFootsteps.wav (Grass Footstep Long과 같은 소리)
+    private const string FallbackFootstepResource = "Ending/EndingFootsteps";
+
+    private readonly List<AudioClip> stepSlices = new List<AudioClip>();
+    private int nextStepSlice;
+    private bool firstStepLogged;
+    private bool footDiagnosisLogged;
+
+    // 긴 발소리 클립을 걸음 하나씩 잘라 둔다. 소리가 갑자기 커지는 지점(걸음의 시작)을 찾아
+    // 그 지점부터 다음 걸음 전까지(최대 0.45초)를 한 조각으로 만든다.
+    private void BuildStepSlices()
+    {
+        if (stepSlices.Count > 0) return;
+
+        // 씬에 클립이 저장돼 있지 않아도(셋업 전·저장 전) 발소리가 나도록 Resources에 둔 기본 클립을 쓴다
+        if (footstepClip == null)
+            footstepClip = Resources.Load<AudioClip>(FallbackFootstepResource);
+
+        if (footstepClip == null)
+        {
+            Debug.LogWarning("[Stage3Ending] 발소리 클립(Footstep Clip)이 비어 있어 걸을 때 소리가 나지 않습니다.", this);
+            return;
+        }
+
+        if (footstepClip.loadState != AudioDataLoadState.Loaded)
+            footstepClip.LoadAudioData();
+
+        int channels = footstepClip.channels;
+        int frequency = footstepClip.frequency;
+        var data = new float[footstepClip.samples * channels];
+        if (!footstepClip.GetData(data, 0))
+        {
+            Debug.LogWarning($"[Stage3Ending] 발소리 {footstepClip.name}를 읽지 못했습니다(Load Type이 Decompress On Load인지 확인). 통째로 씁니다.", this);
+            stepSlices.Add(footstepClip);
+            return;
+        }
+
+        // 10ms 단위 소리 크기(모노로 합침)
+        int window = Mathf.Max(1, frequency / 100);
+        int windows = footstepClip.samples / window;
+        var envelope = new float[windows];
+        float peak = 0f;
+        for (int w = 0; w < windows; w++)
+        {
+            float sum = 0f;
+            for (int s = 0; s < window; s++)
+            for (int c = 0; c < channels; c++)
+            {
+                float v = data[((w * window) + s) * channels + c];
+                sum += v * v;
+            }
+            envelope[w] = Mathf.Sqrt(sum / (window * channels));
+            peak = Mathf.Max(peak, envelope[w]);
+        }
+
+        // 걸음의 시작 찾기: 조용하다가(10% 아래) 크게(30% 위) 올라오는 곳, 걸음 사이는 최소 0.15초
+        var onsets = new List<int>();
+        bool loud = false;
+        int minGap = Mathf.CeilToInt(0.15f * frequency / window);
+        for (int w = 0; w < windows; w++)
+        {
+            if (!loud && envelope[w] > peak * 0.3f && (onsets.Count == 0 || w - onsets[onsets.Count - 1] >= minGap))
+            {
+                onsets.Add(Mathf.Max(0, w - 1));
+                loud = true;
+            }
+            else if (loud && envelope[w] < peak * 0.1f)
+            {
+                loud = false;
+            }
+        }
+
+        int maxLength = Mathf.CeilToInt(0.45f * frequency);
+        for (int i = 0; i < onsets.Count && stepSlices.Count < 48; i++)
+        {
+            int start = onsets[i] * window;
+            int end = i + 1 < onsets.Count ? onsets[i + 1] * window : footstepClip.samples;
+            int length = Mathf.Min(end - start, maxLength);
+            if (length < frequency / 20) continue;   // 50ms보다 짧은 조각은 버린다
+
+            var slice = new float[length * channels];
+            Array.Copy(data, start * channels, slice, 0, slice.Length);
+
+            // 끝을 짧게 줄여 딸깍 소리가 나지 않게
+            int fade = Mathf.Min(length, frequency / 100) * channels;
+            for (int f = 0; f < fade; f++)
+                slice[slice.Length - 1 - f] *= f / (float)fade;
+
+            AudioClip clip = AudioClip.Create($"{footstepClip.name}_step{stepSlices.Count}", length, channels, frequency, false);
+            clip.SetData(slice, 0);
+            stepSlices.Add(clip);
+        }
+
+        if (stepSlices.Count == 0)
+            stepSlices.Add(footstepClip);
+
+        Debug.Log($"[Stage3Ending] 발소리 {footstepClip.name}에서 걸음 {stepSlices.Count}개를 잘라 냈습니다.", this);
+    }
+
+    // 발 뼈(foot.l / foot.r)와 소리 낼 AudioSource를 준비한다.
+    private void PrepareFootsteps(EndingActor actor)
+    {
+        if (actor?.root == null || footstepClip == null) return;
+
+        actor.feet = actor.root.GetComponentsInChildren<Transform>(true)
+            .Where(t => t.name == "foot.l" || t.name == "foot.r")
+            .Select(t => new FootTracker { bone = t })
+            .ToArray();
+
+        if (actor.feet.Length == 0)
+            Debug.LogWarning($"[Stage3Ending] {actor.root.name}에서 발 뼈(foot.l / foot.r)를 찾지 못해 발소리가 나지 않습니다.", actor.root);
+
+        actor.stepSource = actor.root.AddComponent<AudioSource>();
+        actor.stepSource.playOnAwake = false;
+        actor.stepSource.spatialBlend = footstepSpatialBlend;
+        actor.stepSource.volume = footstepVolume;
+        actor.stepSource.minDistance = 2f;
+        actor.stepSource.maxDistance = 25f;
+    }
+
+    // 애니메이션이 발을 움직인 뒤(LateUpdate) 발이 땅에 닿는 순간마다 걸음 소리 한 조각을 튼다.
+    private void LateUpdate()
+    {
+        if (!isPlaying || stepSlices.Count == 0) return;
+
+        foreach (EndingActor actor in actors)
+        {
+            if (actor?.feet == null || actor.stepSource == null) continue;
+
+            float ground = actor.root.transform.position.y;
+            foreach (FootTracker foot in actor.feet)
+            {
+                float height = foot.bone.position.y - ground;
+
+                if (!actor.walking)
+                {
+                    foot.frames = 0;
+                    foot.lifted = false;
+                    foot.min = float.MaxValue;
+                    foot.max = float.MinValue;
+                    continue;
+                }
+
+                foot.min = Mathf.Min(foot.min, height);
+                foot.max = Mathf.Max(foot.max, height);
+                foot.frames++;
+
+                // 발이 충분히 들렸다가(폭의 50% 위) 다시 바닥 근처(25% 아래)로 내려오는 순간이 디딤.
+                // 디딘 발은 땅에 붙어 높이가 거의 그대로라, "가장 낮은 점"을 찾는 방식은 놓치기 쉽다.
+                float range = foot.max - foot.min;
+                if (range > 0.03f)
+                {
+                    if (height > foot.min + range * 0.5f)
+                        foot.lifted = true;
+
+                    if (foot.lifted && height < foot.min + range * 0.25f && Time.time - foot.lastStep > 0.2f)
+                    {
+                        foot.lifted = false;
+                        foot.lastStep = Time.time;
+                        PlayStep(actor);
+                    }
+                }
+
+                foot.previous = height;
+            }
+
+            // 걷기 시작하고 2초가 지나도 한 번도 안 울렸으면 원인을 알 수 있게 남긴다
+            if (actor.walking && !firstStepLogged && !footDiagnosisLogged && actor.feet.Length > 0
+                && actor.feet[0].frames > 0 && actor.feet[0].frames * Time.smoothDeltaTime > 2f)
+            {
+                footDiagnosisLogged = true;
+                string ranges = string.Join(", ", actor.feet.Select(f => $"{f.bone.name} {f.min:F3}~{f.max:F3}m"));
+                Debug.LogWarning($"[Stage3Ending] 걷는 중인데 발소리가 아직 한 번도 나지 않았습니다. 발 높이 범위: {ranges}", this);
+            }
+        }
+    }
+
+    private void PlayStep(EndingActor actor)
+    {
+        AudioClip clip = stepSlices[nextStepSlice];
+        nextStepSlice = (nextStepSlice + 1) % stepSlices.Count;
+
+        actor.stepSource.pitch = UnityEngine.Random.Range(0.94f, 1.06f);
+        actor.stepSource.PlayOneShot(clip);
+
+        if (!firstStepLogged)
+        {
+            firstStepLogged = true;
+            Debug.Log($"[Stage3Ending] 첫 발소리 재생 ({actor.root.name})", this);
+        }
+    }
+
+    // ── 크레딧 손 흔들기 컷 ─────────────────────────────────────────────
+
+    private const int CreditsLayer = 30;   // EndingCredits가 크레딧 화면에 쓰는 레이어. 이 카메라에서는 뺀다.
+
+    private Camera waveCamera;
+    private RenderTexture waveTexture;
+    private bool waving;
+    private float waveTime;
+
+    private bool outlinesOff;
+    private float nextOutlineSweep;
+
+    /// <summary>크레딧에 손 흔들기 컷을 넣을 수 있는가.</summary>
+    public bool HasWaveShot => waveCameraPose != null && actors.Length > 0;
+
+    /// <summary>
+    /// 두 사람을 온실 문 앞(엔딩을 시작했던 자리)으로 돌려놓고, 카메라를 보며 손을 흔들게 한다.
+    /// 그 모습을 실시간으로 그리는 텍스처를 돌려준다. 여러 번 불러도 같은 텍스처를 준다.
+    /// </summary>
+    public Texture BeginWaveShot()
+    {
+        if (waving) return waveTexture;
+        if (!HasWaveShot) return null;
+
+        waving = true;
+        waveTime = 0f;
+
+        Vector3 cameraPosition = waveCameraPose.position;
+        foreach (EndingActor actor in actors)
+        {
+            if (actor?.root == null) continue;
+
+            Vector3 toCamera = Vector3.ProjectOnPlane(cameraPosition - actor.homePosition, Vector3.up);
+            Quaternion facing = toCamera.sqrMagnitude > 0.001f
+                ? Quaternion.LookRotation(toCamera.normalized, Vector3.up)
+                : actor.homeRotation;
+            actor.root.transform.SetPositionAndRotation(actor.homePosition, facing);
+
+            if (actor.animator != null)
+                actor.animator.SetBool(IsWalkingId, false);
+        }
+
+        waveTexture = new RenderTexture(1920, 1080, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+        waveTexture.Create();
+
+        var cameraObject = new GameObject("CreditsWaveCamera");
+        cameraObject.transform.SetParent(transform, false);
+        cameraObject.transform.SetPositionAndRotation(waveCameraPose.position, waveCameraPose.rotation);
+        waveCamera = cameraObject.AddComponent<Camera>();
+        waveCamera.fieldOfView = 40f;
+        waveCamera.targetTexture = waveTexture;
+        waveCamera.allowMSAA = true;
+        waveCamera.cullingMask = ~(1 << CreditsLayer);
+
+        var cameraData = cameraObject.AddComponent<UniversalAdditionalCameraData>();
+        cameraData.renderPostProcessing = true;
+        cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+        cameraData.antialiasingQuality = AntialiasingQuality.High;
+
+        return waveTexture;
+    }
+
+    /// <summary>손 흔들기를 멈추고 카메라를 정리한다.</summary>
+    public void EndWaveShot()
+    {
+        if (!waving) return;
+        waving = false;
+
+        foreach (EndingActor actor in actors)
+            if (actor?.reachIK != null)
+                actor.reachIK.weight = 0f;
+
+        if (waveCamera != null) Destroy(waveCamera.gameObject);
+        waveCamera = null;
+        if (waveTexture != null) waveTexture.Release();
+        waveTexture = null;
+    }
+
+    private void Update()
+    {
+        if (waving)
+            UpdateWave();
+
+        if (outlinesOff && Time.unscaledTime >= nextOutlineSweep)
+        {
+            nextOutlineSweep = Time.unscaledTime + 0.5f;
+            DisableOutlines();
+        }
+    }
+
+    private static void DisableOutlines()
+    {
+        foreach (Outline outline in FindObjectsByType<Outline>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (outline.enabled)
+                outline.enabled = false;
+    }
+
+    // 인사하듯 흔든다: 팔꿈치는 몸 바깥·조금 앞, 어깨보다 아래에 두고, 아래팔을 세운 채
+    // 팔꿈치를 축으로 아래팔 전체를 카메라 기준 좌우 부채꼴로 흔든다. 손은 아래팔과 한 덩어리로 같이 기운다
+    // (손목만 따로 까딱이면 손목만 흔들리는 것처럼 보인다). 손바닥은 카메라를 향한다.
+    private void UpdateWave()
+    {
+        waveTime += Time.deltaTime;
+        float angle = Mathf.Sin(waveTime * Mathf.PI * 2f * waveSpeed) * waveAngle;
+        Vector3 cameraPosition = waveCameraPose.position;
+
+        for (int i = 0; i < actors.Length; i++)
+        {
+            EndingActor actor = actors[i];
+            if (actor?.root == null || actor.reachIK == null || actor.meetPose == null) continue;
+
+            ref TwoBoneIKConstraintData data = ref actor.reachIK.data;
+            Transform target = data.target;
+            Transform shoulder = data.root;
+            if (target == null || shoulder == null || data.mid == null || data.tip == null) continue;
+
+            float upperArm = Vector3.Distance(shoulder.position, data.mid.position);
+            float forearm = Vector3.Distance(data.mid.position, data.tip.position);
+
+            // 방향은 캐릭터 몸 기준으로 잡는다. 루트가 몸 한가운데에 있지 않아서
+            // "루트 → 어깨" 방향으로 바깥을 정하면 한쪽 팔이 안쪽·뒤쪽으로 꺾일 수 있다.
+            Transform bodyTransform = actor.root.transform;
+            Vector3 front = Vector3.ProjectOnPlane(bodyTransform.forward, Vector3.up).normalized;   // 카메라를 보고 서 있다
+            Vector3 right = Vector3.Cross(Vector3.up, front);
+            float sideSign = Vector3.Dot(shoulder.position - bodyTransform.position, right) >= 0f ? 1f : -1f;
+            Vector3 outward = right * sideSign;
+            Vector3 toCamera = front;
+
+            // 팔꿈치: 어깨에서 위팔 길이만큼, 바깥·아래·조금 앞(몸보다 뒤로 가지 않게)
+            Vector3 elbow = shoulder.position + (outward + Vector3.down * 0.45f + front * 0.35f).normalized * upperArm;
+
+            // 아래팔: 위를 향한 채 살짝 앞으로 기울여(손이 얼굴보다 조금 앞에) 팔꿈치를 축으로 좌우로 흔든다.
+            // 끝까지 펴지지 않게 조금 짧게 잡는다.
+            Quaternion swing = Quaternion.AngleAxis(angle, front);
+            Vector3 forearmDir = swing * (Vector3.up + front * 0.2f + outward * 0.1f).normalized;
+            Vector3 hand = elbow + forearmDir * (forearm * 0.97f);
+
+            // MeetPose는 손바닥이 상대를 보는 방향이다 — 그 방향을 카메라 쪽으로 돌리고, 아래팔과 같은 각도로 기울인다
+            EndingActor partner = actors[(i + 1) % actors.Length];
+            Vector3 towardPartner = partner?.root != null
+                ? Vector3.ProjectOnPlane(partner.homePosition - actor.homePosition, Vector3.up).normalized
+                : toCamera;
+            Quaternion palmToCamera = Quaternion.FromToRotation(towardPartner, toCamera) * actor.meetPose.rotation;
+
+            target.SetPositionAndRotation(hand, swing * palmToCamera);
+            actor.reachIK.weight = 1f;
+
+            // 힌트는 팔꿈치가 굽는 쪽(바깥·아래)에 두어 IK가 팔꿈치를 그 자리로 굽히게 한다
+            if (data.hint != null)
+            {
+                data.hintWeight = 1f;
+                data.hint.position = elbow + (outward + Vector3.down * 0.3f + front * 0.1f).normalized * 0.2f;
+            }
+        }
+    }
+
     // ── XR 따라가기 ─────────────────────────────────────────────────────
 
     // 전용 Brain이 이번 프레임 카메라 위치를 정한 직후 불린다.
+    // 엔딩이 끝나도 크레딧이 나오는 동안은 마지막 자리(5m 위 전경 카메라)에 계속 붙잡아 둔다 —
+    // 놓으면 XR Origin이 땅으로 떨어져, 그 높이에 띄운 크레딧이 머리 한참 위에 남는다.
     private void OnCameraUpdated(CinemachineBrain brain)
     {
-        if (!isPlaying || brain != cutsceneBrain || xrOrigin == null || xrHead == null)
+        bool holding = isPlaying || (credits != null && credits.IsPlaying);
+        if (!holding || brain != cutsceneBrain || xrOrigin == null || xrHead == null)
             return;
 
         Transform shot = brain.ControlledObject.transform;
