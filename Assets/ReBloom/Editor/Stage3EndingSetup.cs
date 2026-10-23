@@ -28,7 +28,8 @@ using Object = UnityEngine.Object;
 /// │   ├── WalkTarget_mental    ← 온실 밖으로 걸어 나와 멈출 자리·바라볼 방향
 /// │   ├── WalkTarget_ear
 /// │   └── WalkCenter           ← 걷는 두 사람의 가운데. 따라가는 카메라의 대상
-/// └── HandGlow                 ← Point Light + 빛 파티클
+/// ├── HandGlow                 ← Point Light + 빛 파티클
+/// └── Credits                  ← 엔딩 크레딧(EndingCredits). 장면 이미지·노래·폰트를 여기에 넣는다
 /// </code>
 /// 타임라인은 <see cref="TimelinePath"/>에 만든다.
 ///
@@ -66,6 +67,20 @@ public static class Stage3EndingSetup
     private const string TimelinePath = "Assets/ReBloom/CutScenes/Stage3/Stage3EndingTimeline.playable";
     private const string GlowMaterialPath = "Assets/ReBloom/CutScenes/Stage3/EndingGlowParticle.mat";
     private const string RestoreSoundPath = "Assets/ReBloom/Sounds/Basic/WorldRestore.mp3";
+
+    // 엔딩 크레딧
+    private const string CreditsName = "Credits";
+    private const string CreditsMusicPath = "Assets/ReBloom/Sounds/Ending/After Sunset.mp3";
+    private const string CreditsFontPath = "Assets/ReBloom/UI/Fonts/KoPub Dotum Medium SDF.asset";
+
+    private static readonly (string role, string name)[] CreditLines =
+    {
+        ("기획", "강서현"),
+        ("개발", "김성희"),
+        ("개발", "윤신혜"),
+        ("배경 모델링", "배준희"),
+        ("캐릭터 모델링", "류현지"),
+    };
 
     private const string RootName = "Stage3Ending";
     private const string CameraRigName = "CameraRig";
@@ -381,6 +396,9 @@ public static class Stage3EndingSetup
         if (glowCreated)
             ConfigureGlowParticles(particles);
 
+        // ── 5-1. 엔딩 크레딧 ───────────────────────────────────────────
+        EndingCredits credits = SetupCredits(root);
+
         // ── 6. 효과음 ──────────────────────────────────────────────────
         // 다른 컷씬(Stage1 클리어, Stage2 정화)이 세상이 되살아나는 순간에 쓰는 소리. VR이라 2D로 듣는다.
         AudioSource sfx = GetOrAdd<AudioSource>(root.gameObject);
@@ -409,6 +427,7 @@ public static class Stage3EndingSetup
         so.FindProperty("vegetation").objectReferenceValue = vegetation;
         so.FindProperty("growGroup").objectReferenceValue = growGroup != null ? growGroup.gameObject : null;
         so.FindProperty("walkCenter").objectReferenceValue = walkCenter;
+        so.FindProperty("credits").objectReferenceValue = credits;
         so.FindProperty("glowLight").objectReferenceValue = light;
         so.FindProperty("glowParticles").objectReferenceValue = particles;
         so.FindProperty("closeGap").floatValue = CloseGap;
@@ -433,6 +452,67 @@ public static class Stage3EndingSetup
 
         Debug.Log($"[엔딩 셋업] 완료. 타임라인 {(timelineCreated ? "생성" : "기존 것 재사용")}: {TimelinePath}");
         Debug.Log("[엔딩 셋업] 씬을 저장하세요. MeetPose_* 로 손바닥, WalkTarget_* 로 멈출 자리, Cam_* 로 구도를 맞출 수 있습니다.");
+    }
+
+    // ── 엔딩 크레딧 ───────────────────────────────────────────────────────
+
+    // 크레딧 오브젝트를 만들고 폰트·노래·장면 이미지를 넣는다. 크레딧 문구는 처음 만들 때만 넣는다
+    // (Inspector에서 고친 이름을 덮어쓰지 않도록). 장면 영상·이미지는 Apply할 때마다 다시 넣어
+    // 새로 녹화·캡처한 것이 바로 반영된다.
+    private static EndingCredits SetupCredits(Transform root)
+    {
+        Transform creditsObject = GetOrCreateChild(root, CreditsName, out bool created);
+        EndingCredits credits = GetOrAdd<EndingCredits>(creditsObject.gameObject);
+        var so = new SerializedObject(credits);
+
+        so.FindProperty("font").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(CreditsFontPath);
+        AudioClip music = AssetDatabase.LoadAssetAtPath<AudioClip>(CreditsMusicPath);
+        so.FindProperty("music").objectReferenceValue = music;
+        if (music == null)
+            Debug.LogWarning($"[엔딩 셋업] 크레딧 노래 {CreditsMusicPath}를 찾지 못했습니다.");
+
+        // 장면 칸마다 영상(녹화) → 없으면 이미지(캡처). 칸 순서를 지키도록 빈 칸은 null로 둔다.
+        int count = EndingCreditShotCapture.ShotNames.Length;
+        SerializedProperty clipsProp = so.FindProperty("clips");
+        SerializedProperty shotsProp = so.FindProperty("shots");
+        clipsProp.arraySize = count;
+        shotsProp.arraySize = count;
+
+        var videos = new List<string>();
+        var images = new List<string>();
+        var missing = new List<string>();
+        for (int i = 0; i < count; i++)
+        {
+            string shotName = EndingCreditShotCapture.ShotNames[i];
+            var clip = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip>(EndingCreditClipRecorder.ClipPath(i));
+            var image = AssetDatabase.LoadAssetAtPath<Texture2D>(EndingCreditShotCapture.ShotPath(i));
+            clipsProp.GetArrayElementAtIndex(i).objectReferenceValue = clip;
+            shotsProp.GetArrayElementAtIndex(i).objectReferenceValue = image;
+
+            if (clip != null) videos.Add(shotName);
+            else if (image != null) images.Add(shotName);
+            else missing.Add(shotName);
+        }
+
+        Debug.Log($"[엔딩 셋업] 크레딧 장면 — 영상 {videos.Count}개, 이미지 {images.Count}장" +
+                  (missing.Count == 0
+                      ? "."
+                      : $". 아직 없는 장면: {string.Join(", ", missing)} — 메뉴 Re_Bloom/Credits/Record 로 녹화한 뒤 Apply를 다시 실행하세요."));
+
+        if (created)
+        {
+            SerializedProperty linesProp = so.FindProperty("lines");
+            linesProp.arraySize = CreditLines.Length;
+            for (int i = 0; i < CreditLines.Length; i++)
+            {
+                SerializedProperty line = linesProp.GetArrayElementAtIndex(i);
+                line.FindPropertyRelative("role").stringValue = CreditLines[i].role;
+                line.FindPropertyRelative("name").stringValue = CreditLines[i].name;
+            }
+        }
+
+        so.ApplyModifiedProperties();
+        return credits;
     }
 
     // ── 타임라인 ──────────────────────────────────────────────────────────

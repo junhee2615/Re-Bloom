@@ -2617,8 +2617,8 @@ MonoBehaviour:
   m_InteractionManager: {fileID: 0}
   m_Colliders:
   - {fileID: 355216366}
-  - {fileID: 1779516136}
-  - {fileID: 1779516135}
+  - {fileID: 0}
+  - {fileID: 0}
   m_InteractionLayers:
     m_Bits: 4294967295
   m_DistanceCalculationMode: 1
@@ -3804,7 +3804,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &554320575
 Transform:
   m_ObjectHideFlags: 0
@@ -13191,6 +13191,7 @@ MonoBehaviour:
   cutsceneBrain: {fileID: 274950061}
   cameraRoot: {fileID: 2002797851}
   vegetation: {fileID: 763756311}
+  credits: {fileID: 1402407049}
   actors:
   - root: {fileID: 554320574}
     reachIK: {fileID: 929232616}
@@ -13253,6 +13254,7 @@ Transform:
   - {fileID: 859665289}
   - {fileID: 777409967}
   - {fileID: 2002797852}
+  - {fileID: 1402407050}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &1181329818
@@ -14892,6 +14894,83 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.0000004172325, y: -0.08307207, z: -0.06640912}
     m_Extent: {x: 0.38239306, y: 0.81738997, z: 0.19466907}
   m_DirtyAABB: 0
+--- !u!1 &1402407048
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1402407050}
+  - component: {fileID: 1402407049}
+  m_Layer: 0
+  m_Name: Credits
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1402407049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1402407048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a913443dadd21984895838f7fbd1174d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EndingCredits
+  shots: []
+  lines:
+  - role: "\uAE30\uD68D"
+    name: "\uAC15\uC11C\uD604"
+  - role: "\uAC1C\uBC1C"
+    name: "\uAE40\uC131\uD76C"
+  - role: "\uAC1C\uBC1C"
+    name: "\uC724\uC2E0\uD61C"
+  - role: "\uBC30\uACBD \uBAA8\uB378\uB9C1"
+    name: "\uBC30\uC900\uD76C"
+  - role: "\uCE90\uB9AD\uD130 \uBAA8\uB378\uB9C1"
+    name: "\uB958\uD604\uC9C0"
+  endText: '- The End -'
+  font: {fileID: 11400000, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
+  music: {fileID: 8300000, guid: 1284eb499284f1e4184a4c81ca1ce712, type: 3}
+  musicVolume: 0.8
+  fadeIn: 2.5
+  shotDuration: 7
+  shotCrossfade: 1.5
+  shotZoom: 1.08
+  firstLineDelay: 1.5
+  lineFade: 1.2
+  lineHold: 4.5
+  lineGap: 0.8
+  contentFadeOut: 2
+  endFadeIn: 1.5
+  endHold: 3.5
+  finalFadeOut: 3
+  distance: 2.6
+  width: 3.2
+  onCreditsFinished:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &1402407050
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1402407048}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1181329817}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1404740854
 GameObject:
   m_ObjectHideFlags: 0
@@ -20141,12 +20220,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 857839163391124910, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1973991943}
-    - targetCorrespondingSourceObject: {fileID: 1484277122890856323, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2119646731}
-    - targetCorrespondingSourceObject: {fileID: 7350030640857509386, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1060257893}
     - targetCorrespondingSourceObject: {fileID: 412597485300000053, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 355216366}

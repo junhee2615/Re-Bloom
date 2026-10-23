@@ -137,6 +137,39 @@ public class ResonanceCutsceneOverride
     }
 
     // =================================================
+    // 감각 제약 완전 해제 (엔딩용)
+    // =================================================
+
+    /// <summary>
+    /// 역할별 감각 제약을 끝까지 걷어 낸다. 엔딩처럼 다시 제약으로 돌아가지 않는 연출에서 쓴다.
+    ///  - mental: Resonance Global Volume의 weight를 0으로 — 해제 상태 weight(0.6)에 남는
+    ///    블러·어두운 색 보정까지 없앤다(Bloom/Vignette만 끄는 <see cref="Disable"/>보다 강하다).
+    ///  - ear: 제약 오디오를 일반 믹서 그룹으로 돌리고 스냅샷을 완화 쪽 끝으로 — 먹먹함이 사라진다.
+    /// <see cref="FreezeForFogClear"/> 또는 <see cref="Disable"/> 뒤에 부른다(Update가 다시 덮어쓰지 않도록).
+    /// </summary>
+    public void ClearSensoryConstraints()
+    {
+        if (!Resolve())
+            return;
+
+        if (volumeField?.GetValue(controller) is VolumeConstraint volume)
+        {
+            FieldInfo resonanceVolumeField = typeof(VolumeConstraint).GetField("resonanceVolume", Flags);
+            if (resonanceVolumeField?.GetValue(volume) is UnityEngine.Rendering.Volume resonanceVolume)
+                resonanceVolume.weight = 0f;
+
+            volume.ApplyPostFx(true);
+        }
+
+        FieldInfo audioField = typeof(ResonanceController).GetField("audioConstraint", Flags);
+        if (audioField?.GetValue(controller) is AudioConstraint audio)
+        {
+            audio.Apply(true);
+            audio.UpdateRelief(1f);
+        }
+    }
+
+    // =================================================
     // Freeze (안개가 걷히는 연출용)
     // =================================================
 
