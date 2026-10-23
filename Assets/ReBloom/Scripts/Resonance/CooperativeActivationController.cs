@@ -102,7 +102,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
 
         // 1) 닿는 순간 — 스냅 펄스
         if (handsContacted && !previousContact && !succeeded)
-            StartCoroutine(PlayPattern(contactSnapPattern, hapticNode));
+            StartCoroutine(HapticPatternPlayer.Play(contactSnapPattern, hapticNode));
 
         // 2) 유지 구간 — 하나의 패턴이 진행도(progress)에 따라 세기·간격을 변화
         bool charging = !succeeded && holdProgress > 0f && holdPattern != null;
@@ -110,7 +110,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         {
             if (Time.unscaledTime >= nextHoldPulseTime)
             {
-                SendHapticPulse(holdPattern.AmplitudeAtProgress(holdProgress), holdPattern.duration, hapticNode);
+                HapticPatternPlayer.Pulse(holdPattern.AmplitudeAtProgress(holdProgress), holdPattern.duration, hapticNode);
                 nextHoldPulseTime = Time.unscaledTime + holdPattern.IntervalAtProgress(holdProgress);
             }
         }
@@ -123,7 +123,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         // 3) 성공 순간 — 릴리즈 펄스
         if (succeeded && !previousSuccess)
         {
-            StartCoroutine(PlayPattern(successPattern, hapticNode));
+            StartCoroutine(HapticPatternPlayer.Play(successPattern, hapticNode));
             onActivationSucceeded?.Invoke();
             ActivationSucceeded?.Invoke();
         }
@@ -248,39 +248,9 @@ public sealed class CooperativeActivationController : MonoBehaviour
         return mentalPlayer != null && earPlayer != null;
     }
 
-    /// <summary>
-    /// HapticPattern을 재생한다.
-    /// </summary>
-    private IEnumerator PlayPattern(HapticPattern pattern, XRNode node)
-    {
-        if (pattern == null)
-            yield break;
-
-        int pulseCount = Mathf.Max(1, pattern.pulseCount);
-        for (int pulseIndex = 0; pulseIndex < pulseCount; pulseIndex++)
-        {
-            float normalizedPulse = pulseCount == 1 ? 1f : (float)pulseIndex / (pulseCount - 1);
-            float curveMultiplier = pattern.amplitudeCurve == null || pattern.amplitudeCurve.length == 0
-                ? 1f
-                : pattern.amplitudeCurve.Evaluate(normalizedPulse);
-
-            SendHapticPulse(pattern.amplitude * curveMultiplier, pattern.duration, node);
-
-            if (pulseIndex < pulseCount - 1)
-                yield return new WaitForSeconds(pattern.interval);
-        }
-    }
-
-    private static void SendHapticPulse(float amplitude, float duration, XRNode node)
-    {
-        amplitude = Mathf.Clamp01(amplitude);
-        if (amplitude <= 0f || duration <= 0f)
-            return;
-
-        InputDevice device = InputDevices.GetDeviceAtXRNode(node);
-        if (device.TryGetHapticCapabilities(out HapticCapabilities capabilities) && capabilities.supportsImpulse)
-            device.SendHapticImpulse(0, amplitude, duration);
-    }
+    // 패턴 재생은 HapticPatternPlayer로 옮겼다 — 여기 private으로 묶여 있어서
+    // HapticTrigger 같은 다른 사용처가 세기·길이를 하드코딩할 수밖에 없었다.
+    // 동작은 그대로이므로 이 컨트롤러의 체감은 바뀌지 않는다.
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetEvents()

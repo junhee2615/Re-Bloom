@@ -12,31 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 888c3342297319a458463586fac2b612, type: 3}
   m_Name: generatorLowFuel
   m_EditorClassIdentifier: Assembly-CSharp::HapticPattern
-  amplitude: 1
-  duration: 0.1
-  pulseCount: 3
-  interval: 0.7
+  amplitude: 0.6
+  duration: 0.04
+  pulseCount: 5
+  interval: 0.07
   amplitudeCurve:
     serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 2
-      outSlope: 2
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+    m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
