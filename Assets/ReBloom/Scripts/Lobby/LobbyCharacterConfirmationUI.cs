@@ -65,10 +65,10 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
     [Header("Messages")]
     [SerializeField]
-    private string mentalMessage = "정신 제약 캐릭터로 선택하시겠습니까?";
+    private string mentalMessage = "루멘을 선택하시겠습니까?";
 
     [SerializeField]
-    private string earMessage = "청각 제약 캐릭터로 선택하시겠습니까?";
+    private string earMessage = "에코를 선택하시겠습니까?";
 
     [SerializeField]
     private string mentalDeselectMessage = "루멘 선택을 취소하시겠습니까?";
