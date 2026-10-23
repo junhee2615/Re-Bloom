@@ -40,6 +40,8 @@ public class EndingCredits : MonoBehaviour
 
     // 다음 영상을 겹치기 전에 미리 준비하는 시간(초)
     private const float VideoPrepareLead = 1f;
+
+    // 손 흔들기 컷으로 넘어갈 때 화면 전체가 검게 닫히는 시간과 다시 열리는 시간(초)
     private const int VideoWidth = 1920;   // 녹화 해상도 그대로(줄이면 흐려진다)
     private const int VideoHeight = 1080;
 
@@ -54,6 +56,12 @@ public class EndingCredits : MonoBehaviour
     [SerializeField] private CreditLine[] lines = Array.Empty<CreditLine>();
 
     [SerializeField] private string endText = "- The End -";
+
+    [Tooltip("마지막 \"The End\"를 글씨 대신 이 이미지로 보여 준다(배경이 투명한 PNG). 비우면 End Text 글씨를 쓴다.")]
+    [SerializeField] private Texture2D endImage;
+
+    [Tooltip("The End 이미지의 가로 크기(크레딧 화면 가로 1920 기준 픽셀). 세로는 이미지 비율대로.")]
+    [SerializeField, Min(100f)] private float endImageWidth = 650f;
 
     [Tooltip("한글이 들어 있는 TextMeshPro 폰트(KoPub Dotum 등).")]
     [SerializeField] private TMP_FontAsset font;
@@ -92,7 +100,9 @@ public class EndingCredits : MonoBehaviour
     [Tooltip("크레딧 마지막에 온실 앞에서 손 흔드는 두 사람을 실시간으로 보여 줄 엔딩. 비우면 사진만 나온다.")]
     [SerializeField] private Stage3EndingCutscene liveShotSource;
     [Tooltip("손 흔들기 컷을 보여 주는 시간(초).")]
-    [SerializeField, Min(1f)] private float liveShotDuration = 6f;
+    [SerializeField, Min(1f)] private float liveShotDuration = 8f;
+    [Tooltip("스테이지3 애프터 사진에서 손 흔들기 컷으로 넘어갈 때 검게 닫히는 시간과 다시 열리는 시간(초, 각각).")]
+    [SerializeField, Range(0.3f, 3f)] private float liveDip = 1.6f;
 
     [Header("배치")]
     [Tooltip("장면 사진을 오른쪽으로 미는 거리(크레딧 화면 가로 1920 기준 픽셀).")]
@@ -138,6 +148,7 @@ public class EndingCredits : MonoBehaviour
     private TMP_Text roleText;
     private TMP_Text nameText;
     private CanvasGroup endGroup;
+    private RawImage dipCover;
     private AudioSource musicSource;
 
     public bool IsPlaying { get; private set; }
@@ -295,12 +306,29 @@ public class EndingCredits : MonoBehaviour
 
         ShowSlot(current, index, true, 1f, local / length);
 
-        // 손 흔들기 컷이 보이는 만큼(0~1) 글씨 뒤 검은 번짐을 걷는다 — 그 장면엔 크레딧 글씨가 없다
-        float liveVisible = slots[index].live ? 1f : 0f;
-
         bool hasNext = index < count - 1;
+        bool nextIsLive = hasNext && slots[index + 1].live;
+        bool isLive = slots[index].live;
+
+        // 손 흔들기 컷으로는 겹치지 않고, 화면 전체가 검게 닫혔다가 열리며 넘어간다.
+        // 검은 막이 사진·번짐·글씨를 한꺼번에 덮으므로 번짐이 먼저 걷혀 보이지 않는다.
+        // 완전히 검은 순간에 번짐을 없애고, 막이 걷히며 두 사람이 걸어 들어온다
+        // (이 칸에 들어설 때 BeginWaveShot이 불린다).
+        float dip = 0f;
+        if (nextIsLive)
+        {
+            float dipStart = shotDuration - liveDip;
+            dip = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((local - dipStart) / liveDip));
+        }
+        else if (isLive)
+        {
+            dip = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(local / liveDip));
+        }
+        contentGroup.alpha = 1f;
+        dipCover.color = new Color(0f, 0f, 0f, dip);
+
         float crossStart = shotDuration - shotCrossfade;
-        if (hasNext && local > crossStart - VideoPrepareLead)
+        if (hasNext && !nextIsLive && local > crossStart - VideoPrepareLead)
         {
             bool crossing = local > crossStart;
             float k = crossing ? Mathf.SmoothStep(0f, 1f, (local - crossStart) / Mathf.Max(0.01f, shotCrossfade)) : 0f;
@@ -310,9 +338,6 @@ public class EndingCredits : MonoBehaviour
                 layerImages[next].transform.SetAsLastSibling();
 
             ShowSlot(next, index + 1, crossing, k, 0f);
-
-            if (slots[index + 1].live)
-                liveVisible = k;
         }
         else
         {
@@ -321,7 +346,8 @@ public class EndingCredits : MonoBehaviour
                 ClearLayer(next);
         }
 
-        SetShade(1f - liveVisible);
+        // 손 흔들기 컷엔 크레딧 글씨가 없으니 번짐도 없다(검은 화면일 때 바뀌므로 바뀌는 순간이 보이지 않는다)
+        SetShade(isLive ? 0f : 1f);
     }
 
     private void SetShade(float visible)
@@ -605,12 +631,38 @@ public class EndingCredits : MonoBehaviour
         nameRect.anchorMax = new Vector2(1f, 0.5f);
         nameRect.offsetMin = nameRect.offsetMax = Vector2.zero;
 
+        // 손 흔들기 컷으로 넘어갈 때 화면 전체를 덮는 검은 막.
+        // contentGroup.alpha로 끄면 사진과 번짐이 따로따로 옅어져, 중간에 번짐이 먼저 걷혀 보인다.
+        // 사진은 오른쪽으로 밀려 크레딧 화면 밖까지 나가므로, 막도 그만큼(넉넉히) 더 넓혀 경계가 보이지 않게 한다.
+        RectTransform dipRect = CreateRect(contentGroup.transform, "DipCover");
+        Stretch(dipRect);
+        const float DipBleed = 200f;
+        dipRect.offsetMin = new Vector2(Mathf.Min(0f, shotOffsetX) - DipBleed, -DipBleed);
+        dipRect.offsetMax = new Vector2(Mathf.Max(0f, shotOffsetX) + DipBleed, DipBleed);
+        dipCover = dipRect.gameObject.AddComponent<RawImage>();
+        dipCover.color = Color.clear;
+        dipCover.raycastTarget = false;
+
         // The End
         endGroup = CreateGroup(canvasRect, "End");
         endGroup.alpha = 0f;
-        TMP_Text end = CreateText(endGroup.transform, "EndText", 72f, Color.white, TextAlignmentOptions.Center);
-        Stretch(end.rectTransform);
-        end.text = endText;
+        if (endImage != null)
+        {
+            // 화면 가운데, 이미지 비율 그대로
+            RectTransform endRect = CreateRect(endGroup.transform, "EndImage");
+            endRect.anchorMin = endRect.anchorMax = new Vector2(0.5f, 0.5f);
+            endRect.pivot = new Vector2(0.5f, 0.5f);
+            endRect.sizeDelta = new Vector2(endImageWidth, endImageWidth * endImage.height / Mathf.Max(1f, endImage.width));
+            RawImage endRaw = endRect.gameObject.AddComponent<RawImage>();
+            endRaw.texture = endImage;
+            endRaw.raycastTarget = false;
+        }
+        else
+        {
+            TMP_Text end = CreateText(endGroup.transform, "EndText", 72f, Color.white, TextAlignmentOptions.Center);
+            Stretch(end.rectTransform);
+            end.text = endText;
+        }
 
         musicSource = gameObject.GetComponent<AudioSource>();
         if (musicSource == null)

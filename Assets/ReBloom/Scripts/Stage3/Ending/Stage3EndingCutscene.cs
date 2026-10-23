@@ -61,6 +61,12 @@ public class Stage3EndingCutscene : MonoBehaviour
         [NonSerialized] public Vector3 homePosition;
         [NonSerialized] public Quaternion homeRotation;
 
+        // 크레딧 손 흔들기 컷: 걸어 들어오기 시작점·멈출 자리·걸을 때 방향·멈춘 뒤 바라볼 방향
+        [NonSerialized] public Vector3 waveFrom;
+        [NonSerialized] public Vector3 waveTo;
+        [NonSerialized] public Quaternion waveWalkFacing;
+        [NonSerialized] public Quaternion waveFacing;
+
         // 발소리: 걷는 중인가, 두 발 뼈, 발마다 땅에 닿았는지 보는 상태, 소리 낼 곳
         [NonSerialized] public bool walking;
         [NonSerialized] public FootTracker[] feet;
@@ -158,6 +164,18 @@ public class Stage3EndingCutscene : MonoBehaviour
 
     [Tooltip("팔꿈치를 축으로 아래팔이 좌우로 흔들리는 각도(도). 가운데에서 한쪽으로 이만큼 기운다.")]
     [SerializeField, Range(0f, 60f)] private float waveAngle = 25f;
+
+    [Tooltip("손 흔들 때 두 사람을 원래 자리에서 서로 반대쪽으로 이만큼(m)씩 벌려 세운다.")]
+    [SerializeField, Range(0f, 1.5f)] private float waveSpread = 0.35f;
+
+    [Tooltip("손 흔들기 전에 화면 양옆에서 걸어 들어오는 거리(m).")]
+    [SerializeField, Range(0f, 5f)] private float waveWalkInDistance = 2.2f;
+
+    [Tooltip("걸어 들어오는 시간(초).")]
+    [SerializeField, Min(0.1f)] private float waveWalkIn = 3f;
+
+    [Tooltip("멈춘 뒤 카메라 쪽으로 돌아서는 시간(초).")]
+    [SerializeField, Min(0.1f)] private float waveTurn = 0.6f;
 
     [Header("자라는 식생 그룹")]
     [Tooltip("엔딩에서 자라날 그룹(Flower&Tree&Building&Ivy). 바로 아래 자식들이 가까운 것부터 차례로 자란다. " +
@@ -954,7 +972,8 @@ public class Stage3EndingCutscene : MonoBehaviour
     // 애니메이션이 발을 움직인 뒤(LateUpdate) 발이 땅에 닿는 순간마다 걸음 소리 한 조각을 튼다.
     private void LateUpdate()
     {
-        if (!isPlaying || stepSlices.Count == 0) return;
+        // 엔딩 중, 그리고 크레딧 손 흔들기 컷에서 걸어 들어올 때도 발소리를 낸다
+        if ((!isPlaying && !waving) || stepSlices.Count == 0) return;
 
         foreach (EndingActor actor in actors)
         {
@@ -1051,18 +1070,40 @@ public class Stage3EndingCutscene : MonoBehaviour
         waveTime = 0f;
 
         Vector3 cameraPosition = waveCameraPose.position;
+
+        // 두 사람 가운데에서 서로 반대쪽으로 waveSpread만큼씩 벌려 세운다 — 붙어 서면 흔드는 손이 부딪힌다
+        Vector3 pairCenter = Vector3.zero;
+        int placed = 0;
+        foreach (EndingActor actor in actors)
+        {
+            if (actor?.root == null) continue;
+            pairCenter += actor.homePosition;
+            placed++;
+        }
+        if (placed > 0) pairCenter /= placed;
+
+        // 각자 바깥쪽(화면 양옆)에서 걸어 들어와 자리에 선 뒤 카메라 쪽으로 돌아선다
         foreach (EndingActor actor in actors)
         {
             if (actor?.root == null) continue;
 
-            Vector3 toCamera = Vector3.ProjectOnPlane(cameraPosition - actor.homePosition, Vector3.up);
-            Quaternion facing = toCamera.sqrMagnitude > 0.001f
+            Vector3 apart = Vector3.ProjectOnPlane(actor.homePosition - pairCenter, Vector3.up);
+            apart = apart.sqrMagnitude > 0.0001f ? apart.normalized : Vector3.zero;
+
+            actor.waveTo = actor.homePosition + apart * waveSpread;
+            actor.waveFrom = actor.waveTo + apart * waveWalkInDistance;
+
+            Vector3 toCamera = Vector3.ProjectOnPlane(cameraPosition - actor.waveTo, Vector3.up);
+            actor.waveFacing = toCamera.sqrMagnitude > 0.001f
                 ? Quaternion.LookRotation(toCamera.normalized, Vector3.up)
                 : actor.homeRotation;
-            actor.root.transform.SetPositionAndRotation(actor.homePosition, facing);
+            actor.waveWalkFacing = apart.sqrMagnitude > 0f
+                ? Quaternion.LookRotation(-apart, Vector3.up)
+                : actor.waveFacing;
 
-            if (actor.animator != null)
-                actor.animator.SetBool(IsWalkingId, false);
+            actor.root.transform.SetPositionAndRotation(actor.waveFrom, actor.waveWalkFacing);
+            if (actor.reachIK != null)
+                actor.reachIK.weight = 0f;
         }
 
         waveTexture = new RenderTexture(1920, 1080, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
@@ -1126,7 +1167,42 @@ public class Stage3EndingCutscene : MonoBehaviour
     private void UpdateWave()
     {
         waveTime += Time.deltaTime;
-        float angle = Mathf.Sin(waveTime * Mathf.PI * 2f * waveSpeed) * waveAngle;
+
+        // 1) 양옆에서 걸어 들어온다  2) 카메라 쪽으로 돌아선다  3) 손을 흔든다
+        float walkEnd = waveWalkIn;
+        float turnEnd = walkEnd + waveTurn;
+        bool walkingIn = waveTime < walkEnd;
+
+        foreach (EndingActor actor in actors)
+        {
+            if (actor?.root == null) continue;
+
+            Transform body = actor.root.transform;
+            if (walkingIn)
+            {
+                float u = Mathf.Clamp01(waveTime / walkEnd);
+                float eased = 1f - (1f - u) * (1f - u);   // 들어와서 천천히 멈춘다
+                body.SetPositionAndRotation(Vector3.Lerp(actor.waveFrom, actor.waveTo, eased), actor.waveWalkFacing);
+            }
+            else
+            {
+                float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((waveTime - walkEnd) / waveTurn));
+                body.SetPositionAndRotation(actor.waveTo, Quaternion.Slerp(actor.waveWalkFacing, actor.waveFacing, k));
+            }
+
+            // 마지막 0.3초는 걸음을 멈추는 중이라 걷기 애니메이션을 끈다
+            bool stepping = walkingIn && waveTime < walkEnd - 0.3f;
+            if (actor.animator != null)
+                actor.animator.SetBool(IsWalkingId, stepping);
+            actor.walking = stepping;
+        }
+
+        if (waveTime < turnEnd)
+            return;   // 손은 아직 내린 채로
+
+        float waveElapsed = waveTime - turnEnd;
+        float raise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(waveElapsed / 0.4f));   // 손을 부드럽게 들어 올린다
+        float angle = Mathf.Sin(waveElapsed * Mathf.PI * 2f * waveSpeed) * waveAngle;
         Vector3 cameraPosition = waveCameraPose.position;
 
         for (int i = 0; i < actors.Length; i++)
@@ -1155,8 +1231,10 @@ public class Stage3EndingCutscene : MonoBehaviour
             Vector3 elbow = shoulder.position + (outward + Vector3.down * 0.45f + front * 0.35f).normalized * upperArm;
 
             // 아래팔: 위를 향한 채 살짝 앞으로 기울여(손이 얼굴보다 조금 앞에) 팔꿈치를 축으로 좌우로 흔든다.
-            // 끝까지 펴지지 않게 조금 짧게 잡는다.
-            Quaternion swing = Quaternion.AngleAxis(angle, front);
+            // 끝까지 펴지지 않게 조금 짧게 잡는다. 두 사람은 서로 반대로 흔든다 —
+            // 같은 쪽으로 흔들면 시계추처럼 한 덩어리로 보인다.
+            float actorAngle = i % 2 == 0 ? angle : -angle;
+            Quaternion swing = Quaternion.AngleAxis(actorAngle, front);
             Vector3 forearmDir = swing * (Vector3.up + front * 0.2f + outward * 0.1f).normalized;
             Vector3 hand = elbow + forearmDir * (forearm * 0.97f);
 
@@ -1168,7 +1246,7 @@ public class Stage3EndingCutscene : MonoBehaviour
             Quaternion palmToCamera = Quaternion.FromToRotation(towardPartner, toCamera) * actor.meetPose.rotation;
 
             target.SetPositionAndRotation(hand, swing * palmToCamera);
-            actor.reachIK.weight = 1f;
+            actor.reachIK.weight = raise;
 
             // 힌트는 팔꿈치가 굽는 쪽(바깥·아래)에 두어 IK가 팔꿈치를 그 자리로 굽히게 한다
             if (data.hint != null)
