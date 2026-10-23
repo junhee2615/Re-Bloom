@@ -41,9 +41,9 @@ namespace ReBloom.Solar
         public float maxPitch = 20f;
         [Tooltip("중심에서 앞뒤로 이만큼(m) 벗어나면 최대 각도가 된다. " +
                  "판 크기와 일부러 분리했다 — 판 끝까지 걸어가야 최대가 되면 한 걸음의 변화가 너무 작다.")]
-        [Min(0.01f)] public float fullDeflectionDistance = 0.4f;
+        [Min(0.01f)] public float fullDeflectionDistance = 0.8f;
         [Tooltip("목표 각도까지 따라가는 시간(초). 클수록 묵직하게 움직인다.")]
-        public float smoothTime = 0.25f;
+        public float smoothTime = 0.5f;
 
         [Header("누가 올라서는가")]
         [Tooltip("이 판을 맡을 역할. none이면 누구든(모든 플레이어) 올라서면 움직인다.")]
