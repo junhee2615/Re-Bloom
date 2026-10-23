@@ -512,7 +512,12 @@ public static class MissionGuideBoardSetup
 
     // ───────────────────────────── 스킨 ─────────────────────────────
 
-    private sealed class Skin
+    /// <summary>
+    /// 안내판이 쓰는 공용 에셋 묶음. 미션 2 안내판
+    /// (<see cref="Mission2GuideBoardSetup"/>)도 같은 것을 쓰므로 internal 이다.
+    /// 스프라이트와 머티리얼은 미션마다 따로 만들지 않고 한 벌을 공유한다.
+    /// </summary>
+    internal sealed class Skin
     {
         public TMP_FontAsset Font;
         public Sprite PanelFill;
@@ -767,7 +772,7 @@ public static class MissionGuideBoardSetup
             FooterColor, TextAlignmentOptions.Left);
 
         // ── FogDepthPrime ───────────────────────────────────────
-        refs.DepthPrime = BuildDepthPrime(rootRect, skin);
+        refs.DepthPrime = BuildDepthPrime(rootRect, skin, BoardSize);
 
         // ── 스크립트 + 참조 배선 ────────────────────────────────
         var board = root.AddComponent<MissionGuideBoard>();
@@ -839,7 +844,7 @@ public static class MissionGuideBoardSetup
     /// 머티리얼을 못 만들었으면(셰이더 컴파일 전 등) 쿼드를 만들지 않고 null을 돌려준다.
     /// 보드는 그대로 동작하고 안개에 조금 더 묻힐 뿐이다.
     /// </remarks>
-    private static Renderer BuildDepthPrime(RectTransform parent, Skin skin)
+    internal static Renderer BuildDepthPrime(RectTransform parent, Skin skin, Vector2 boardSize)
     {
         if (skin.DepthPrime == null)
             return null;
@@ -859,7 +864,7 @@ public static class MissionGuideBoardSetup
         // 보드 면과 같은 크기·같은 평면. Z는 셰이더의 Offset이 책임진다.
         go.transform.localPosition = Vector3.zero;
         go.transform.localRotation = Quaternion.identity;
-        go.transform.localScale = new Vector3(BoardSize.x, BoardSize.y, 1f);
+        go.transform.localScale = new Vector3(boardSize.x, boardSize.y, 1f);
 
         go.AddComponent<MeshFilter>().sharedMesh = quad;
 
