@@ -19,7 +19,7 @@ using Object = UnityEngine.Object;
 /// <code>
 /// Stage3Ending                 ← Stage3EndingCutscene + PlayableDirector
 /// ├── CameraRig                ← 엔딩 전용 CinemachineBrain (카메라 없음, XR Origin이 이 위치를 따라감)
-/// ├── Cameras  (꺼짐)          ← CinemachineCamera 3대 (Output Channel 01)
+/// ├── Cameras  (꺼짐)          ← CinemachineCamera 4대 (Output Channel 01)
 /// ├── Actors
 /// │   ├── Ending_mental (꺼짐) ← 씬에 배치된 Player_mental 복제본. 네트워크·XR 컴포넌트를 떼어 낸 인형
 /// │   ├── Ending_ear    (꺼짐) ← 같은 방식의 Player_ear 복제본
@@ -69,7 +69,10 @@ public static class Stage3EndingSetup
     //  17: 손 흔들기를 손목이 아니라 팔꿈치 축으로 아래팔 전체가 흔들리게
     //  18: 크레딧 높이(Height Offset 0.92)
     //  19: 크레딧 높이(Height Offset 1.1)
-    private const int LayoutVersion = 19;
+    //  20: 공명 장면 3초 길게(손 맞댄 채 7.5초), 크레딧 The End 이미지
+    //  21: 공명 때 손 쪽으로 다가갔다가 물러나는 카메라, 손 흔들 때 두 사람 간격 벌림
+    //  22: 손 흔들기 전에 양옆에서 걸어 들어오기(컷 8초), The End 로고 크기 650
+    private const int LayoutVersion = 22;
 
     private const string SceneName = "Stage3";
     private const string TimelinePath = "Assets/ReBloom/CutScenes/Stage3/Stage3EndingTimeline.playable";
@@ -81,6 +84,7 @@ public static class Stage3EndingSetup
     private const string CreditsName = "Credits";
     private const string CreditsMusicPath = "Assets/ReBloom/Sounds/Ending/After Sunset.mp3";
     private const string CreditsFontPath = "Assets/ReBloom/UI/Fonts/KoPub Dotum Medium SDF.asset";
+    private const string TheEndImagePath = "Assets/ReBloom/CutScenes/Credits/TheEnd.png";
 
     private static readonly (string role, string name)[] CreditLines =
     {
@@ -356,6 +360,10 @@ public static class Stage3EndingSetup
             walkCenter.position + followOffset, walkCenter.position);
         ConfigureFollow(camFollow, walkCenter, followOffset);
 
+        // 공명: 따라가는 카메라와 같은 쪽(뒤)에서 맞대는 두 손 가까이로 다가간다
+        CinemachineCamera camHands = GetOrCreateCamera(cameras, "Cam_00_HandsClose",
+            meet - outDir * 1.4f + Vector3.up * 0.2f, meet);
+
         // 크레딧 마지막 손 흔들기 컷: 온실 밖에서 문 앞의 두 사람을 정면으로 본다(온실이 뒤로 보인다)
         Transform waveCamera = GetOrCreateChild(actorsRoot, WaveCameraName, out bool waveCreated);
         if (waveCreated)
@@ -435,7 +443,7 @@ public static class Stage3EndingSetup
         TimelineAsset timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(TimelinePath);
         bool timelineCreated = timeline == null;
         if (timelineCreated)
-            timeline = CreateTimeline(director, walkDuration, camFollow, camLeft, camRight, restoreClip);
+            timeline = CreateTimeline(director, walkDuration, camHands, camFollow, camLeft, camRight, restoreClip);
 
         director.playableAsset = timeline;
         director.playOnAwake = false;
@@ -505,6 +513,19 @@ public static class Stage3EndingSetup
         // 마지막 장면: 온실 앞에서 손 흔드는 두 사람(엔딩이 실시간으로 그린다)
         so.FindProperty("liveShotSource").objectReferenceValue = cutscene;
 
+        // 마지막 "The End": 배경이 투명한 이미지. 가장자리가 지저분하지 않게 투명도 처리·밉맵 없음으로 맞춘다.
+        if (AssetImporter.GetAtPath(TheEndImagePath) is TextureImporter endImporter
+            && (!endImporter.alphaIsTransparency || endImporter.mipmapEnabled))
+        {
+            endImporter.alphaIsTransparency = true;
+            endImporter.mipmapEnabled = false;
+            endImporter.SaveAndReimport();
+        }
+        Texture2D endImage = AssetDatabase.LoadAssetAtPath<Texture2D>(TheEndImagePath);
+        so.FindProperty("endImage").objectReferenceValue = endImage;
+        if (endImage == null)
+            Debug.LogWarning($"[엔딩 셋업] The End 이미지 {TheEndImagePath}를 찾지 못해 글씨로 보여 줍니다.");
+
         so.FindProperty("font").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(CreditsFontPath);
         AudioClip music = AssetDatabase.LoadAssetAtPath<AudioClip>(CreditsMusicPath);
         so.FindProperty("music").objectReferenceValue = music;
@@ -556,7 +577,8 @@ public static class Stage3EndingSetup
             so.FindProperty("shotZoom").floatValue = 1f;
             so.FindProperty("leftShadeOpacity").floatValue = 1f;     // 왼쪽 끝은 완전한 검정
             so.FindProperty("textShadeOpacity").floatValue = 0.95f;
-            so.FindProperty("liveShotDuration").floatValue = 6f;
+            so.FindProperty("liveShotDuration").floatValue = 8f;    // 걸어 들어오기 3초 + 돌아서기 + 손 흔들기
+            so.FindProperty("endImageWidth").floatValue = 650f;
             so.FindProperty("heightOffset").floatValue = 1.1f;    // 기기에서 맞춘 높이
             so.FindProperty("firstLineDelay").floatValue = 1.5f;
             so.FindProperty("lineFade").floatValue = 0.8f;
@@ -571,7 +593,7 @@ public static class Stage3EndingSetup
     // ── 타임라인 ──────────────────────────────────────────────────────────
 
     private static TimelineAsset CreateTimeline(PlayableDirector director, float walkDuration,
-        CinemachineCamera follow, CinemachineCamera left, CinemachineCamera right, AudioClip restoreClip)
+        CinemachineCamera hands, CinemachineCamera follow, CinemachineCamera left, CinemachineCamera right, AudioClip restoreClip)
     {
         EnsureFolder(System.IO.Path.GetDirectoryName(TimelinePath)?.Replace('\\', '/'));
 
@@ -579,7 +601,7 @@ public static class Stage3EndingSetup
         AssetDatabase.CreateAsset(timeline, TimelinePath);
 
         const double reachStart = 1.5, touch = 6.5;   // 5초에 걸쳐 서서히 올린다
-        const double walkStart = touch + 7.0;
+        const double walkStart = touch + 10.0;        // 손을 맞댄 채 공명하는 시간을 넉넉히(약 7.5초)
         double walkEnd = walkStart + walkDuration;
         double growStart = walkEnd + 4.0;             // 카메라가 다 올라간 뒤 자라기 시작
         const double growLength = 10.0;
@@ -590,14 +612,16 @@ public static class Stage3EndingSetup
 
         // 카메라: 겹치는 구간이 곧 블렌드다(한 번에 두 클립까지만 겹친다)
         CinemachineTrack cameraTrack = timeline.CreateTrack<CinemachineTrack>(null, "Cameras");
-        AddShot(cameraTrack, director, follow, 0.0, walkEnd + 4.0);            // 뒤에서 공명을 보고, 걸어 나가면 따라간다
+        AddShot(cameraTrack, director, follow, 0.0, 4.0);                      // 뒤에서 두 사람을 보다가
+        AddShot(cameraTrack, director, hands, 2.0, touch + 6.0);               // 손을 올리는 동안 손 쪽으로 다가가 맞댄 손에 머문다
+        AddShot(cameraTrack, director, follow, touch + 3.5, walkEnd + 4.0);    // 다시 뒤로 물러났다가, 걸어 나가면 따라간다
         AddShot(cameraTrack, director, left, walkEnd + 0.5, growStart + panLength); // 멈추면 5m 올라가며 왼쪽을 본다 (3.5초)
         AddShot(cameraTrack, director, right, growStart, end);                 // 자라는 동안 왼쪽 → 오른쪽으로 한 번에 둘러보고, 머물다 페이드
 
         AddAction(timeline, "Hands",
             (EndingAction.HandReach, reachStart, touch),
-            (EndingAction.HandRelease, touch + 4.5, touch + 6.5));
-        AddAction(timeline, "Glow", (EndingAction.HandGlow, touch, touch + 6.0));
+            (EndingAction.HandRelease, touch + 7.5, touch + 9.5));
+        AddAction(timeline, "Glow", (EndingAction.HandGlow, touch, touch + 8.0));
         AddAction(timeline, "Fog", (EndingAction.FogClear, touch + 0.3, touch + 5.3));
         AddAction(timeline, "Walk", (EndingAction.Walk, walkStart, walkEnd));
         AddAction(timeline, "Grow", (EndingAction.GroupGrow, growStart, growStart + growLength));
