@@ -119,6 +119,12 @@ MonoBehaviour:
   generatorMissionManager: {fileID: 0}
   socketAudioSource: {fileID: 6171015640202897421}
   socketSuccessClip: {fileID: 8300000, guid: 14e3b5617685aa44b91e866696239a90, type: 3}
+  additionalClip: {fileID: 0}
+  generatorStartAudioSource: {fileID: 0}
+  generatorLoopAudioSource: {fileID: 0}
+  generatorStartClip: {fileID: 0}
+  generatorLoopClip: {fileID: 0}
+  crossfadeTime: 0.3
 --- !u!82 &6171015640202897421
 AudioSource:
   m_ObjectHideFlags: 0
@@ -684,7 +690,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26055835ee59ab948ac72bc3b7a8a44d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HapticTrigger
+  pattern: {fileID: 11400000, guid: 11437d4301709be4a904ade5123c95f4, type: 2}
+  fallbackAmplitude: 1
+  fallbackDuration: 0.1
   targetNode: 5
+  retriggerCooldown: 0.35
 --- !u!114 &9137444190618186674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -701,6 +711,7 @@ MonoBehaviour:
   outlineColor: {r: 0.07618002, g: 0.6631643, b: 0.8436657, a: 1}
   outlineWidth: 3
   precomputeOutline: 1
+  allowPlayerLayer: 0
   bakeKeys:
   - {fileID: -3746124930714994144, guid: de4a2f396488e0b4b9b603ae4f344737, type: 3}
   bakeValues:
