@@ -45,6 +45,10 @@ public class FallingNoteMission : ActivationMission
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioClip touchClip;
 
+    [Tooltip("체크 시 이 미션의 효과음을 requiredRole 인 플레이어에게만 들려준다. " +
+             "역할이 지정되지 않은 단독 테스트에서는 항상 들린다.")]
+    [SerializeField] private bool restrictAudioToRole = true;
+
     // 각 노트 상태
     private class Note
     {
@@ -291,13 +295,23 @@ public class FallingNoteMission : ActivationMission
         SubmitSignal(SignalKey(PhaseNotes, currentAttempt, n.index));
     }
 
-    // 노트를 '터치됨' 상태로 바꾼다. countIt=false면 화면 표시만(관전자용).
+    /// <summary>
+    /// 노트를 '터치됨' 상태로 바꾼다. countIt=false면 화면 표시만(관전자용).
+    /// </summary>
+    /// <remarks>
+    /// 담당 역할이 아니면 <b>효과음만</b> 건너뛴다. 노트 색 변경·<c>hideTime</c>·
+    /// <c>touchedCount</c> 는 그대로라 관전자 화면도 같은 상태로 남고 판정에도 영향이 없다.
+    /// (카운트 여부는 이미 <paramref name="countIt"/> 로 분리돼 있다)
+    /// </remarks>
     private void MarkTouched(Note n, bool countIt)
     {
         n.touched = true;
         if (countIt) touchedCount++;
 
-        if (touchClip != null) AudioSource.PlayClipAtPoint(touchClip, transform.position);
+        bool canHear = !restrictAudioToRole || CanLocalPlayerPlay();
+
+        if (touchClip != null && canHear)
+            AudioSource.PlayClipAtPoint(touchClip, transform.position);
         if (n.image != null)
         {
             n.image.enabled = true;

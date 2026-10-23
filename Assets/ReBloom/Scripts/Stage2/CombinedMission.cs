@@ -298,7 +298,19 @@ private void GetWorldY(RectTransform rt, out float minY, out float maxY)
     }
 
 
-// 노트 터치 — noteRole(기본 Host)만 카운트
+    /// <summary>
+    /// 노트 터치 — noteRole(기본 mental=루멘)만 카운트한다.
+    /// </summary>
+    /// <remarks>
+    /// 맨 앞의 역할 검사 하나가 <b>카운트와 효과음 양쪽</b>을 함께 막는다.
+    /// 담당이 아닌 플레이어의 LeafNote도 이 메서드를 부르지만 여기서 바로 돌아가므로,
+    /// <c>noteTouchClip</c> 은 담당자의 기기에서만 재생된다
+    /// (<c>AudioSource.PlayClipAtPoint</c> 는 네트워크를 타지 않는 로컬 재생이다).
+    /// 2부에는 터치를 상대에게 중계하는 경로가 없어 다른 재생 지점도 없다.
+    ///
+    /// 효과음만 따로 끄고 싶어질 때 이 검사를 지우면 카운트까지 열리므로,
+    /// 그때는 재생 줄에 별도 조건을 더하는 편이 안전하다.
+    /// </remarks>
     private void OnNoteClicked(NoteObj n)
     {
         if (!LocalMatches(noteRole)) return;

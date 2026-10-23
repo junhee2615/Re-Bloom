@@ -58,9 +58,13 @@ public class SoundTriggerMission : ActivationMission
     [SerializeField] private float longGap = 0.4f;
 
     [Header("효과음")]
-    [Tooltip("각 펄스마다 재생할 '똑똑' 효과음 (두 플레이어 모두에게 들린다)")]
+    [Tooltip("각 펄스마다 재생할 리듬 효과음(호루라기).")]
     [SerializeField] private AudioSource pulseAudioSource;
     [SerializeField] private AudioClip pulseClip;
+
+    [Tooltip("체크 시 이 리듬 소리를 requiredRole 인 플레이어에게만 들려준다. " +
+             "역할이 지정되지 않은 단독 테스트에서는 항상 들린다.")]
+    [SerializeField] private bool restrictAudioToRole = true;
 
     [Header("Grab 판정 (넉넉하게)")]
     [Tooltip("간격 허용 오차(초). 클수록 관대")]
@@ -203,9 +207,20 @@ public class SoundTriggerMission : ActivationMission
         }
     }
 
-    // 리듬 펄스 1회 = '똑똑' 효과음 재생 (진동 없음). 두 머신에서 각자 재생된다.
+    /// <summary>
+    /// 리듬 펄스 1회 = 호루라기 효과음 재생 (진동 없음). 두 머신에서 각자 재생된다.
+    /// </summary>
+    /// <remarks>
+    /// 담당 역할이 아니면 <b>소리만</b> 건너뛴다. 호출 자체는 그대로 일어나고
+    /// <c>PlayVibrationPattern</c> 의 <c>WaitForSeconds</c> 도 전부 그대로 돌아가므로,
+    /// 두 머신의 진행 타이밍과 <c>BuildExpectedIntervals</c> 의 기대 간격이 어긋나지 않는다.
+    /// (판정은 소리가 아니라 그 간격 계산으로 하므로 성공 기준도 변하지 않는다)
+    /// </remarks>
     private void SendPulse()
     {
+        if (restrictAudioToRole && !CanLocalPlayerPlay())
+            return;
+
         if (pulseAudioSource != null && pulseClip != null)
             AudioSource.PlayClipAtPoint(pulseClip, transform.position);
     }
