@@ -77,6 +77,9 @@ public class Stage3EndingCutscene : MonoBehaviour
 
     [SerializeField] private VegetationGrowth vegetation;
 
+    [Tooltip("엔딩이 검게 닫힌 뒤 이어서 나올 엔딩 크레딧. 비우면 검은 화면으로 끝난다.")]
+    [SerializeField] private EndingCredits credits;
+
     [Header("캐릭터")]
     [SerializeField] private EndingActor[] actors = Array.Empty<EndingActor>();
 
@@ -338,6 +341,11 @@ public class Stage3EndingCutscene : MonoBehaviour
             SetAvatarsVisible(false);
 
         resonance.FreezeForFogClear(fogStrength);
+
+        // 엔딩부터는 역할별 감각 제약이 없다 — mental의 검은 블러, ear의 먹먹한 소리를 걷는다.
+        // 다시 제약으로 돌아가지 않는다(엔딩은 크레딧으로 끝난다).
+        resonance.ClearSensoryConstraints();
+
         SuspendOtherBrains();
         CollapseGrowGroup();
 
@@ -363,13 +371,40 @@ public class Stage3EndingCutscene : MonoBehaviour
             StartCoroutine(screenFade.FadeIn(fadeInAtStart));
 
         // 3. 타임라인 끝까지. 마지막 FadeOut 클립이 화면을 닫는다.
-        while (director.state == PlayState.Playing && director.time < director.duration)
+        //    끝에서 멈춰 두는(Hold) 설정에서는 director.time이 duration에 정확히 닿지 않을 수 있어
+        //    직접 잰 경과 시간으로도 끝을 판단한다.
+        float elapsed = 0f;
+        float length = (float)director.duration;
+        while (director.state == PlayState.Playing
+               && director.time < director.duration - 0.05
+               && elapsed < length + 0.5f)
+        {
+            elapsed += Time.deltaTime;
             yield return null;
+        }
 
         SetFadeAlpha(1f);
 
         isPlaying = false;
         onEndingFinished?.Invoke();
+
+        // 4. 검은 화면에서 엔딩 크레딧으로. 크레딧이 카메라를 검은 배경 + 크레딧만 그리도록 바꾼 뒤
+        //    검은 덮개를 걷는다 — 크레딧은 스스로 페이드인한다.
+        Camera viewer = runtimeCamera != null ? runtimeCamera : cutsceneBrain.GetComponent<Camera>();
+        if (credits == null)
+        {
+            Debug.Log("[Stage3Ending] 엔딩 끝. 연결된 크레딧이 없어 검은 화면으로 끝납니다.", this);
+        }
+        else if (viewer == null)
+        {
+            Debug.LogWarning("[Stage3Ending] 엔딩 끝. 화면을 그리는 카메라를 찾지 못해 크레딧을 띄우지 못했습니다.", this);
+        }
+        else
+        {
+            Debug.Log($"[Stage3Ending] 엔딩 끝 → 엔딩 크레딧 시작 (카메라: {viewer.name})", this);
+            credits.Play(viewer);
+            SetFadeAlpha(0f);
+        }
     }
 
     // ── 타임라인 클립 ───────────────────────────────────────────────────
@@ -379,6 +414,10 @@ public class Stage3EndingCutscene : MonoBehaviour
     {
         // 편집 모드 타임라인 미리보기에서 씬 오브젝트를 건드려 저장되지 않도록 한다.
         if (!Application.isPlaying) return;
+
+        // 타임라인은 끝에서 멈춘 채(Hold) 마지막 프레임을 계속 다시 재생한다. 엔딩이 끝난 뒤에는
+        // 마지막 FadeOut 클립이 매 프레임 화면을 검게 덮어 크레딧을 가리므로 아무것도 하지 않는다.
+        if (!isPlaying) return;
 
         switch (action)
         {
@@ -662,17 +701,17 @@ public class Stage3EndingCutscene : MonoBehaviour
         actor.animator = actor.root.GetComponentsInChildren<Animator>(true)
             .FirstOrDefault(a => a.runtimeAnimatorController != null);
 
+        if (actor.animator == null)
+            Debug.LogWarning($"[Stage3Ending] {actor.root.name}에 컨트롤러가 있는 Animator가 없습니다. 걷기 애니메이션이 나오지 않습니다.", actor.root);
+
+        actor.root.SetActive(true);
+
+        // 꺼진 Animator에 파라미터를 넣으면 경고가 나므로 켠 뒤에 넣는다
         if (actor.animator != null)
         {
             actor.animator.applyRootMotion = false;   // 위치는 Walk 클립이 옮긴다
             actor.animator.SetBool(IsWalkingId, false);
         }
-        else
-        {
-            Debug.LogWarning($"[Stage3Ending] {actor.root.name}에 컨트롤러가 있는 Animator가 없습니다. 걷기 애니메이션이 나오지 않습니다.", actor.root);
-        }
-
-        actor.root.SetActive(true);
     }
 
     // 자라는 그룹의 바로 아래 자식들을 0으로 접는다. 식생 매니저가 따로 키우는 것은 건드리지 않는다.
@@ -778,6 +817,10 @@ public class Stage3EndingCutscene : MonoBehaviour
             previewCamera = rig.AddComponent<Camera>();
 
         previewCamera.depth = 100f;   // 씬에 다른 카메라가 있어도 위에 그린다
+
+        // 소리를 듣는 AudioListener는 XR 카메라에 붙어 있다. 미리보기에는 없으므로 여기에 단다.
+        if (FindFirstObjectByType<AudioListener>() == null)
+            rig.AddComponent<AudioListener>();
 
         // Brain이 새로 붙은 카메라의 렌즈(FOV 등)까지 잡도록 대상을 다시 지정한다
         cutsceneBrain.ControlledObject = rig;
