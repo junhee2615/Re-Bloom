@@ -28,7 +28,8 @@ using Object = UnityEngine.Object;
 /// │   ├── WalkTarget_mental    ← 온실 밖으로 걸어 나와 멈출 자리·바라볼 방향
 /// │   ├── WalkTarget_ear
 /// │   └── WalkCenter           ← 걷는 두 사람의 가운데. 따라가는 카메라의 대상
-/// └── HandGlow                 ← Point Light + 빛 파티클
+/// ├── HandGlow                 ← Point Light + 빛 파티클
+/// └── Credits                  ← 엔딩 크레딧(EndingCredits). 장면 이미지·노래·폰트를 여기에 넣는다
 /// </code>
 /// 타임라인은 <see cref="TimelinePath"/>에 만든다.
 ///
@@ -60,12 +61,35 @@ public static class Stage3EndingSetup
     //  9: 손바닥이 평행하게 마주 보도록(손가락 수직, 손목 회전 100%, 간격 5cm), 페이드 2.5초
     //  10: 효과음(WorldRestore) — 손바닥이 닿을 때, 식생이 자라기 시작할 때
     //  11: 효과음은 엔딩 시작 때 한 번만
-    private const int LayoutVersion = 11;
+    //  12: 크레딧 장면 하나 4초(녹화 4초)에 맞춰 크레딧 타이밍 조정
+    //  13: 크레딧 사진 확대 없음·전환 1.5초·글씨 뒤 번짐 진하게, 마지막에 캐릭터 사진
+    //  14: v13에서 다른 자리의 Player_* 기준으로 잘못 계산된 MeetPose·WalkTarget을 Ending_* 기준으로 다시 만든다
+    //  15: 크레딧 마지막을 온실 앞 손 흔들기 실시간 컷으로(캐릭터 사진 대신), 글씨 뒤 번짐 왼쪽 끝 완전 검정
+    //  16: 손 흔들기를 팔꿈치 굽혀 인사하듯, 손 흔들기 장면에서는 글씨 뒤 번짐 없음
+    //  17: 손 흔들기를 손목이 아니라 팔꿈치 축으로 아래팔 전체가 흔들리게
+    //  18: 크레딧 높이(Height Offset 0.92)
+    //  19: 크레딧 높이(Height Offset 1.1)
+    private const int LayoutVersion = 19;
 
     private const string SceneName = "Stage3";
     private const string TimelinePath = "Assets/ReBloom/CutScenes/Stage3/Stage3EndingTimeline.playable";
     private const string GlowMaterialPath = "Assets/ReBloom/CutScenes/Stage3/EndingGlowParticle.mat";
     private const string RestoreSoundPath = "Assets/ReBloom/Sounds/Basic/WorldRestore.mp3";
+    private const string FootstepSoundPath = "Assets/ReBloom/AssetStore/Rain Forest SFX/Footstep/Grass Footstep Long.wav";
+
+    // 엔딩 크레딧
+    private const string CreditsName = "Credits";
+    private const string CreditsMusicPath = "Assets/ReBloom/Sounds/Ending/After Sunset.mp3";
+    private const string CreditsFontPath = "Assets/ReBloom/UI/Fonts/KoPub Dotum Medium SDF.asset";
+
+    private static readonly (string role, string name)[] CreditLines =
+    {
+        ("기획", "강서현"),
+        ("개발", "김성희"),
+        ("개발", "윤신혜"),
+        ("배경 모델링", "배준희"),
+        ("캐릭터 모델링", "류현지"),
+    };
 
     private const string RootName = "Stage3Ending";
     private const string CameraRigName = "CameraRig";
@@ -76,6 +100,7 @@ public static class Stage3EndingSetup
     private const string GrowGroupName = "Flower&Tree&Building&Ivy";
     private const string BuildingName = "Building";
     private const string WalkCenterName = "WalkCenter";
+    private const string WaveCameraName = "WaveCamera";
 
     // 역할마다 올릴 손. 마주 선 두 사람의 mental 왼손과 ear 오른손은 같은 쪽에 있어 거울처럼 맞닿는다.
     private static readonly string[] RoleNames = { "mental", "ear" };
@@ -150,11 +175,14 @@ public static class Stage3EndingSetup
         var sources = new Transform[RoleNames.Length];
         for (int i = 0; i < RoleNames.Length; i++)
         {
-            sources[i] = FindInScene(scene, "Player_" + RoleNames[i], existingRoot);
-
-            // 원본을 지운 뒤에는 이미 만든 엔딩용 복제본을 기준으로 삼는다
-            if (sources[i] == null && existingRoot != null)
+            // 이미 만든 엔딩용 복제본(실제로 엔딩에 나오는 캐릭터)이 있으면 늘 그것을 기준으로 삼는다.
+            // 씬에 같은 이름의 Player_* 가 다른 자리에 또 놓여 있어도 손 위치가 엉뚱하게 계산되지 않도록.
+            if (existingRoot != null)
                 sources[i] = existingRoot.Find($"{ActorsName}/Ending_{RoleNames[i]}");
+
+            // 처음 만들 때만 씬에 배치된 원본을 복제한다
+            if (sources[i] == null)
+                sources[i] = FindInScene(scene, "Player_" + RoleNames[i], existingRoot);
 
             if (sources[i] == null)
             {
@@ -296,6 +324,7 @@ public static class Stage3EndingSetup
             Debug.Log($"[엔딩 셋업] 엔딩 구성 v{sceneLayout} → v{LayoutVersion}: 카메라·타임라인·마커를 다시 만듭니다.");
             DestroyChild(root, CamerasName);
             DestroyChild(root, $"{ActorsName}/{WalkCenterName}");
+            DestroyChild(root, $"{ActorsName}/{WaveCameraName}");
             foreach (string role in RoleNames)
             {
                 DestroyChild(root, $"{ActorsName}/MeetPose_{role}");
@@ -326,6 +355,15 @@ public static class Stage3EndingSetup
         CinemachineCamera camFollow = GetOrCreateCamera(cameras, "Cam_01_Follow",
             walkCenter.position + followOffset, walkCenter.position);
         ConfigureFollow(camFollow, walkCenter, followOffset);
+
+        // 크레딧 마지막 손 흔들기 컷: 온실 밖에서 문 앞의 두 사람을 정면으로 본다(온실이 뒤로 보인다)
+        Transform waveCamera = GetOrCreateChild(actorsRoot, WaveCameraName, out bool waveCreated);
+        if (waveCreated)
+        {
+            Vector3 wavePos = ground + outDir * 4.2f + Vector3.up * 1.5f;
+            Vector3 waveLook = ground + Vector3.up * 1.1f;
+            waveCamera.SetPositionAndRotation(wavePos, Quaternion.LookRotation(waveLook - wavePos, Vector3.up));
+        }
 
         // 멈춘 뒤: 두 사람 뒤에서 5m 올라가며 왼쪽을 향하고, 식생이 자라는 동안
         // 같은 자리에서 오른쪽까지 일정한 속도로 파노라마처럼 둘러본다. 시선은 살짝 내려다본다.
@@ -381,6 +419,9 @@ public static class Stage3EndingSetup
         if (glowCreated)
             ConfigureGlowParticles(particles);
 
+        // ── 5-1. 엔딩 크레딧 ───────────────────────────────────────────
+        EndingCredits credits = SetupCredits(root, relayout, cutscene);
+
         // ── 6. 효과음 ──────────────────────────────────────────────────
         // 다른 컷씬(Stage1 클리어, Stage2 정화)이 세상이 되살아나는 순간에 쓰는 소리. VR이라 2D로 듣는다.
         AudioSource sfx = GetOrAdd<AudioSource>(root.gameObject);
@@ -409,6 +450,21 @@ public static class Stage3EndingSetup
         so.FindProperty("vegetation").objectReferenceValue = vegetation;
         so.FindProperty("growGroup").objectReferenceValue = growGroup != null ? growGroup.gameObject : null;
         so.FindProperty("walkCenter").objectReferenceValue = walkCenter;
+        so.FindProperty("waveCameraPose").objectReferenceValue = waveCamera;
+
+        // 걷는 동안 발이 땅에 닿을 때마다 이 긴 발소리 클립에서 잘라 낸 걸음 하나씩을 튼다
+        AudioClip footstep = AssetDatabase.LoadAssetAtPath<AudioClip>(FootstepSoundPath);
+        so.FindProperty("footstepClip").objectReferenceValue = footstep;
+        if (footstep == null)
+            Debug.LogWarning($"[엔딩 셋업] 발소리 {FootstepSoundPath}를 찾지 못했습니다.");
+
+        // 손 흔들기: 팔꿈치를 축으로 아래팔 전체가 좌우로 흔들린다. 구성이 바뀔 때만 넣는다.
+        if (relayout || existingRoot == null)
+        {
+            so.FindProperty("waveSpeed").floatValue = 1.4f;
+            so.FindProperty("waveAngle").floatValue = 25f;
+        }
+        so.FindProperty("credits").objectReferenceValue = credits;
         so.FindProperty("glowLight").objectReferenceValue = light;
         so.FindProperty("glowParticles").objectReferenceValue = particles;
         so.FindProperty("closeGap").floatValue = CloseGap;
@@ -433,6 +489,83 @@ public static class Stage3EndingSetup
 
         Debug.Log($"[엔딩 셋업] 완료. 타임라인 {(timelineCreated ? "생성" : "기존 것 재사용")}: {TimelinePath}");
         Debug.Log("[엔딩 셋업] 씬을 저장하세요. MeetPose_* 로 손바닥, WalkTarget_* 로 멈출 자리, Cam_* 로 구도를 맞출 수 있습니다.");
+    }
+
+    // ── 엔딩 크레딧 ───────────────────────────────────────────────────────
+
+    // 크레딧 오브젝트를 만들고 폰트·노래·장면 이미지를 넣는다. 크레딧 문구는 처음 만들 때만 넣는다
+    // (Inspector에서 고친 이름을 덮어쓰지 않도록). 장면 영상·이미지는 Apply할 때마다 다시 넣어
+    // 새로 녹화·캡처한 것이 바로 반영된다.
+    private static EndingCredits SetupCredits(Transform root, bool relayout, Stage3EndingCutscene cutscene)
+    {
+        Transform creditsObject = GetOrCreateChild(root, CreditsName, out bool created);
+        EndingCredits credits = GetOrAdd<EndingCredits>(creditsObject.gameObject);
+        var so = new SerializedObject(credits);
+
+        // 마지막 장면: 온실 앞에서 손 흔드는 두 사람(엔딩이 실시간으로 그린다)
+        so.FindProperty("liveShotSource").objectReferenceValue = cutscene;
+
+        so.FindProperty("font").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(CreditsFontPath);
+        AudioClip music = AssetDatabase.LoadAssetAtPath<AudioClip>(CreditsMusicPath);
+        so.FindProperty("music").objectReferenceValue = music;
+        if (music == null)
+            Debug.LogWarning($"[엔딩 셋업] 크레딧 노래 {CreditsMusicPath}를 찾지 못했습니다.");
+
+        // 크레딧 장면은 사진(캡처)만 쓴다. 영상 칸은 비워 둔다. 칸 순서를 지키도록 빈 칸은 null로 둔다.
+        int count = EndingCreditShotCapture.ShotNames.Length;
+        so.FindProperty("clips").arraySize = 0;
+        SerializedProperty shotsProp = so.FindProperty("shots");
+        shotsProp.arraySize = count;
+
+        var images = new List<string>();
+        var missing = new List<string>();
+        for (int i = 0; i < count; i++)
+        {
+            string shotName = EndingCreditShotCapture.ShotNames[i];
+            var image = AssetDatabase.LoadAssetAtPath<Texture2D>(EndingCreditShotCapture.ShotPath(i));
+            shotsProp.GetArrayElementAtIndex(i).objectReferenceValue = image;
+
+            if (image != null) images.Add(shotName);
+            else missing.Add(shotName);
+        }
+
+        Debug.Log($"[엔딩 셋업] 크레딧 사진 {images.Count}장을 넣었습니다" +
+                  (missing.Count == 0
+                      ? "."
+                      : $". 아직 없는 사진: {string.Join(", ", missing)} — 메뉴 Re_Bloom/Credits/Capture 로 찍은 뒤 Apply를 다시 실행하세요."));
+
+        if (created)
+        {
+            SerializedProperty linesProp = so.FindProperty("lines");
+            linesProp.arraySize = CreditLines.Length;
+            for (int i = 0; i < CreditLines.Length; i++)
+            {
+                SerializedProperty line = linesProp.GetArrayElementAtIndex(i);
+                line.FindPropertyRelative("role").stringValue = CreditLines[i].role;
+                line.FindPropertyRelative("name").stringValue = CreditLines[i].name;
+            }
+        }
+
+        // 장면 하나 4초. 크레딧 5줄이 사진 7장(28초) 안에 다 나오도록 글자 타이밍을 맞춘다(마지막 캐릭터 사진은 글자 없이):
+        // 1.5 + 5 × (0.8 + 2.4 + 0.8 + 0.5) = 24초. 구성이 바뀔 때만 넣어 Inspector에서 고친 값을 덮어쓰지 않는다.
+        // 사진은 확대하지 않고(1), 복원 전 → 후가 1.5초 동안 부드럽게 겹쳐 바뀐다. 글씨 뒤 검은 번짐은 진하게.
+        if (created || relayout)
+        {
+            so.FindProperty("shotDuration").floatValue = 4f;
+            so.FindProperty("shotCrossfade").floatValue = 1.5f;
+            so.FindProperty("shotZoom").floatValue = 1f;
+            so.FindProperty("leftShadeOpacity").floatValue = 1f;     // 왼쪽 끝은 완전한 검정
+            so.FindProperty("textShadeOpacity").floatValue = 0.95f;
+            so.FindProperty("liveShotDuration").floatValue = 6f;
+            so.FindProperty("heightOffset").floatValue = 1.1f;    // 기기에서 맞춘 높이
+            so.FindProperty("firstLineDelay").floatValue = 1.5f;
+            so.FindProperty("lineFade").floatValue = 0.8f;
+            so.FindProperty("lineHold").floatValue = 2.4f;
+            so.FindProperty("lineGap").floatValue = 0.5f;
+        }
+
+        so.ApplyModifiedProperties();
+        return credits;
     }
 
     // ── 타임라인 ──────────────────────────────────────────────────────────
