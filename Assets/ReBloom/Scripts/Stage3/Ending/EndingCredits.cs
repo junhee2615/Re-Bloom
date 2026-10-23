@@ -13,8 +13,8 @@ using UnityEngine.Video;
 /// 엔딩이 검게 닫힌 뒤 나오는 엔딩 크레딧.
 ///
 ///  1. 검은 공간에 크레딧 화면이 페이드인되며 노래가 시작된다.
-///  2. 오른쪽에 장면(Stage1 복원 전 → 후, Stage2 전 → 후, Stage3 전 → 후)이 천천히 움직이며 이어지고,
-///     왼쪽에 "역할 / 이름"이 하나씩 떠올랐다 사라진다(영화 크레딧처럼, 아래에서 위로 흐르지 않는다).
+///  2. 화면 전체에 장면 사진(Stage1 복원 전 → 후, Stage2 전 → 후, Stage3 전 → 후)이 천천히 다가가며 이어지고,
+///     왼쪽 검은 번짐 위에 "역할 / 이름"이 하나씩 떠올랐다 사라진다(영화 크레딧처럼, 아래에서 위로 흐르지 않는다).
 ///  3. 다 나오면 화면이 비워지고 "- The End -"가 떴다가 노래와 함께 사라진다.
 ///
 /// VR이라 화면 공간 UI가 아니라, 보는 사람 앞 <see cref="distance"/>m에 월드 공간 화면을 띄운다.
@@ -40,8 +40,8 @@ public class EndingCredits : MonoBehaviour
 
     // 다음 영상을 겹치기 전에 미리 준비하는 시간(초)
     private const float VideoPrepareLead = 1f;
-    private const int VideoWidth = 1280;
-    private const int VideoHeight = 720;
+    private const int VideoWidth = 1920;   // 녹화 해상도 그대로(줄이면 흐려진다)
+    private const int VideoHeight = 1080;
 
     [Header("내용")]
     [Tooltip("차례로 보여 줄 컷씬 영상. Stage1 복원 전, 후, Stage2 전, 후, Stage3 전, 후 순서. " +
@@ -65,16 +65,16 @@ public class EndingCredits : MonoBehaviour
     [Header("시간(초)")]
     [SerializeField, Min(0f)] private float fadeIn = 2.5f;
     [Tooltip("장면 하나가 보이는 시간.")]
-    [SerializeField, Min(1f)] private float shotDuration = 7f;
+    [SerializeField, Min(1f)] private float shotDuration = 4f;
     [Tooltip("장면이 다음 장면으로 겹쳐 넘어가는 시간.")]
     [SerializeField, Min(0f)] private float shotCrossfade = 1.5f;
     [Tooltip("장면이 보이는 동안 천천히 다가가는 정도(1 = 그대로).")]
-    [SerializeField, Min(1f)] private float shotZoom = 1.08f;
+    [SerializeField, Min(1f)] private float shotZoom = 1f;
     [Tooltip("첫 크레딧이 뜨기 전 뜸.")]
     [SerializeField, Min(0f)] private float firstLineDelay = 1.5f;
-    [SerializeField, Min(0f)] private float lineFade = 1.2f;
-    [SerializeField, Min(0f)] private float lineHold = 4.5f;
-    [SerializeField, Min(0f)] private float lineGap = 0.8f;
+    [SerializeField, Min(0f)] private float lineFade = 0.8f;
+    [SerializeField, Min(0f)] private float lineHold = 2.4f;
+    [SerializeField, Min(0f)] private float lineGap = 0.5f;
     [Tooltip("장면과 크레딧이 다 끝나고 화면이 비워지는 시간.")]
     [SerializeField, Min(0f)] private float contentFadeOut = 2f;
     [SerializeField, Min(0f)] private float endFadeIn = 1.5f;
@@ -82,7 +82,33 @@ public class EndingCredits : MonoBehaviour
     [Tooltip("The End와 노래가 함께 사라지는 시간.")]
     [SerializeField, Min(0f)] private float finalFadeOut = 3f;
 
+    [Header("글씨 뒤 검은 번짐")]
+    [Tooltip("화면 왼쪽에서 오른쪽으로 옅어지는 어둠의 진하기.")]
+    [SerializeField, Range(0f, 1f)] private float leftShadeOpacity = 1f;
+    [Tooltip("크레딧 글씨를 감싸는 부드러운 그림자의 진하기.")]
+    [SerializeField, Range(0f, 1f)] private float textShadeOpacity = 0.95f;
+
+    [Header("마지막 손 흔들기 컷")]
+    [Tooltip("크레딧 마지막에 온실 앞에서 손 흔드는 두 사람을 실시간으로 보여 줄 엔딩. 비우면 사진만 나온다.")]
+    [SerializeField] private Stage3EndingCutscene liveShotSource;
+    [Tooltip("손 흔들기 컷을 보여 주는 시간(초).")]
+    [SerializeField, Min(1f)] private float liveShotDuration = 6f;
+
     [Header("배치")]
+    [Tooltip("장면 사진을 오른쪽으로 미는 거리(크레딧 화면 가로 1920 기준 픽셀).")]
+    [SerializeField] private float shotOffsetX = 200f;
+    [Tooltip("크레딧 이름이 시작하는 가로 위치(크레딧 화면 왼쪽 끝에서 픽셀, 가로 1920 기준). 클수록 오른쪽.")]
+    [SerializeField] private float textLeft = 380f;
+    [Tooltip("크레딧 화면을 시선 정면에서 위(+)·아래(-)로 옮기는 거리(m). Play 중에 바꾸면 바로 움직인다.")]
+    [SerializeField, Range(-2f, 2f)] private float heightOffset = 1.1f;
+
+    [Tooltip("시선이 크레딧에서 벗어나면 크레딧이 천천히 다시 시선 정면으로 따라온다.")]
+    [SerializeField] private bool followGaze = true;
+    [Tooltip("시선이 크레딧 가운데에서 이만큼(도) 넘게 벗어나면 따라오기 시작한다. 작게 움직일 때는 가만히 있다.")]
+    [SerializeField, Range(5f, 45f)] private float recenterAngle = 15f;
+    [Tooltip("따라오는 빠르기. 클수록 빨리 따라온다.")]
+    [SerializeField, Range(0.5f, 6f)] private float followSpeed = 2f;
+
     [Tooltip("보는 사람 앞 거리(m).")]
     [SerializeField, Min(0.5f)] private float distance = 2.6f;
     [Tooltip("크레딧 화면의 가로 크기(m).")]
@@ -94,9 +120,16 @@ public class EndingCredits : MonoBehaviour
 
     private CanvasGroup rootGroup;
     private CanvasGroup contentGroup;
+    private Transform viewerTransform;
+    private Transform canvasTransform;
+    private Vector3 anchor;   // 높이 조정 전 크레딧 위치(시선 정면)
+    private bool recentering;
 
     // 장면 두 층. 지금 장면과 겹쳐 들어오는 다음 장면을 번갈아 맡는다.
-    private readonly List<(VideoClip clip, Texture2D image)> slots = new List<(VideoClip, Texture2D)>();
+    private readonly List<(VideoClip clip, Texture2D image, bool live)> slots = new List<(VideoClip, Texture2D, bool)>();
+    private int liveLayer = -1;
+    private RawImage leftShade;
+    private RawImage textShade;
     private RawImage[] layerImages;
     private VideoPlayer[] layerPlayers;
     private RenderTexture[] layerTextures;
@@ -121,9 +154,63 @@ public class EndingCredits : MonoBehaviour
         CollectSlots();
         Debug.Log($"[EndingCredits] 크레딧 시작 — 장면 {slots.Count}개(영상 {slots.Count(s => s.clip != null)}개), " +
                   $"크레딧 {lines.Length}줄, 노래 {(music != null ? music.name : "없음")}", this);
+        viewerTransform = viewer.transform;
         BuildCanvas(viewer.transform);
         PrepareCamera(viewer);
         StartCoroutine(Run());
+    }
+
+    // 시선 정면(위아래 ±30°까지 따름) distance 거리 + 높이 조정
+    private Vector3 GazePoint()
+    {
+        Vector3 forward = viewerTransform.forward;
+        Vector3 flat = Vector3.ProjectOnPlane(forward, Vector3.up);
+        if (flat.sqrMagnitude < 0.001f) flat = Vector3.forward;
+        flat.Normalize();
+
+        Vector3 right = Vector3.Cross(Vector3.up, flat);
+        float pitch = Mathf.Clamp(Vector3.SignedAngle(flat, forward, right), -30f, 30f);   // 양수 = 아래
+        Vector3 direction = Quaternion.AngleAxis(pitch, right) * flat;
+
+        return viewerTransform.position + direction * distance;
+    }
+
+    // 크레딧 화면을 보는 사람 쪽으로 좌우로만 돌리고, 화면은 늘 똑바로 세운다.
+    // 눈을 정면으로 향하게 하면 눈보다 높이 둔 화면이 뒤로 젖혀져 기울어 보인다.
+    private void FaceViewer()
+    {
+        Vector3 away = Vector3.ProjectOnPlane(canvasTransform.position - viewerTransform.position, Vector3.up);
+        if (away.sqrMagnitude > 0.0001f)
+            canvasTransform.rotation = Quaternion.LookRotation(away.normalized, Vector3.up);
+    }
+
+    // 크레딧 위치 = 기준점(anchor) + 높이 조정. 높이 조정은 매 프레임 그대로 더하므로
+    // Play 중에 Inspector에서 Height Offset을 바꾸면 바로 위아래로 움직인다.
+    // 시선이 기준점에서 recenterAngle 넘게 벗어나면 기준점이 부드럽게 다시 시선 정면으로 따라온다.
+    // 작게 둘러볼 때는 가만히 있어 어지럽지 않다.
+    private void LateUpdate()
+    {
+        if (!IsPlaying || viewerTransform == null || canvasTransform == null) return;
+
+        if (followGaze)
+        {
+            Vector3 toAnchor = anchor - viewerTransform.position;
+            if (!recentering && Vector3.Angle(viewerTransform.forward, toAnchor) > recenterAngle)
+                recentering = true;
+
+            if (recentering)
+            {
+                Vector3 target = GazePoint();
+                float k = 1f - Mathf.Exp(-followSpeed * Time.deltaTime);
+                anchor = Vector3.Lerp(anchor, target, k);
+
+                if ((anchor - target).sqrMagnitude < 0.0004f)   // 2cm 안으로 들어오면 멈춘다
+                    recentering = false;
+            }
+        }
+
+        canvasTransform.position = anchor + Vector3.up * heightOffset;
+        FaceViewer();
     }
 
     private IEnumerator Run()
@@ -145,7 +232,9 @@ public class EndingCredits : MonoBehaviour
         // 2. 장면과 크레딧. 둘 중 긴 쪽에 맞춘다.
         float lineSlot = lineFade * 2f + lineHold + lineGap;
         float linesLength = firstLineDelay + lines.Length * lineSlot;
-        float shotsLength = slots.Count * shotDuration;
+        // 마지막 손 흔들기 컷은 사진보다 길게 보여 준다
+        bool endsWithLive = slots.Count > 0 && slots[slots.Count - 1].live;
+        float shotsLength = slots.Count * shotDuration + (endsWithLive ? Mathf.Max(0f, liveShotDuration - shotDuration) : 0f);
         float body = Mathf.Max(linesLength, shotsLength);
 
         for (float t = 0f; t < body; t += Time.deltaTime)
@@ -172,6 +261,7 @@ public class EndingCredits : MonoBehaviour
     }
 
     // 장면 하나 = 영상(있으면) 또는 이미지. 둘 다 없는 칸은 건너뛴다.
+    // 마지막에 온실 앞에서 손 흔드는 두 사람(실시간 컷)을 붙인다.
     private void CollectSlots()
     {
         slots.Clear();
@@ -181,8 +271,11 @@ public class EndingCredits : MonoBehaviour
             VideoClip clip = i < clips.Length ? clips[i] : null;
             Texture2D image = i < shots.Length ? shots[i] : null;
             if (clip != null || image != null)
-                slots.Add((clip, image));
+                slots.Add((clip, image, false));
         }
+
+        if (liveShotSource != null && liveShotSource.HasWaveShot)
+            slots.Add((null, null, true));
     }
 
     // 지금 장면을 보여 주고, 끝나기 직전 다음 장면을 겹쳐 띄운다. 두 층(layer)을 번갈아 쓴다.
@@ -202,6 +295,9 @@ public class EndingCredits : MonoBehaviour
 
         ShowSlot(current, index, true, 1f, local / length);
 
+        // 손 흔들기 컷이 보이는 만큼(0~1) 글씨 뒤 검은 번짐을 걷는다 — 그 장면엔 크레딧 글씨가 없다
+        float liveVisible = slots[index].live ? 1f : 0f;
+
         bool hasNext = index < count - 1;
         float crossStart = shotDuration - shotCrossfade;
         if (hasNext && local > crossStart - VideoPrepareLead)
@@ -214,6 +310,9 @@ public class EndingCredits : MonoBehaviour
                 layerImages[next].transform.SetAsLastSibling();
 
             ShowSlot(next, index + 1, crossing, k, 0f);
+
+            if (slots[index + 1].live)
+                liveVisible = k;
         }
         else
         {
@@ -221,17 +320,32 @@ public class EndingCredits : MonoBehaviour
             if (layerSlot[next] != index)
                 ClearLayer(next);
         }
+
+        SetShade(1f - liveVisible);
+    }
+
+    private void SetShade(float visible)
+    {
+        leftShade.color = new Color(1f, 1f, 1f, leftShadeOpacity * visible);
+        textShade.color = new Color(1f, 1f, 1f, textShadeOpacity * visible);
     }
 
     private void ShowSlot(int layer, int slot, bool play, float alpha, float progress)
     {
-        (VideoClip clip, Texture2D image) = slots[slot];
+        (VideoClip clip, Texture2D image, bool live) = slots[slot];
         VideoPlayer player = layerPlayers[layer];
 
         if (layerSlot[layer] != slot)
         {
             layerSlot[layer] = slot;
-            if (clip != null)
+            if (live)
+            {
+                // 겹치기 1초 전부터 미리 시작해, 화면에 떠오를 때 이미 손을 흔들고 있게 한다
+                player.Stop();
+                layerImages[layer].texture = liveShotSource.BeginWaveShot();
+                liveLayer = layer;
+            }
+            else if (clip != null)
             {
                 ClearTexture(layerTextures[layer]);
                 player.clip = clip;
@@ -263,6 +377,12 @@ public class EndingCredits : MonoBehaviour
         layerSlot[layer] = -1;
         layerPlayers[layer].Stop();
         layerImages[layer].texture = null;
+
+        if (liveLayer == layer)
+        {
+            liveLayer = -1;
+            liveShotSource.EndWaveShot();
+        }
     }
 
     private void StopVideos()
@@ -381,19 +501,10 @@ public class EndingCredits : MonoBehaviour
 
     // ── 화면 만들기 ─────────────────────────────────────────────────────
 
-    // 보는 사람이 지금 보고 있는 방향 정면에 화면을 세운다(내려다보고 있으면 그만큼 아래, 화면도 그만큼 기울여
-    // 시선에 수직으로). 너무 위·아래를 보고 있으면 maxPitch까지만 따른다. 고개를 따라다니지 않는다(멀미 방지).
+    // 보는 사람이 지금 보고 있는 시선 정면에 화면을 세운다(시선에 수직으로).
+    // 이후 시선이 크게 벗어나면 LateUpdate가 천천히 다시 정면으로 데려온다.
     private void BuildCanvas(Transform viewer)
     {
-        const float maxPitch = 30f;
-
-        Vector3 flat = Vector3.ProjectOnPlane(viewer.forward, Vector3.up);
-        if (flat.sqrMagnitude < 0.001f) flat = Vector3.forward;
-        flat.Normalize();
-
-        float pitch = Mathf.Clamp(Vector3.SignedAngle(flat, viewer.forward, Vector3.Cross(flat, Vector3.up)), -maxPitch, maxPitch);
-        Vector3 forward = Quaternion.AngleAxis(pitch, Vector3.Cross(flat, Vector3.up)) * flat;
-
         var canvasObject = new GameObject("CreditsCanvas", typeof(Canvas), typeof(CanvasGroup));
         canvasObject.transform.SetParent(transform, false);
 
@@ -405,19 +516,21 @@ public class EndingCredits : MonoBehaviour
         var canvasRect = (RectTransform)canvasObject.transform;
         canvasRect.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
         canvasRect.localScale = Vector3.one * (width / CanvasWidth);
-        canvasRect.SetPositionAndRotation(viewer.position + forward * distance, Quaternion.LookRotation(forward, Vector3.up));
+        canvasTransform = canvasRect;
+        anchor = GazePoint();
+        canvasRect.position = anchor + Vector3.up * heightOffset;
+        FaceViewer();
+        recentering = false;
 
         rootGroup = canvasObject.GetComponent<CanvasGroup>();
         rootGroup.alpha = 0f;
 
         contentGroup = CreateGroup(canvasRect, "Content");
 
-        // 오른쪽 장면. 왼쪽 가장자리는 어둠 속으로 스며든다.
+        // 장면은 크레딧 화면 전체에 깐다. 글씨 쪽(왼쪽)은 아래의 검은 번짐이 덮는다.
         RectTransform shotFrame = CreateRect(contentGroup.transform, "Shots");
-        shotFrame.anchorMin = shotFrame.anchorMax = new Vector2(1f, 0.5f);
-        shotFrame.pivot = new Vector2(1f, 0.5f);
-        shotFrame.sizeDelta = new Vector2(1240f, 698f);
-        shotFrame.anchoredPosition = new Vector2(-80f, 40f);
+        Stretch(shotFrame);
+        shotFrame.anchoredPosition = new Vector2(shotOffsetX, 0f);   // 글씨 쪽을 비우도록 오른쪽으로 조금 민다
         shotFrame.gameObject.AddComponent<RectMask2D>();
 
         // 두 층은 따로 묶어 둔다 — 층 순서를 바꿔도 왼쪽 그라데이션은 늘 맨 위에 남는다
@@ -449,14 +562,27 @@ public class EndingCredits : MonoBehaviour
             layerPlayers[i] = player;
         }
 
-        RectTransform edge = CreateRect(shotFrame, "LeftEdge");
+        // 글씨 뒤 검은 번짐: 왼쪽에서 오른쪽으로 옅어지는 어둠 + 글씨 자리를 감싸는 부드러운 그림자.
+        // 사진이 밝아도 크레딧이 또렷하게 읽힌다.
+        RectTransform edge = CreateRect(shotFrame, "LeftShade");
         edge.anchorMin = new Vector2(0f, 0f);
         edge.anchorMax = new Vector2(0f, 1f);
         edge.pivot = new Vector2(0f, 0.5f);
-        edge.sizeDelta = new Vector2(520f, 0f);
-        RawImage edgeImage = edge.gameObject.AddComponent<RawImage>();
+        edge.sizeDelta = new Vector2(1300f, 0f);
+        RawImage edgeImage = leftShade = edge.gameObject.AddComponent<RawImage>();
         edgeImage.texture = CreateEdgeGradient();
+        edgeImage.color = new Color(1f, 1f, 1f, leftShadeOpacity);
         edgeImage.raycastTarget = false;
+
+        RectTransform glow = CreateRect(shotFrame, "TextShade");
+        glow.anchorMin = glow.anchorMax = new Vector2(0f, 0.5f);
+        glow.pivot = new Vector2(0.5f, 0.5f);
+        glow.sizeDelta = new Vector2(1150f, 620f);
+        glow.anchoredPosition = new Vector2(textLeft + 310f, -40f);   // 크레딧 글씨 가운데
+        RawImage glowImage = textShade = glow.gameObject.AddComponent<RawImage>();
+        glowImage.texture = CreateSoftShadow();
+        glowImage.color = new Color(1f, 1f, 1f, textShadeOpacity);
+        glowImage.raycastTarget = false;
 
         // 왼쪽 크레딧: 역할(작게, 회색) 위에 이름(크게, 흰색)
         lineGroup = CreateGroup(contentGroup.transform, "Line");
@@ -464,7 +590,7 @@ public class EndingCredits : MonoBehaviour
         lineRect.anchorMin = lineRect.anchorMax = new Vector2(0f, 0.5f);
         lineRect.pivot = new Vector2(0f, 0.5f);
         lineRect.sizeDelta = new Vector2(620f, 200f);
-        lineRect.anchoredPosition = new Vector2(140f, -40f);
+        lineRect.anchoredPosition = new Vector2(textLeft, -40f);
         lineGroup.alpha = 0f;
 
         roleText = CreateText(lineRect, "Role", 32f, new Color(0.72f, 0.72f, 0.72f), TextAlignmentOptions.BottomLeft);
@@ -534,14 +660,34 @@ public class EndingCredits : MonoBehaviour
         rect.offsetMax = Vector2.zero;
     }
 
-    // 왼쪽은 검정, 오른쪽으로 갈수록 투명한 가로 그라데이션
+    // 가운데가 검고 가장자리로 갈수록 부드럽게 투명해지는 타원 그림자(흐릿한 검은 번짐)
+    private static Texture2D CreateSoftShadow()
+    {
+        const int size = 128;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float dx = (x + 0.5f) / size * 2f - 1f;
+            float dy = (y + 0.5f) / size * 2f - 1f;
+            float d = Mathf.Sqrt(dx * dx + dy * dy);
+            float a = 1f - Mathf.SmoothStep(0.25f, 1f, d);
+            texture.SetPixel(x, y, new Color(0f, 0f, 0f, a));
+        }
+        texture.Apply();
+        return texture;
+    }
+
+    // 왼쪽 끝 SolidBlack 비율까지는 완전한 검정, 그 뒤로 오른쪽 끝까지 부드럽게 투명해지는 가로 그라데이션
     private static Texture2D CreateEdgeGradient()
     {
         const int size = 256;
+        const float solidBlack = 0.4f;
         var texture = new Texture2D(size, 1, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
         for (int x = 0; x < size; x++)
         {
-            float a = 1f - Mathf.SmoothStep(0f, 1f, x / (size - 1f));
+            float u = x / (size - 1f);
+            float a = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(solidBlack, 1f, u));
             texture.SetPixel(x, 0, new Color(0f, 0f, 0f, a));
         }
         texture.Apply();
