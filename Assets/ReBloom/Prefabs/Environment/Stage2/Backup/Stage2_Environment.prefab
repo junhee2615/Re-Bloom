@@ -30625,6 +30625,10 @@ MonoBehaviour:
   duration: 0.15
   interval: 0.7
   foundEffect: {fileID: 7488560021270940486}
+  showFoundCircle: 0
+  foundMarkerSprite: {fileID: 21300000, guid: 6a670e567766db149ae71dbc2aa2290b, type: 3}
+  foundMarkerSize: 0.35
+  foundMarkerHeight: 0.4
 --- !u!114 &4897027726302515703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34389,10 +34393,13 @@ MonoBehaviour:
   buttonImage: {fileID: 2300397467486735238}
   buttonNormalColor: {r: 1, g: 1, b: 1, a: 1}
   buttonPressedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
-  msgRemember1: "\uCCB4\uB825\uC774 \uACE0\uAC08\uB418\uC5C8\uC2B5\uB2C8\uB2E4!\n\uC5D0\uCF54\uB294 \uC7A0\uC2DC \uB3D9\uC548 \uC18C\uB9AC\uB97C \uB4E4\uC744 \uC218 \uC5C6\uACE0,\n\uB8E8\uBA58\uC740\n\uB5A8\uC5B4\uC9C0\uB294 \uB178\uD2B8\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uAC8C \uB429\uB2C8\uB2E4."
+  msgRemember1: "\uCCB4\uB825\uC774 \uACE0\uAC08\uB418\uC5C8\uC2B5\uB2C8\uB2E4!\n\uC5D0\uCF54\uB294
+    \uC7A0\uC2DC \uB3D9\uC548 \uC18C\uB9AC\uB97C \uB4E4\uC744 \uC218 \uC5C6\uACE0,\n\uB8E8\uBA58\uC740\n\uB5A8\uC5B4\uC9C0\uB294
+    \uB178\uD2B8\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uAC8C \uB429\uB2C8\uB2E4."
   msgRemember2: "\uB450 \uCE90\uB9AD\uD130\uB294 \uD611\uB3D9\uD558\uBA70 \uBBF8\uC158\uC744
     \uD574\uACB0\uD574\uC57C \uD569\uB2C8\uB2E4."
-  msgRemember3: "\uB8E8\uBA58\uC740 \uB4E4\uB9AC\uB294 \uC18C\uB9AC\uC758 \uBC15\uC790\uB97C\n\uC5D0\uCF54\uC5D0\uAC8C \uC804\uB2EC\uD574\uC8FC\uC138\uC694."
+  msgRemember3: "\uB8E8\uBA58\uC740 \uB4E4\uB9AC\uB294 \uC18C\uB9AC\uC758 \uBC15\uC790\uB97C\n\uC5D0\uCF54\uC5D0\uAC8C
+    \uC804\uB2EC\uD574\uC8FC\uC138\uC694."
   msgListen: "\uB4E3\uAE30"
   msgReady: "\uC900\uBE44"
   msgPlay: "\uD50C\uB808\uC774"
@@ -34410,6 +34417,7 @@ MonoBehaviour:
   longGap: 0.4
   pulseAudioSource: {fileID: 2834863757770496159}
   pulseClip: {fileID: 8300000, guid: 4cee0bad544e12748a2ff9b865055acb, type: 3}
+  pulseVolume: 0.2
   soundRole: 1
   grabRole: 2
   beatTolerance: 0.35
@@ -34424,7 +34432,9 @@ MonoBehaviour:
   clientNote: {fileID: 6901337546102540312}
   hostNote: {fileID: 3952835348844062878}
   noteRole: 1
-  msgNoteIntro: "\uC5D0\uCF54\uB294 \uB178\uD2B8\uAC00 \uC120\uC5D0 \uB2FF\uC744 \uB54C\n\uB178\uD2B8\uAC00 \uBA87 \uBC88 \uB808\uC778\uC5D0 \uC788\uB294\uC9C0 \uC54C\uB824\uC8FC\uC138\uC694."
+  msgNoteIntro: "\uC5D0\uCF54\uB294 \uB178\uD2B8\uAC00 \uC120\uC5D0 \uB2FF\uC744
+    \uB54C\n\uB178\uD2B8\uAC00 \uBA87 \uBC88 \uB808\uC778\uC5D0 \uC788\uB294\uC9C0
+    \uC54C\uB824\uC8FC\uC138\uC694."
   phaseGap: 3
   noteIntroDuration: 2
   scrollSpeed: 15
@@ -46051,7 +46061,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uCCB4\uB825\uC774 \uACE0\uAC08\uB418\uC5C8\uC2B5\uB2C8\uB2E4!\n\uC5D0\uCF54\uB294 \uC7A0\uC2DC \uB3D9\uC548 \uC18C\uB9AC\uB97C \uB4E4\uC744 \uC218 \uC5C6\uACE0,\n\uB8E8\uBA58\uC740\n\uB5A8\uC5B4\uC9C0\uB294 \uB178\uD2B8\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uAC8C \uB429\uB2C8\uB2E4."
+  m_text: "\uCCB4\uB825\uC774 \uACE0\uAC08\uB418\uC5C8\uC2B5\uB2C8\uB2E4!\n\uC5D0\uCF54\uB294
+    \uC7A0\uC2DC \uB3D9\uC548 \uC18C\uB9AC\uB97C \uB4E4\uC744 \uC218 \uC5C6\uACE0,\n\uB8E8\uBA58\uC740\n\uB5A8\uC5B4\uC9C0\uB294
+    \uB178\uD2B8\uAC00 \uBCF4\uC774\uC9C0 \uC54A\uAC8C \uB429\uB2C8\uB2E4."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
   m_sharedMaterial: {fileID: 3233738384545482434, guid: e67f84a0e0536f34d954787489c839fa, type: 2}
@@ -51370,6 +51382,7 @@ MonoBehaviour:
   longGap: 0.4
   pulseAudioSource: {fileID: 1968779415576525316}
   pulseClip: {fileID: 8300000, guid: 4cee0bad544e12748a2ff9b865055acb, type: 3}
+  restrictAudioToRole: 1
   beatTolerance: 0.35
   relativeTolerance: 0.6
   requiredMatchRatio: 0.6
@@ -52637,6 +52650,10 @@ MonoBehaviour:
   duration: 0.15
   interval: 0.7
   foundEffect: {fileID: 1292699818991669000}
+  showFoundCircle: 0
+  foundMarkerSprite: {fileID: 21300000, guid: 6a670e567766db149ae71dbc2aa2290b, type: 3}
+  foundMarkerSize: 0.35
+  foundMarkerHeight: 0.4
 --- !u!114 &2035168232895699987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58695,6 +58712,7 @@ MonoBehaviour:
   touchedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
   sfxSource: {fileID: 5290826694601926812}
   touchClip: {fileID: 8300000, guid: 06d20555efd55e44683cd5eb42746268, type: 3}
+  restrictAudioToRole: 1
 --- !u!1 &2836390770669863489
 GameObject:
   m_ObjectHideFlags: 0
@@ -67858,6 +67876,10 @@ MonoBehaviour:
   duration: 0.15
   interval: 0.7
   foundEffect: {fileID: 9129167207872899567}
+  showFoundCircle: 0
+  foundMarkerSprite: {fileID: 21300000, guid: 6a670e567766db149ae71dbc2aa2290b, type: 3}
+  foundMarkerSize: 0.35
+  foundMarkerHeight: 0.4
 --- !u!114 &6229504174646085874
 MonoBehaviour:
   m_ObjectHideFlags: 0

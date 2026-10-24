@@ -160,6 +160,7 @@ MonoBehaviour:
   touchedColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
   sfxSource: {fileID: 8525350099763890567}
   touchClip: {fileID: 8300000, guid: 06d20555efd55e44683cd5eb42746268, type: 3}
+  restrictAudioToRole: 1
 --- !u!1 &2243986865501984721
 GameObject:
   m_ObjectHideFlags: 0
@@ -1529,6 +1530,10 @@ MonoBehaviour:
   duration: 0.15
   interval: 0.7
   foundEffect: {fileID: 8693632581192370630}
+  showFoundCircle: 0
+  foundMarkerSprite: {fileID: 21300000, guid: 6a670e567766db149ae71dbc2aa2290b, type: 3}
+  foundMarkerSize: 0.35
+  foundMarkerHeight: 0.4
 --- !u!114 &210558672002686426
 MonoBehaviour:
   m_ObjectHideFlags: 0

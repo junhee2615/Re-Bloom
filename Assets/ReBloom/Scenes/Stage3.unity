@@ -1717,7 +1717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b602f008e943241bcd484d9b801daf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoreTouchHaptics
-  irregularity: 0.9
+  intensity: 0.04
 --- !u!65 &254296750
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4769,7 +4769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b602f008e943241bcd484d9b801daf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoreTouchHaptics
-  irregularity: 0.4
+  intensity: 0.55
 --- !u!65 &669585521
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14816,7 +14816,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b602f008e943241bcd484d9b801daf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoreTouchHaptics
-  irregularity: 0
+  intensity: 0.9
 --- !u!65 &1287489279
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -20832,6 +20832,14 @@ PrefabInstance:
       propertyPath: feedbackAudio
       value: 
       objectReference: {fileID: 3846063778224516764}
+    - target: {fileID: 2234108121150902963, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: rounds.Array.data[1].fakeChance
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2234108121150902963, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: rounds.Array.data[2].fakeChance
+      value: 0.7
+      objectReference: {fileID: 0}
     - target: {fileID: 2234108121150902963, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: onMissionComplete.m_PersistentCalls.m_Calls.Array.size
       value: 0
