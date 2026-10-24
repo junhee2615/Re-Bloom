@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage2 MISSION 2(수생식물 되살리기) 조작 가이드 안내판을 만들고 연꽃 세 곳에 놓는 도구.
+/// Stage2 MISSION 2(수생식물 되살리기) 미션 힌트 안내판을 만들고 연꽃 세 곳에 놓는 도구.
 ///
 /// 미션 1 안내판(<see cref="MissionGuideBoardSetup"/>)과 같은 <see cref="MissionGuideBoard"/>
 /// 컴포넌트·같은 디자인을 쓰되, 프리팹은 따로 둔다. 미션 1 프리팹과 씬 배치는 건드리지 않는다.
@@ -165,32 +165,34 @@ public static class Mission2GuideBoardSetup
     //                      RoleManager.LocalIsMental 일 때만 유효
     //  · 완료            : 연꽃 3송이 IsCleared → PlantClearSequence.CheckCompletion
     // 두 입력 모두 접촉 판정이고 버튼을 쓰지 않는다. 그래서 문구에도 그렇게 적었다.
-    private const string Kicker = "MISSION 02 · 조작 가이드";
-    private const string Title = "수생식물 되살리기";
+    //
+    // 힌트 중심 개편 —
+    // 손을 대 보면 알 수 있는 조작(접촉 위치·말로 전달하기·연꽃 3송이 찾기)은 빼고,
+    // 안내가 없으면 막히는 두 가지만 남겼다:
+    //   ① 역할이 갈려 있다(에코가 두드려도 반응이 없다)
+    //   ② 리듬이 반복되므로 서두를 필요가 없다 (loopWhileTouching, loopGap 2초)
+    // 판정 수치(beatTolerance 0.35 / requiredMatchRatio 0.6 / betweenInputTimeout 2.5)는
+    // 정답에 해당하므로 적지 않는다.
+    private const string Kicker = "MISSION 02 · 미션 힌트";
+    private const string Title = "수생식물을 되살려라";
     private const string Participation = "에코와 루멘이 함께 해야 해요.";
     private const string Footer = "세 송이를 모두 되살리면 연못이 깨어납니다.";
 
     private static readonly string[,] Steps =
     {
         {
-            "01 · 에코가 리듬 느끼기",
-            "에코가 오른손 컨트롤러를 연꽃 줄기에 대세요.\n" +
-            "버튼을 누르지 않아도 리듬대로 진동해요."
+            "01 · 서로 다른 역할",
+            "에코는 줄기에서 리듬을 느낄 수 있고,\n" +
+            "루멘은 꽃잎을 깨울 수 있어요."
         },
         {
-            "02 · 루멘에게 리듬 알려 주기",
-            "에코만 진동을 느낄 수 있어요.\n" +
-            "진동의 횟수와 간격을 루멘에게 말로 알려 주세요."
+            "02 · 리듬에 집중하기",
+            "리듬은 반복되니 서두르지 않아도 괜찮아요.\n" +
+            "서로 박자를 맞춰보세요."
         },
         {
-            "03 · 루멘이 꽃잎 두드리기",
-            "루멘이 오른손 컨트롤러로 꽃잎을 리듬에 맞춰 톡톡 터치하세요.\n" +
-            "버튼은 누르지 않아도 돼요."
-        },
-        {
-            "04 · 연꽃 세 송이 되살리기",
-            "리듬이 맞으면 연꽃이 되살아나요.\n" +
-            "흩어진 연꽃 세 송이를 모두 되살리세요."
+            "03 · 가볍게 두드리기",
+            "꽃잎은 버튼을 누르지 않고 살짝 터치해도 반응해요."
         },
     };
 

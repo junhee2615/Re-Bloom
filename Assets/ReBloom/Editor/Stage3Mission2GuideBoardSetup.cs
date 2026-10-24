@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage3 MISSION 2(물결 타이밍) 조작 가이드 안내판을 만들고 발판 구역 입구에 놓는 도구.
+/// Stage3 MISSION 2(물결 타이밍) 미션 힌트 안내판을 만들고 발판 구역 입구에 놓는 도구.
 ///
 /// Stage3 미션 1 안내판(<see cref="Stage3Mission1GuideBoardSetup"/>)과 같은
 /// <see cref="MissionGuideBoard"/> 컴포넌트·같은 치수·같은 공용 스프라이트를 쓴다.
@@ -195,7 +195,15 @@ public static class Stage3Mission2GuideBoardSetup
     private const MissionGuideBoard.CharacterDisplay Display =
         MissionGuideBoard.CharacterDisplay.Both;
 
-    private const string Kicker = "MISSION 02 · 조작 가이드";
+    // 힌트 중심 개편 —
+    // "발판에 한 명씩", "총 3번"은 손목 UI와 진행 패널(물방울 3개)이 이미 알려 주므로 빼고,
+    // 안내가 없으면 막히는 것만 남겼다:
+    //   ① 두 사람이 모두 맞혀야 1회로 인정된다 (혼자 맞혀도 집계되지 않는다)
+    //   ② 눈에 보이는 물결이 전부 진짜는 아니다
+    //   ③ 둘이 느끼는 신호가 달라 서로 비교해야 한다
+    // "가짜는 진동이 없다"는 정답은 공개하지 않는다. 발판도 역할별로 고정되어 있지 않아
+    // 어느 쪽에 누가 서는지 지정하지 않는다.
+    private const string Kicker = "MISSION 02 · 미션 힌트";
     private const string Title = "물결이 오는 타이밍을 맞춰라";
 
     // 문구는 전부 실제 코드에서 확인한 동작이다.
@@ -221,35 +229,21 @@ public static class Stage3Mission2GuideBoardSetup
     {
         new[]
         {
-            "01 · 발판 위에 올라서기",
-            "강 양쪽의 발판에 한 명씩 올라서세요."
+            "01 · 두 사람의 타이밍",
+            "강 양쪽 발판에서 물결에 맞춰 트리거를 눌러보세요.\n" +
+            "두 사람 모두 성공해야 해요."
         },
         new[]
         {
-            "02 · 루멘과 에코의 협력",
-            "루멘은 눈에 보이는 물결의 타이밍을 확인하세요.\n" +
-            "에코는 컨트롤러의 진동을 느끼고\n" +
-            "진짜 물결인지 구분하세요."
+            "02 · 모든 물결이 같지는 않아요",
+            "눈에 보이는 물결이 모두 진짜는 아니에요.\n" +
+            "서로가 느끼는 신호를 비교해 보세요."
         },
         new[]
         {
-            "03 · 타이밍에 맞춰 트리거 누르기",
-            "물결이 도착하는 순간, 각자 컨트롤러의\n" +
-            "트리거 버튼을 누르세요.\n" +
-            "두 사람 모두 성공해야 물결을 막을 수 있어요."
-        },
-        new[]
-        {
-            "04 · 가짜 물결에 주의하기",
-            "가짜 물결은 에코만 구분할 수 있어요!\n" +
-            "진동이 느껴지지 않으면 가짜 물결이므로\n" +
-            "루멘에게 알려주세요."
-        },
-        new[]
-        {
-            "05 · 세 번 성공하기",
-            "진짜 물결의 타이밍을 총 3번 맞추면\n" +
-            "미션이 완료돼요."
+            "03 · 호흡 맞추기",
+            "루멘과 에코가 각자의 감각을 활용해\n" +
+            "알맞은 순간을 찾아보세요."
         },
     };
 

@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage2 MISSION 4(뿌리 활성화) 조작 가이드 안내판을 만들고 세 뿌리 옆에 놓는 도구.
+/// Stage2 MISSION 4(뿌리 활성화) 미션 힌트 안내판을 만들고 세 뿌리 옆에 놓는 도구.
 ///
 /// 미션 1~3 안내판과 같은 <see cref="MissionGuideBoard"/> 컴포넌트·같은 디자인을 쓰되,
 /// 프리팹은 뿌리마다 따로 둔다. 미션 1~3 프리팹과 씬 배치는 건드리지 않는다.
@@ -149,7 +149,16 @@ public static class Mission4GuideBoardSetup
     private const float HideHysteresis = 0.5f;
     private const float FadeDuration = 0.3f;
 
-    private const string Kicker = "MISSION 04 · 조작 가이드";
+    // 힌트 중심 개편 —
+    // 시작 버튼 누르기(패널이 눈앞에 있다)와 판정 세부(빨간 선·실패 시 반복·전부 맞혀야 함)는
+    // 카드에서 빼고, 안내가 없으면 막히는 것만 남겼다:
+    //   뿌리 1 — 소리가 에코에게만 간다 + 트리거가 아니라 Grip
+    //   뿌리 2 — 손 터치가 아니라 오른손 레이 + 이번엔 루멘 차례
+    //   뿌리 3 — 감각과 입력이 서로 엇갈린다(누가 어느 쪽인지는 밝히지 않는다)
+    // Kicker 는 뿌리별로 다르게 둔다 — 세 보드가 같은 미션이지만 순서를 구분해 준다.
+    private const string KickerRoot1 = "MISSION 04 · 첫 번째 뿌리";
+    private const string KickerRoot2 = "MISSION 04 · 두 번째 뿌리";
+    private const string KickerRoot3 = "MISSION 04 · 세 번째 뿌리";
 
     // ───────────────────────────── 뿌리별 내용 ─────────────────────────────
 
@@ -160,6 +169,7 @@ public static class Mission4GuideBoardSetup
         public string PrefabPath;
         public string InstanceName;
         public MissionGuideBoard.CharacterDisplay Display;
+        public string Kicker;
         public string Title;
         public string Participation;
         public string Footer;
@@ -213,28 +223,23 @@ public static class Mission4GuideBoardSetup
             PrefabPath = PrefabFolder + "/MissionGuideBoard_Mission4_Root1.prefab",
             InstanceName = "MissionGuideBoard_Mission4_Root1",
             Display = MissionGuideBoard.CharacterDisplay.EchoOnly,
-            Title = "첫 번째 뿌리 · 소리 리듬",
+            Kicker = KickerRoot1,
+            Title = "소리의 리듬",
             Participation = "에코가 소리를 듣고 따라칩니다.",
             Footer = "리듬이 맞으면 다음 뿌리로 넘어갑니다.",
             Steps = new[]
             {
                 new[]
                 {
-                    "01 · 시작 버튼 누르기",
-                    "뿌리 앞 패널의 시작 버튼을 누르세요.\n" +
-                    "호루라기 소리의 리듬을 기억하고 따라 하는 미션이에요."
+                    "01 · 에코의 소리에 집중하기",
+                    "소리는 에코에게만 들려요.\n" +
+                    "들리는 리듬을 기억해 보세요."
                 },
                 new[]
                 {
-                    "02 · '듣기'에서 리듬 기억하기",
-                    "호루라기 소리가 리듬에 맞춰 들려요.\n" +
-                    "소리의 횟수와 간격을 기억하세요."
-                },
-                new[]
-                {
-                    "03 · '플레이'에서 오른손 Grip 누르기",
-                    "오른손 Grip(쥐기) 버튼을 들은 리듬대로 누르세요.\n" +
-                    "틀리면 처음부터 다시 들려줍니다."
+                    "02 · 리듬 따라 하기",
+                    "플레이 구간에서 에코의 오른손 Grip(쥐기) 버튼으로\n" +
+                    "리듬을 따라 해보세요."
                 },
             },
         },
@@ -244,28 +249,22 @@ public static class Mission4GuideBoardSetup
             PrefabPath = PrefabFolder + "/MissionGuideBoard_Mission4_Root2.prefab",
             InstanceName = "MissionGuideBoard_Mission4_Root2",
             Display = MissionGuideBoard.CharacterDisplay.LumenOnly,
-            Title = "두 번째 뿌리 · 떨어지는 잎",
+            Kicker = KickerRoot2,
+            Title = "떨어지는 잎",
             Participation = "루멘이 레이로 잎을 선택합니다.",
             Footer = "잎을 모두 맞히면 다음 뿌리로 넘어갑니다.",
             Steps = new[]
             {
                 new[]
                 {
-                    "01 · 시작 버튼 누르기",
-                    "뿌리 앞 패널의 시작 버튼을 누르세요.\n" +
-                    "떨어지는 잎을 정확한 타이밍에 선택하는 미션이에요."
+                    "01 · 루멘의 차례",
+                    "이번에는 루멘이 떨어지는 잎의 타이밍을 맞춰야 해요."
                 },
                 new[]
                 {
-                    "02 · 빨간 선에 맞춰 선택하기",
-                    "떨어지는 잎이 빨간 선에 닿는 순간,\n" +
-                    "오른손 레이로 잎을 겨누고 트리거를 당기세요."
-                },
-                new[]
-                {
-                    "03 · 하나도 놓치지 않기",
-                    "빨간 선을 지나가는 잎을 놓치지 마세요.\n" +
-                    "모든 잎을 정확한 타이밍에 선택해야 해요."
+                    "02 · 손이 아닌 빛으로",
+                    "잎을 직접 만지는 대신\n" +
+                    "오른손 레이로 겨누고 트리거를 눌러보세요."
                 },
             },
         },
@@ -275,29 +274,23 @@ public static class Mission4GuideBoardSetup
             PrefabPath = PrefabFolder + "/MissionGuideBoard_Mission4_Root3.prefab",
             InstanceName = "MissionGuideBoard_Mission4_Root3",
             Display = MissionGuideBoard.CharacterDisplay.Both,
-            Title = "세 번째 뿌리 · 협동",
+            Kicker = KickerRoot3,
+            Title = "서로 엇갈린 감각",
             Participation = "둘이 번갈아 역할을 맡아요.",
             Footer = "두 단계를 모두 통과하면 뿌리 활성화가 끝납니다.",
             Steps = new[]
             {
                 new[]
                 {
-                    "01 · 시작 버튼 누르기",
-                    "뿌리 앞 패널의 시작 버튼을 누르세요.\n" +
-                    "둘 중 누가 눌러도 됩니다."
+                    "01 · 듣는 사람과 누르는 사람",
+                    "소리를 듣는 사람과 버튼을 누를 수 있는 사람이 달라요.\n" +
+                    "서로 리듬을 알려주세요."
                 },
                 new[]
                 {
-                    "02 · 1부 — 루멘이 듣고 에코가 누르기",
-                    "리듬 소리는 루멘에게만 들려요.\n" +
-                    "루멘이 박자를 알려 주면 에코가 오른손 Grip을 누르세요."
-                },
-                new[]
-                {
-                    "03 · 2부 — 에코가 보고 루멘이 선택하기",
-                    "떨어지는 잎은 에코에게만 보여요.\n" +
-                    "에코가 몇 번째 줄인지 알려 주면\n" +
-                    "루멘이 오른손 레이로 겨누고 트리거를 당기세요."
+                    "02 · 보는 사람과 선택하는 사람",
+                    "떨어지는 잎을 보는 사람과 선택할 수 있는 사람도 달라요.\n" +
+                    "서로의 안내에 집중해 보세요."
                 },
             },
         },
@@ -531,7 +524,7 @@ public static class Mission4GuideBoardSetup
 
         RectTransform kickerRect = TopBand("Kicker", header, KickerTop, KickerHeight, Pad, Pad);
         refs.Kicker = AddText(
-            kickerRect, font, Kicker, KickerFontSize, AccentDefault, TextAlignmentOptions.TopLeft);
+            kickerRect, font, spec.Kicker, KickerFontSize, AccentDefault, TextAlignmentOptions.TopLeft);
         refs.Kicker.characterSpacing = KickerSpacing;
         refs.Accents.Add(refs.Kicker);
 
@@ -626,7 +619,7 @@ public static class Mission4GuideBoardSetup
         SetArray(so, "accentGraphics", refs.Accents);
         SetColor(so, "accentColor", AccentDefault);
 
-        SetString(so, "kicker", Kicker);
+        SetString(so, "kicker", spec.Kicker);
         SetString(so, "title", spec.Title);
         SetString(so, "footer", spec.Footer);
         SetString(so, "lumenName", "루멘");

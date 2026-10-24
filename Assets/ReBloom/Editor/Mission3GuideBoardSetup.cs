@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage2 MISSION 3(살아 있는 뿌리 찾기) 조작 가이드 안내판을 만들고 씬에 놓는 도구.
+/// Stage2 MISSION 3(살아 있는 뿌리 찾기) 미션 힌트 안내판을 만들고 씬에 놓는 도구.
 ///
 /// 미션 1·2 안내판과 같은 <see cref="MissionGuideBoard"/> 컴포넌트·같은 디자인을 쓰되,
 /// 프리팹은 따로 둔다. 미션 1·2 프리팹과 씬 배치는 건드리지 않는다.
@@ -175,36 +175,33 @@ public static class Mission3GuideBoardSetup
     //                RoleManager.LocalIsEar. 셋을 모두 만족해야 OnRootFound 가 불린다.
     //  · 진동      : TriggerRightHandHaptic — XRNode.RightHand, amplitude 0.25 /
     //                duration 0.15 / interval 0.7초 주기. 에코에게만 간다.
-    //  · 초록빛    : LivingRoot.MarkFound → SetFoundEffect(true). RootMissionManager 가
-    //                RPC 로 모든 머신에서 부르므로 루멘 화면에도 보인다.
+    //  · 발견 표시 : LivingRoot.MarkFound → SetFoundEffect(true) → SetFoundMarker.
+    //                바닥 파티클(foundEffect)은 showFoundCircle 이 모든 인스턴스에서 0 이라
+    //                재생되지 않는다(LivingRoot.cs 의 `if (visible && !showFoundCircle) return;`).
+    //                실제로 켜지는 것은 그루터기 위 마커 스프라이트이고, 양쪽 플레이어 모두 본다.
     //  · 완료      : FoundCount >= 3 → NetFindComplete → RootsFound (미션 4로 전환)
     // 루멘에게는 발견 조작이 없다. 없는 조작을 만들어 적지 않는다.
-    private const string Kicker = "MISSION 03 · 조작 가이드";
-    private const string Title = "살아 있는 뿌리 찾기";
+    //
+    // 힌트 중심 개편 —
+    // 이 미션에서 안내가 없으면 막히는 핵심은 "겉모습으로 구별할 수 없다"는 사실 하나다.
+    // (살아있는 그루터기 3개와 죽은 그루터기 3개의 Outline 설정이 전부 동일하다)
+    // 그래서 그 사실과 "에코가 손을 대면 반응을 볼 수 있다"만 남기고,
+    // 진동이라는 판별 수단·바닥 효과·찾아야 하는 개수는 카드에서 빼거나 하단 목표로 넘겼다.
+    private const string Kicker = "MISSION 03 · 미션 힌트";
+    private const string Title = "살아 있는 뿌리를 찾아라";
     private const string Participation = "뿌리는 에코만 찾을 수 있어요.";
     private const string Footer = "세 개를 모두 찾으면 뿌리 활성화가 시작됩니다.";
 
     private static readonly string[,] Steps =
     {
         {
-            "01 · 에코가 그루터기에 손 대기",
-            "에코가 오른손 컨트롤러를 그루터기에 대세요.\n" +
-            "버튼은 누르지 않아도 돼요."
+            "01 · 겉모습만으로는 알 수 없어요",
+            "살아 있는 뿌리와 죽은 그루터기는 겉모습이 비슷해요."
         },
         {
-            "02 · 진동으로 살아 있는 뿌리 가려내기",
-            "살아 있는 뿌리면 컨트롤러가 천천히 진동해요.\n" +
-            "진동이 없으면 죽은 그루터기예요."
-        },
-        {
-            "03 · 루멘은 초록빛으로 확인하기",
-            "루멘은 진동을 느낄 수 없어요.\n" +
-            "뿌리를 찾으면 바닥에 초록빛이 퍼져요."
-        },
-        {
-            "04 · 살아 있는 뿌리 세 개 찾기",
-            "빛나는 그루터기를 하나씩 확인하세요.\n" +
-            "세 개를 모두 찾으면 다음 미션으로 넘어가요."
+            "02 · 뿌리의 반응을 살펴보세요",
+            "에코가 그루터기에 손을 대면\n" +
+            "뿌리 주변에 나타나는 변화를 확인할 수 있어요."
         },
     };
 

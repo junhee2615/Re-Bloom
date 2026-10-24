@@ -6,8 +6,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage2 MISSION 1 조작 가이드 보드(<see cref="MissionGuideBoard"/>)의 프리팹을
+/// Stage2 MISSION 1 미션 힌트 보드(<see cref="MissionGuideBoard"/>)의 프리팹을
 /// 만들고 다시 꾸미는 셋업 도구.
+///
+/// 문구의 원본은 이 스크립트다(<c>Kicker</c>·<c>Title</c>·<c>Footer</c>·<c>Steps</c>).
+/// 예전에는 프리팹에 저작해 두고 <b>Restyle</b> 이 되살렸지만, 그러면 메뉴를 다시 돌릴 때
+/// 옛 상세 가이드 문구가 복원된다. 그래서 문구는 스크립트가 들고,
+/// Sprite·거리·페이드 같은 수동 설정만 프리팹에서 보존한다.
 ///
 /// 만들어지는 프리팹 —
 /// <code>
@@ -16,16 +21,15 @@ using UnityEngine.UI;
 /// ├── AccentBar
 /// │   └── PanelOutline            둥근 테두리 (9-slice, 강조색)
 /// ├── Header
-/// │   ├── Kicker                   "MISSION 01 · 조작 가이드"
-/// │   ├── Title                    "수로 복구 방법"
+/// │   ├── Kicker                   "MISSION 01 · 미션 힌트"
+/// │   ├── Title                    "수로를 복구하라"
 /// │   ├── Characters
 /// │   │   ├── Lumen → LumenCard / LumenPortrait / LumenName / LumenAccent
 /// │   │   └── Echo  → EchoCard  / EchoPortrait  / EchoName  / EchoAccent
 /// │   └── Participation            "두 캐릭터 모두 참여할 수 있어요."
 /// ├── Steps
 /// │   ├── Step1 → (카드 배경) Step1Label / Step1Body
-/// │   ├── Step2 → …
-/// │   └── Step3 → …
+/// │   └── Step2 → …                (힌트 개편으로 3장 → 2장)
 /// └── Footer
 ///     ├── FooterCheck              체크 배지
 ///     └── FooterLabel              완료 안내
@@ -83,7 +87,11 @@ public static class MissionGuideBoardSetup
     // ── 레이아웃 (캔버스 단위) ─────────────────────────────────────────────
     // 캔버스 해상도는 그대로 두고 Scale만 1.4배로 키운다(0.0012 → 0.00168).
     // 1000 × 0.00168 = 1.68 m, 1250 × 0.00168 = 2.10 m.
-    private static readonly Vector2 BoardSize = new Vector2(1000f, 1250f);
+    // 카드 2장 기준 높이 —
+    //   StepsTop 442 + 2 × (StepCardHeight 224 + StepCardGap 14) − 14 = 904
+    //   FooterTop  904 + 24(간격) = 928,  보드 928 + FooterHeight 50 + 아래 여백 34 = 1012
+    // (힌트 중심 개편으로 카드가 3장 → 2장이 되어 1250 → 1012 로 줄었다. 폭은 그대로다)
+    private static readonly Vector2 BoardSize = new Vector2(1000f, 1012f);
     private const float DefaultBoardScale = 0.00168f;  // 월드 1.68 × 2.10 m
 
     private const float Pad = 36f;                     // 좌우 안쪽 여백
@@ -128,8 +136,8 @@ public static class MissionGuideBoardSetup
 
     // STEP 카드
     //
-    // 본문 영역 높이는 "가장 긴 칸"에 맞춘다. 02 · 바위 옮기기가 세 줄(\n 고정)이라
-    // 27pt × 줄간격 4 기준 약 122px가 필요하다. 124로 잡아 글이 카드를 넘지 않게 한다.
+    // 본문 영역 높이는 "가장 긴 칸"에 맞춘다. 힌트 문구는 최대 두 줄이고
+    // 27pt × 줄간격 4 기준 약 83px가 필요하다. 124는 세 줄 분이라 여유가 남는다.
     // (실제 줄 높이는 폰트마다 달라서 Validate가 GetPreferredValues로 한 번 더 잰다)
     private const float StepsTop = 442f;
     private const float StepCardHeight = 224f;
@@ -142,10 +150,39 @@ public static class MissionGuideBoardSetup
     private const float StepBodyHeight = 124f;
     private const float StepBodyFontSize = 27f;
     private const float StepBodyLineSpacing = 4f;
-    private const int StepCount = 3;
+    private const int StepCount = 2;
+
+    // ── 문구 ──────────────────────────────────────────────────────────────
+    //
+    // 힌트 중심 개편 —
+    // 돌·흙을 Grab 으로 잡아 옮기는 것은 직관적이라 설명하지 않는다. 안내가 없으면
+    // 막히는 것은 "바위는 서로 다른 두 플레이어가 함께 잡아야 움직인다"
+    // (StoneObstacle.HasEnoughGrabbers — 한 사람이 양손으로 잡아도 안 된다) 하나이고,
+    // 나머지는 빛나는 경계선(WaterwayZoneVisual)을 보면 스스로 알 수 있다.
+    // 나뭇가지 설명은 전부 뺀다 — 실제 플레이에서 잡아당겨도 잘 빠지므로 안내가 필요 없다.
+    //
+    // 이 문구가 이제 <b>원본</b>이다. 예전에는 프리팹에 저작해 두고 Restyle 이 되살렸지만,
+    // 그러면 메뉴를 다시 돌릴 때 옛 문구가 복원된다. 그래서 kicker·title·steps 를
+    // 스크립트로 옮기고 Restyle 의 보존 목록에서 뺐다.
+    private const string Kicker = "MISSION 01 · 미션 힌트";
+    private const string Title = "수로를 복구하라";
+    private const string Footer = "모두 제거하면 수로가 복구됩니다.";
+
+    private static readonly string[,] Steps =
+    {
+        {
+            "01 · 함께 힘을 모으기",
+            "무거운 바위는 혼자서는 움직이지 않아요.\n" +
+            "두 사람이 함께 잡아보세요."
+        },
+        {
+            "02 · 수로 정리하기",
+            "빛나는 경계선 안에 장애물이 남아 있는지 확인해 보세요."
+        },
+    };
 
     // 완료 안내
-    private const float FooterTop = 1166f;
+    private const float FooterTop = 928f;
     private const float FooterHeight = 50f;
     private const float FooterCheckSize = 34f;
     private const float FooterTextLeft = 50f;          // Footer 밴드 왼쪽 기준
@@ -177,12 +214,14 @@ public static class MissionGuideBoardSetup
     /// Restyle이 옛 컴포넌트에서 새 컴포넌트로 그대로 옮기는 "값" 필드들.
     /// 오브젝트 참조(TMP·Image·배열)는 새 계층의 것으로 다시 연결하므로 여기에 넣지 않는다.
     ///
-    /// <c>footer</c> 가 빠져 있는 이유: 하단 문구가 새 기획안에서 바뀌었다. 옛 값을 되살리면
-    /// 요청한 문구가 다시 덮여 버리므로, 이 필드만 스크립트의 새 기본값을 쓴다.
+    /// <c>kicker</c>·<c>title</c>·<c>footer</c> 와 steps 문구가 빠져 있는 이유:
+    /// 힌트 중심 개편으로 문구의 <b>원본이 프리팹에서 이 스크립트로 옮겨졌다</b>.
+    /// 옛 값을 되살리면 메뉴를 다시 돌릴 때마다 예전 상세 가이드 문구가 복원되므로,
+    /// 이 네 가지는 보존하지 않고 스크립트의 값을 쓴다.
+    /// (Sprite·거리·페이드·표시 모드 같은 수동 설정은 그대로 보존한다)
     /// </summary>
     private static readonly string[] PreservedValueFields =
     {
-        "kicker", "title",
         "characterDisplay", "lumenName", "echoName",
         "participationBoth", "participationLumenOnly", "participationEchoOnly",
         "visibleStep", "hideDuringCutscene",
@@ -453,9 +492,12 @@ public static class MissionGuideBoardSetup
                 $"    에코 초상 : {(EchoPortrait != null ? EchoPortrait.name : "비어 있음")}\n" +
                 $"    루트 Scale : {PreviousScale} → {DefaultBoardScale} 로 교체 " +
                 $"(월드 {BoardSize.x * DefaultBoardScale:F2} × {BoardSize.y * DefaultBoardScale:F2} m)\n" +
-                $"    STEP 문구 : {Steps.Count}칸\n" +
-                $"    설정 필드 : {PreservedValueFields.Length}개 (문구·거리·페이드·표시 모드 등)\n" +
-                "    footer 문구는 새 기획안 문구로 교체합니다.");
+                $"    설정 필드 : {PreservedValueFields.Length}개 " +
+                "(표시 모드·이름·거리·페이드 등 수동 설정)\n" +
+                $"    STEP 아이콘 : {Steps.Count}칸 중 연결된 것만 되돌립니다\n" +
+                "    문구(머리말·제목·STEP·하단)는 보존하지 않고 " +
+                $"스크립트의 힌트 문구 {StepCount}칸으로 교체합니다.\n" +
+                $"    (기존 프리팹에 STEP 문구가 {Steps.Count}칸 있었습니다 — 덮어씁니다)");
         }
 
         /// <summary>새로 만든 컴포넌트에 보존 값을 되돌려 넣는다.</summary>
@@ -476,6 +518,9 @@ public static class MissionGuideBoardSetup
                 target.CopyFromSerializedProperty(property);
             }
 
+            // STEP 문구는 되돌리지 않는다 — 원본이 스크립트로 옮겨졌기 때문이다.
+            // (옛 문구를 되살리면 Restyle 을 돌릴 때마다 예전 상세 가이드가 복원된다)
+            // 아이콘만 쓰고 있었다면 그것은 수동 설정이므로 그대로 되돌려 둔다.
             SerializedProperty steps = target.FindProperty("steps");
 
             if (steps == null)
@@ -485,29 +530,19 @@ public static class MissionGuideBoardSetup
 
             for (int i = 0; i < count; i++)
             {
-                SerializedProperty element = steps.GetArrayElementAtIndex(i);
                 StepContent step = Steps[i];
 
-                WriteString(element, "label", step.Label);
-                WriteString(element, "body", step.Body);
+                if (step.Icon == null)
+                    continue;
 
-                SerializedProperty icon = element.FindPropertyRelative("icon");
+                SerializedProperty icon =
+                    steps.GetArrayElementAtIndex(i).FindPropertyRelative("icon");
 
-                if (icon != null && step.Icon != null)
+                if (icon != null)
                     icon.objectReferenceValue = step.Icon;
             }
         }
 
-        private static void WriteString(SerializedProperty element, string name, string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return;
-
-            SerializedProperty property = element.FindPropertyRelative(name);
-
-            if (property != null)
-                property.stringValue = value;
-        }
     }
 
     // ───────────────────────────── 스킨 ─────────────────────────────
@@ -682,14 +717,14 @@ public static class MissionGuideBoardSetup
 
         RectTransform kickerRect = TopBand("Kicker", header, KickerTop, KickerHeight, Pad, Pad);
         refs.Kicker = AddText(
-            kickerRect, skin.Font, "MISSION 01 · 조작 가이드", KickerFontSize,
+            kickerRect, skin.Font, Kicker, KickerFontSize,
             AccentDefault, TextAlignmentOptions.TopLeft);
         refs.Kicker.characterSpacing = KickerSpacing;
         refs.Accents.Add(refs.Kicker);
 
         RectTransform titleRect = TopBand("Title", header, TitleTop, TitleHeight, Pad, Pad);
         refs.Title = AddText(
-            titleRect, skin.Font, "수로 복구 방법", TitleFontSize,
+            titleRect, skin.Font, Title, TitleFontSize,
             TitleColor, TextAlignmentOptions.TopLeft);
         refs.Title.fontStyle = FontStyles.Bold;
 
@@ -730,7 +765,7 @@ public static class MissionGuideBoardSetup
             RectTransform labelRect = TopBand(
                 stepName + "Label", card, StepLabelTop, StepLabelHeight, StepInnerPad, StepInnerPad);
             TextMeshProUGUI label = AddText(
-                labelRect, skin.Font, $"0{i + 1} · 제목", StepLabelFontSize,
+                labelRect, skin.Font, Steps[i, 0], StepLabelFontSize,
                 AccentDefault, TextAlignmentOptions.TopLeft);
             label.fontStyle = FontStyles.Bold;
             refs.StepLabels.Add(label);
@@ -739,7 +774,7 @@ public static class MissionGuideBoardSetup
             RectTransform bodyRect = TopBand(
                 stepName + "Body", card, StepBodyTop, StepBodyHeight, StepInnerPad, StepInnerPad);
             TextMeshProUGUI body = AddText(
-                bodyRect, skin.Font, "본문", StepBodyFontSize,
+                bodyRect, skin.Font, Steps[i, 1], StepBodyFontSize,
                 BodyColor, TextAlignmentOptions.TopLeft);
             body.lineSpacing = StepBodyLineSpacing;
             refs.StepBodies.Add(body);
@@ -768,7 +803,7 @@ public static class MissionGuideBoardSetup
         footerLabel.offsetMax = Vector2.zero;
 
         refs.Footer = AddText(
-            footerLabel, skin.Font, "모두 제거하면 수로가 복구됩니다.", FooterFontSize,
+            footerLabel, skin.Font, Footer, FooterFontSize,
             FooterColor, TextAlignmentOptions.Left);
 
         // ── FogDepthPrime ───────────────────────────────────────
@@ -815,8 +850,18 @@ public static class MissionGuideBoardSetup
                 SerializedProperty element = steps.GetArrayElementAtIndex(i);
                 element.FindPropertyRelative("labelText").objectReferenceValue = refs.StepLabels[i];
                 element.FindPropertyRelative("bodyText").objectReferenceValue = refs.StepBodies[i];
+
+                // 문구도 함께 써 둔다. 이 스크립트가 원본이므로 프리팹에 남아 있던
+                // 예전 상세 가이드 문구를 여기서 확실히 덮는다.
+                element.FindPropertyRelative("label").stringValue = Steps[i, 0];
+                element.FindPropertyRelative("body").stringValue = Steps[i, 1];
             }
         }
+
+        // 머리말·제목·하단 문구도 스크립트 값으로 고정한다.
+        SetString(so, "kicker", Kicker);
+        SetString(so, "title", Title);
+        SetString(so, "footer", Footer);
 
         so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -1547,6 +1592,19 @@ public static class MissionGuideBoardSetup
     private static Color WithAlpha(Color color, float alpha)
     {
         return new Color(color.r, color.g, color.b, alpha);
+    }
+
+    private static void SetString(SerializedObject so, string fieldName, string value)
+    {
+        SerializedProperty property = so.FindProperty(fieldName);
+
+        if (property == null)
+        {
+            Debug.LogWarning($"  ! MissionGuideBoard에 '{fieldName}' 필드가 없습니다.");
+            return;
+        }
+
+        property.stringValue = value;
     }
 
     private static void SetObject(SerializedObject so, string fieldName, Object value)

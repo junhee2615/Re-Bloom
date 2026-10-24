@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Stage3 MISSION 1(태양광 패널 수리) 조작 가이드 안내판을 만들고 패널 구역 입구에 놓는 도구.
+/// Stage3 MISSION 1(태양광 패널 수리) 미션 힌트 안내판을 만들고 패널 구역 입구에 놓는 도구.
 ///
 /// Stage2 미션 1~4 안내판과 <b>같은</b> <see cref="MissionGuideBoard"/> 컴포넌트·같은 디자인·
 /// 같은 공용 스프라이트를 쓴다. 다른 점은 단계 판정뿐이다 —
@@ -167,7 +167,13 @@ public static class Stage3Mission1GuideBoardSetup
     private const MissionGuideBoard.CharacterDisplay Display =
         MissionGuideBoard.CharacterDisplay.Both;
 
-    private const string Kicker = "MISSION 01 · 조작 가이드";
+    // 힌트 중심 개편 —
+    // 패널에 올라서면 바로 기울어지므로 "올라서세요 / 버튼 없음"은 빼고,
+    // 안내가 없으면 막히는 것만 남겼다:
+    //   ① 앞뒤 이동으로 빛 방향이 바뀐다 (좌우는 영향 없음)
+    //   ② 빛줄기가 루멘에게만 보인다 — 에코는 자기 각도를 눈으로 확인할 수 없다
+    //   ③ 닿는 면이 정해져 있다 (앞면이라는 정답과 1.5초라는 수치는 공개하지 않는다)
+    private const string Kicker = "MISSION 01 · 미션 힌트";
     private const string Title = "고장 난 태양광 패널을 고쳐라";
 
     // 미션 목표. 다른 안내판의 Footer 와 같은 자리다 — 체크 표시 + "무엇으로 끝나는가" 한 줄.
@@ -193,29 +199,21 @@ public static class Stage3Mission1GuideBoardSetup
     {
         new[]
         {
-            "01 · 패널 위에 올라서기",
-            "고장 난 패널을 수리하기 위해 태양광 패널 위에 올라서세요.\n" +
-            "별도의 버튼 조작은 필요하지 않아요."
+            "01 · 움직이는 패널",
+            "패널 위에서 앞뒤로 움직이면\n" +
+            "빛의 방향을 바꿀 수 있어요."
         },
         new[]
         {
-            "02 · 몸을 움직여 각도 조절",
-            "패널 위에서 앞뒤로 이동하면 패널의 기울기가 달라집니다."
+            "02 · 서로 다른 감각",
+            "빛줄기는 루멘에게만 보여요.\n" +
+            "에코가 느끼는 진동과 함께 활용해 보세요."
         },
         new[]
         {
-            "03 · 루멘과 에코의 협력",
-            "루멘은 자신에게만 보이는 빛줄기를 관찰하고,\n" +
-            "에코에게 이동 방향을 알려주세요.\n" +
-            "\n" +
-            "에코는 패널 위에서 루멘의 안내에 따라\n" +
-            "앞뒤로 움직여 빛의 각도를 조절하세요."
-        },
-        new[]
-        {
-            "04 · 빛을 유지해 수리 완료",
-            "반사된 빛이 고장 난 패널 앞면에 1.5초 동안 닿으면 수리됩니다.\n" +
-            "주의! 빛이 패널 뒷면에 닿으면 수리되지 않아요."
+            "03 · 빛이 닿는 방향",
+            "빛이 닿는다고 모두 수리되는 것은 아니에요.\n" +
+            "패널의 어느 면을 비추는지 살펴보세요."
         },
     };
 
