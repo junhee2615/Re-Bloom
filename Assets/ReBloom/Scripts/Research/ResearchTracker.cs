@@ -23,7 +23,7 @@ public class ResearchTracker : MonoBehaviour
     private static readonly string[] Header =
     {
         "Time", "Clock", "Stage", "Mission", "Event",
-        "Value1", "Value2", "Value3", "Value4", "Value5"
+        "Value1", "Value2", "Value3", "Value4", "Value5", "Value6"
     };
 
     /// <summary>

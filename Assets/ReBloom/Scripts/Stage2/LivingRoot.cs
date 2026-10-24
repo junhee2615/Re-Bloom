@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR;
 
 public class LivingRoot : MonoBehaviour
@@ -14,6 +14,18 @@ public class LivingRoot : MonoBehaviour
     [Header("발견 표시")]
     [Tooltip("뿌리를 찾았을 때 밑에서 퍼지는 초록 동심원 이펙트(FoundCircle). 두 플레이어 모두에게 보인다.")]
     [SerializeField] private GameObject foundEffect;
+    [Tooltip("바닥의 FoundCircle도 같이 켤지. 기본은 끄고 뿌리 위 클리어 표시만 쓴다.")]
+    [SerializeField] private bool showFoundCircle = false;
+
+    [Header("클리어 표시 (뿌리 위)")]
+    [Tooltip("뿌리를 찾았을 때 그루터기 위에 띄울 아이콘")]
+    [SerializeField] private Sprite foundMarkerSprite;
+    [Tooltip("아이콘 크기(m)")]
+    [SerializeField] private float foundMarkerSize = 0.35f;
+    [Tooltip("그루터기 맨 윗면에서 아이콘 중심까지 높이(m)")]
+    [SerializeField] private float foundMarkerHeight = 0.4f;
+
+    private RootFoundMarker foundMarker;
 
     public bool IsFound { get; private set; }
 
@@ -88,7 +100,12 @@ private void OnTriggerStay(Collider other)
 
     private void SetFoundEffect(bool visible)
     {
+        SetFoundMarker(visible);
+
         if (foundEffect == null)
+            return;
+
+        if (visible && !showFoundCircle)
             return;
 
         foundEffect.SetActive(visible);
@@ -99,6 +116,56 @@ private void OnTriggerStay(Collider other)
             if (ps != null)
                 ps.Play(true);
         }
+    }
+
+    // 그루터기 위에 클리어 표시를 띄우거나 숨긴다
+    private void SetFoundMarker(bool visible)
+    {
+        if (foundMarkerSprite == null)
+            return;
+
+        if (visible)
+        {
+            if (foundMarker == null)
+                foundMarker = CreateFoundMarker();
+            foundMarker.Show();
+        }
+        else if (foundMarker != null)
+        {
+            foundMarker.Hide();
+        }
+    }
+
+    private RootFoundMarker CreateFoundMarker()
+    {
+        GameObject go = new GameObject("FoundMarker");
+        go.layer = gameObject.layer;
+        go.transform.SetParent(transform, false);
+
+        RootFoundMarker marker = go.AddComponent<RootFoundMarker>();
+        Vector3 top = GetStumpTop();
+        marker.Setup(foundMarkerSprite, foundMarkerSize, top + Vector3.up * foundMarkerHeight);
+        go.SetActive(false);
+        return marker;
+    }
+
+    // 그루터기 메시들의 맨 윗면 중앙 (UI, 파티클, 발견 이펙트는 제외)
+    private Vector3 GetStumpTop()
+    {
+        bool has = false;
+        Bounds bounds = new Bounds(transform.position, Vector3.zero);
+
+        foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
+        {
+            if (r is ParticleSystemRenderer || r is SpriteRenderer) continue;
+            if (r.GetComponentInParent<Canvas>(true) != null) continue;
+            if (foundEffect != null && r.transform.IsChildOf(foundEffect.transform)) continue;
+
+            if (!has) { bounds = r.bounds; has = true; }
+            else bounds.Encapsulate(r.bounds);
+        }
+
+        return has ? new Vector3(bounds.center.x, bounds.max.y, bounds.center.z) : transform.position;
     }
 
     private void TriggerRightHandHaptic(float amplitude, float duration)

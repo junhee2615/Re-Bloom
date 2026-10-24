@@ -45,6 +45,9 @@ public sealed class ResonanceController : MonoBehaviour
     /// <summary>지금 공명 제약이 풀려 있는가(로컬 캐시, 네트워크 상태를 따른다).</summary>
     public bool IsConstraintReleased => isConstraintReleased;
 
+    /// <summary>공명 거리(m). 이 거리 밖이면 완전 제약, 안이면 가까울수록 완화된다. (연구 로그용 읽기 전용)</summary>
+    public float ResonanceDistance => resonanceDistance;
+
     /// <summary>
     /// 거리 이탈 누적 비율 0~1. 1에 닿으면 제약이 되돌아간다. 해제 상태가 아니거나 거리 안이면 0.
     /// </summary>

@@ -17,7 +17,7 @@ using UnityEngine;
 ///  - GraceStart              | 캐릭터 간 거리                      (공명 거리 이탈, 유예 시작)
 ///  - GraceReturn             | 이탈 시간(초) | 게임 전체 5초 안 복귀 누적 횟수
 ///  - ResonanceReset          | (공명 ON 상태로 씬을 나가 유예 없이 초기화됨)
-///  - ResonanceTime           | 공명 시간(초) | 제약 시간(초) | 공명 비율(0~1)   ← 스테이지-미션 단위
+///  - ResonanceTime           | 공명(초) | 완화(초) | 완전 제약(초) | 공명 비율 | 완화 비율 | 완전 제약 비율   ← 스테이지-미션 단위
 ///  - StageResonanceSummary   | 시도 횟수 | 성공 | 실패                     ← 스테이지 단위
 ///  - GameResonanceSummary    | 5초 안 복귀 횟수 | 제약 재적용 횟수            ← 게임 종료 시, 게임 전체
 /// </summary>
@@ -36,8 +36,9 @@ public sealed class ResearchResonanceTracker : MonoBehaviour
     private int _stageFails;
 
     // 스테이지-미션 단위 누적 시간
-    private float _resonanceTime;
-    private float _constraintTime;
+    private float _resonanceTime;       // 공명 발동
+    private float _reliefTime;          // 공명 OFF + 공명 거리 안 (완화)
+    private float _fullConstraintTime;  // 공명 OFF + 공명 거리 밖 (완전 제약)
 
     // 관찰 상태
     private bool _observing;
@@ -105,7 +106,8 @@ public sealed class ResearchResonanceTracker : MonoBehaviour
         if (hasDistance)
         {
             if (on) _resonanceTime += Time.deltaTime;
-            else _constraintTime += Time.deltaTime;
+            else if (IsRelieved(distance)) _reliefTime += Time.deltaTime;
+            else _fullConstraintTime += Time.deltaTime;
         }
 
         _prevOn = on;
@@ -195,18 +197,35 @@ public sealed class ResearchResonanceTracker : MonoBehaviour
     // 미션이 바뀌기 직전(아직 이전 미션 이름으로 기록됨)에 공명/제약 시간을 남긴다.
     private void FlushMissionTime()
     {
-        float total = _resonanceTime + _constraintTime;
+        float total = _resonanceTime + _reliefTime + _fullConstraintTime;
         if (total > 0f)
         {
             ResearchLog.Event("ResonanceTime",
                 ResearchTracker.FormatSeconds(_resonanceTime),
-                ResearchTracker.FormatSeconds(_constraintTime),
-                (_resonanceTime / total).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture));
+                ResearchTracker.FormatSeconds(_reliefTime),
+                ResearchTracker.FormatSeconds(_fullConstraintTime),
+                Ratio(_resonanceTime, total),
+                Ratio(_reliefTime, total),
+                Ratio(_fullConstraintTime, total));
         }
 
         _resonanceTime = 0f;
-        _constraintTime = 0f;
+        _reliefTime = 0f;
+        _fullConstraintTime = 0f;
     }
+
+    private static string Ratio(float part, float total)
+    {
+        return (part / total).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // 공명 OFF에서 공명 거리보다 가까우면 완화 구간(거리에 따라 제약이 약해짐), 아니면 완전 제약.
+    private static bool IsRelieved(float distance)
+    {
+        ResonanceController controller = ResonanceController.Instance;
+        return controller != null && distance < controller.ResonanceDistance;
+    }
+
 
     private void OnSceneExiting(bool applicationQuitting)
     {

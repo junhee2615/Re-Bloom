@@ -30,7 +30,7 @@ public class InteractablePlantVibration : MonoBehaviour
     [Tooltip("손을 대고 있는 동안 리듬을 계속 반복할지")]
     [SerializeField] private bool loopWhileTouching = true;
     [Tooltip("리듬 한 번이 끝나고 다음 반복까지의 쉼(초)")]
-    [SerializeField] private float loopGap = 0.6f;
+    [SerializeField] private float loopGap = 2.0f;
 
     private Coroutine runningRoutine;
     private bool isTouching;

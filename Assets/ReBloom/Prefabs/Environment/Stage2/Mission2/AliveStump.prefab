@@ -655,6 +655,7 @@ MonoBehaviour:
   longGap: 0.4
   pulseAudioSource: {fileID: 3442806837466513306}
   pulseClip: {fileID: 8300000, guid: af281f19bbcf2584788703da8a956842, type: 3}
+  restrictAudioToRole: 1
   beatTolerance: 0.35
   relativeTolerance: 0.6
   requiredMatchRatio: 0.6
@@ -1713,6 +1714,10 @@ MonoBehaviour:
   duration: 0.15
   interval: 0.7
   foundEffect: {fileID: 5012207251602553288}
+  showFoundCircle: 0
+  foundMarkerSprite: {fileID: 21300000, guid: 6a670e567766db149ae71dbc2aa2290b, type: 3}
+  foundMarkerSize: 0.35
+  foundMarkerHeight: 0.4
 --- !u!114 &9145259480590329830
 MonoBehaviour:
   m_ObjectHideFlags: 0
