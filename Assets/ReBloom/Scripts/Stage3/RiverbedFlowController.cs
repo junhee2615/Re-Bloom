@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -225,6 +225,8 @@ namespace ReBloom.Water
         // 이번 물결의 판정 사운드 상태
         bool waveCleared;       // 이번 물결이 클리어 처리됐다
         bool waveWrongPlayed;   // 이번 물결에서 wrong 을 이미 울렸다
+        // 이번 물결에서 내가 실제로 트리거를 눌렀는가 (가짜 물결 실패 판정용)
+        bool wavePressedLocally;
 
         string lastOutcomeText = "";
         float lastOutcomeTime = -99f;
@@ -485,6 +487,7 @@ namespace ReBloom.Water
             waveInputTaken = false;
             waveCleared = false;
             waveWrongPlayed = false;
+            wavePressedLocally = false;
             waveStartTime = Time.time;
             beatTime = waveStartTime + netApproach;
             phase = Phase.WaveIncoming;
@@ -591,9 +594,10 @@ namespace ReBloom.Water
             waveInputTaken = false;
             waveCleared = false;
             waveWrongPlayed = false;
+            wavePressedLocally = false;
             // 난수 대신 해시를 쓴다. 나중에 시드와 인덱스만 동기화하면
             // 두 클라이언트가 같은 진짜/페이크 순서를 뽑게 된다
-            waveIsReal = Hash01(waveSeed + waveIndex) >= r.fakeChance;
+            waveIsReal = DecideWaveIsReal(waveIndex, r.fakeChance);
             waveStartTime = Time.time;
             beatTime = waveStartTime + r.approachDuration;
             phase = Phase.WaveIncoming;
@@ -608,6 +612,27 @@ namespace ReBloom.Water
         [Header("물결 순서")]
         [Tooltip("진짜/페이크 순서의 시드. 네트워크 동기화 때 이 값만 맞추면 양쪽이 같아진다")]
         public int waveSeed = 12345;
+
+        public enum WaveOverride { Random, Real, Fake }
+
+        [Tooltip("테스트용. 실행 중에 Real/Fake 를 고르면 다음에 오는 물결 하나가 그대로 나오고, 쓰인 뒤에는 Random 으로 돌아간다.\n네트워크 플레이에서는 호스트(물결을 만드는 쪽) 인스펙터에서 바꿔야 적용된다.")]
+        public WaveOverride nextWave = WaveOverride.Random;
+
+        /// <summary>이번 물결이 진짜인지 정한다. 인스펙터에서 nextWave 를 골라 뒀으면 그 값을 한 번 쓴다.</summary>
+        public bool DecideWaveIsReal(int index, float fakeChance)
+        {
+            bool real = Hash01(waveSeed + index) >= fakeChance;
+
+            if (nextWave != WaveOverride.Random)
+            {
+                real = nextWave == WaveOverride.Real;
+                if (logToConsole)
+                    Debug.Log("[Riverbed] wave #" + index + " 인스펙터 지정 → " + (real ? "REAL" : "FAKE"));
+                nextWave = WaveOverride.Random;
+            }
+
+            return real;
+        }
 
         int waveIndex;
 
@@ -732,6 +757,7 @@ namespace ReBloom.Water
 
             float err = t - beatTime;
             waveInputTaken = true;
+            wavePressedLocally = true;
 
             // 네트워크 모드: 자기 화면과 진동 기준으로만 판정하고 호스트에 보고한다.
             // 성공 선언은 호스트가 두 사람의 보고를 모아서 한다.
@@ -845,6 +871,10 @@ namespace ReBloom.Water
         // 한 물결에서 wrong 은 한 번만 울린다
         void PlayWrong()
         {
+            // 가짜 물결은 내가 직접 트리거를 눌렀을 때만 실패로 친다.
+            // 누르지 않고 흘려보낸 가짜 물결은 정답이므로 실패 소리/X 표시를 내지 않는다.
+            if (networkDriven && !waveIsReal && !wavePressedLocally) return;
+
             if (waveActive || waveInputTaken)
             {
                 if (waveWrongPlayed) return;

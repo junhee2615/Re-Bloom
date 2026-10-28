@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ReBloom.Water
 {
@@ -141,7 +141,7 @@ namespace ReBloom.Water
             if (r == null) return;
 
             waveIndex++;
-            waveIsReal = RiverbedFlowController.Hash01Public(controller.waveSeed + waveIndex) >= r.fakeChance;
+            waveIsReal = controller.DecideWaveIsReal(waveIndex, r.fakeChance);
             mentalHit = false;
             earHit = false;
             waveOpen = true;

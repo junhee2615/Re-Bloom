@@ -317,6 +317,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d94b7169ecb6a7e4ebd0412008000785, type: 3}
+--- !u!65 &146576938 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 4651471715066326176, guid: 6e70c9efcf279974fa65bb3d78bd8ea0, type: 3}
+  m_PrefabInstance: {fileID: 6603355460340394761}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &156923187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -592,6 +597,7 @@ MonoBehaviour:
   m_InteractionManager: {fileID: 0}
   m_Colliders:
   - {fileID: 268874256}
+  - {fileID: 146576938}
   m_InteractionLayers:
     m_Bits: 4294967295
   m_DistanceCalculationMode: 1

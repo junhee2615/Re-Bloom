@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -92,6 +92,7 @@ public class CombinedMission : ActivationMission
 
     private class NoteObj
     {
+        public int index;          // 두 머신이 같은 순서로 수집하므로 상대 화면의 같은 노트를 가리킨다
         public GameObject go;
         public RectTransform rect;
         public Image image;
@@ -105,6 +106,10 @@ public class CombinedMission : ActivationMission
     private float noteStartY;
     private int noteTouchedCount;
     private bool notesGathered;
+
+    // 노트 터치 신호를 상대에게 보낼 때 쓰는 페이즈 번호와 현재 시도 번호
+    private const int NoteSignalPhase = 3;
+    private int currentNoteAttempt;
 
     private bool playSucceeded;
     private Coroutine runningRoutine;
@@ -326,6 +331,21 @@ private void GetWorldY(RectTransform rt, out float minY, out float maxY)
         if (noteTouchClip != null) AudioSource.PlayClipAtPoint(noteTouchClip, transform.position);
         if (n.image != null) n.image.color = noteTouchedColor;
         n.hideTime = Time.time + noteHideDelay;
+
+        // 상대 화면에도 같은 노트가 눌린 것으로 보이게 중계
+        SubmitSignal(SignalKey(NoteSignalPhase, currentNoteAttempt, n.index));
+    }
+
+    // 상대가 누른 노트를 내 화면에서도 눌린 색으로 바꾼다 (카운트/소리 없음)
+    private void MarkTouchedRemote(NoteObj n)
+    {
+        n.touched = true;
+        if (n.image != null)
+        {
+            n.image.enabled = true;
+            n.image.color = noteTouchedColor;
+        }
+        n.hideTime = Time.time + noteHideDelay;
     }
 
 
@@ -391,6 +411,7 @@ private void ResetNoteRound()
             if (img == null) img = child.GetComponent<Image>();
 
             NoteObj n = new NoteObj();
+            n.index = noteList.Count;
             n.go = child.gameObject;
             n.rect = child as RectTransform;
             n.image = img;
@@ -437,6 +458,7 @@ private void ResetNoteRound()
             bool connected = net != null;
             bool iJudge = !connected || LocalMatches(noteRole);
             int key = NoteKey(attempt);
+            currentNoteAttempt = attempt;
 
             bool success = false;
             bool failed = false;
@@ -464,6 +486,13 @@ private void ResetNoteRound()
                     }
                     if (n.missed) continue;
 
+                    // 판정자가 아니면: 상대가 누른 노트를 같은 색으로 표시
+                    if (!iJudge && HasSignal(SignalKey(NoteSignalPhase, attempt, n.index)))
+                    {
+                        MarkTouchedRemote(n);
+                        continue;
+                    }
+
                     float nMin, nMax;
                     GetWorldY(n.rect, out nMin, out nMax);
 
@@ -490,6 +519,7 @@ private void ResetNoteRound()
 
             if (iJudge && connected) net.SubmitResult(key, success);
             if (connected) net.ClearResult(key);
+            ClearRoundKeys(NoteSignalPhase, attempt, noteList.Count);
             ResearchReportAttempt("Notes", attempt, success, true);   // 연구 로그 (2부)
 
             // (3) 결과
