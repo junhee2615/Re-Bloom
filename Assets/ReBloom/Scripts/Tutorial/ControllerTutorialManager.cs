@@ -180,6 +180,9 @@ public class ControllerTutorialManager : MonoBehaviour
         if (finishedRoot != null)
             finishedRoot.SetActive(step == Step.Done);
 
+        // 씨앗 아웃라인은 첫 단계(그랩)에서만 보인다. 처음부터 다시 하면 다시 켜진다.
+        SetGrabOutline(step == Step.Grab);
+
         switch (step)
         {
             case Step.Grab:
@@ -220,10 +223,21 @@ public class ControllerTutorialManager : MonoBehaviour
             return;
 
         stepCompleting = true;
+        if (CurrentStep == Step.Grab)
+            SetGrabOutline(false);
         SetStatus((int)CurrentStep, message, successColor);
         PlayClip(stepClearClip);
         Haptic(0.5f, 0.2f);
         StartCoroutine(GoNextAfterDelay());
+    }
+
+    private void SetGrabOutline(bool on)
+    {
+        if (grabObject == null)
+            return;
+
+        foreach (Outline outline in grabObject.GetComponentsInChildren<Outline>(true))
+            outline.enabled = on;
     }
 
     private IEnumerator GoNextAfterDelay()
@@ -478,12 +492,17 @@ public class ControllerTutorialManager : MonoBehaviour
         if (grabObject.isSelected && grabObject.interactionManager != null)
             grabObject.interactionManager.CancelInteractableSelection((IXRSelectInteractable)grabObject);
 
+        // 보간(Interpolate)이 켜진 Rigidbody는 Transform만 옮기면 다음 프레임에 원래 자리로 되돌아간다.
+        // Rigidbody 위치도 함께 옮겨 순간이동시킨다.
         if (grabBody != null)
         {
             grabBody.linearVelocity = Vector3.zero;
             grabBody.angularVelocity = Vector3.zero;
+            grabBody.position = grabSpawnPos;
+            grabBody.rotation = grabSpawnRot;
         }
         grabObject.transform.SetPositionAndRotation(grabSpawnPos, grabSpawnRot);
+        Physics.SyncTransforms();
     }
 
     private void RespawnGrabObjectIfLost()
