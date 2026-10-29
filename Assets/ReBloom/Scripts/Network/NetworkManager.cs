@@ -80,13 +80,17 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
         CreateRunner();
 
+        bool isSolo = mode == SessionMode.Single;
+
         var args = new StartGameArgs()
         {
             GameMode = GameMode.AutoHostOrClient,
             SessionName = string.IsNullOrEmpty(roomCode) ? null : roomCode, // null이면 자동매칭
-            SessionProperties = new Dictionary<string, SessionProperty> { { "mode", "coop" } },
+            // Single은 "solo"로 분리해 Multi 자동매칭("coop") 대상에서 빠지게 한다.
+            SessionProperties = new Dictionary<string, SessionProperty> { { "mode", isSolo ? "solo" : "coop" } },
             MatchmakingMode = MatchmakingMode.FillRoom,   // 먼저 만들어진 방부터 채우기
-            PlayerCount = MaxPlayersPerSession,
+            PlayerCount = isSolo ? 1 : MaxPlayersPerSession,
+            IsVisible = !isSolo,                          // Single 방은 매칭 목록에 노출하지 않는다
             SceneManager = sceneManager,
             Scene = lobbyScene
         };
@@ -181,6 +185,16 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         Debug.Log("<<<<<<< IsMasterClient >>>>>>>>" + player.IsMasterClient);
         Debug.Log("<<<<<<< PlayerID >>>>>>>>" + player.PlayerId);
         Debug.Log("<<<<<<< IsRealPlayer >>>>>>>>" + player.IsRealPlayer);
+
+        // 2명이 다 모이면 Host가 방을 닫는다.
+        // 이후 한 명이 나가도 빈자리를 자동매칭이 다른 사람으로 채우지 않게 한다.
+        if (runner.IsServer && runner.SessionInfo.IsValid &&
+            runner.SessionInfo.PlayerCount >= runner.SessionInfo.MaxPlayers)
+        {
+            runner.SessionInfo.IsOpen = false;
+            runner.SessionInfo.IsVisible = false;
+            Debug.Log($"세션 인원 충족 - 방을 닫습니다 (room={runner.SessionInfo.Name}, {runner.SessionInfo.PlayerCount}/{runner.SessionInfo.MaxPlayers})");
+        }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
