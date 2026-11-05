@@ -35,8 +35,6 @@ public class ResonanceCutsceneOverride
     // FreezeForFogClear 이후 SetFogAmount가 0~1 배율을 곱할 기준값.
     private FogConstraint frozenFog;
     private float frozenFogIntensity;
-    private float originalBuiltinFogDensity;
-    private bool builtinFogDensityOverridden;
 
     public bool Applied => applied;
 
@@ -187,8 +185,6 @@ public class ResonanceCutsceneOverride
 
         originalBuiltinFog = RenderSettings.fog;
         builtinFogOverridden = true;
-        originalBuiltinFogDensity = RenderSettings.fogDensity;
-        builtinFogDensityOverridden = true;
 
         if (Resolve() && constraintEnabledField != null)
         {
@@ -232,7 +228,7 @@ public class ResonanceCutsceneOverride
 
     /// <summary>
     /// <see cref="FreezeForFogClear"/> 이후에만 의미가 있다. 1 = 시작 안개, 0 = 완전히 걷힘.
-    /// FlatKit 안개와 씬 RenderSettings 안개를 같은 배율로 줄인다.
+    /// FlatKit 안개만 줄인다. 씬 RenderSettings 안개(Lighting 창)는 그대로 남긴다.
     /// </summary>
     public void SetFogAmount(float amount)
     {
@@ -243,9 +239,6 @@ public class ResonanceCutsceneOverride
 
         if (frozenFog != null)
             frozenFog.Apply(frozenFogIntensity * amount);
-
-        if (builtinFogDensityOverridden)
-            RenderSettings.fogDensity = originalBuiltinFogDensity * amount;
     }
 
     // =================================================
@@ -267,12 +260,6 @@ public class ResonanceCutsceneOverride
         {
             RenderSettings.fog = originalBuiltinFog;
             builtinFogOverridden = false;
-        }
-
-        if (builtinFogDensityOverridden)
-        {
-            RenderSettings.fogDensity = originalBuiltinFogDensity;
-            builtinFogDensityOverridden = false;
         }
 
         frozenFog = null;
