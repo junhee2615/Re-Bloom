@@ -473,6 +473,7 @@ public class EndingCredits : MonoBehaviour
     // 카메라가 크레딧만 그리고 나머지는 검게 지운다.
     // 후처리(Bloom·색 보정 볼륨)와 FlatKit 안개는 빈 검은 화면 위에도 색을 덮어
     // 보라색 안개처럼 번지므로 크레딧 동안 끈다. 안개 피처는 Play 종료 시 원래대로 돌아온다.
+    // 씬 RenderSettings 안개(Lighting 창)는 검은 화면에 번지지 않으므로 손 흔들기 컷을 위해 그대로 둔다.
     private static void PrepareCamera(Camera viewer)
     {
         viewer.clearFlags = CameraClearFlags.SolidColor;
@@ -483,7 +484,6 @@ public class EndingCredits : MonoBehaviour
             cameraData.renderPostProcessing = false;
 
         FogRendererFeatureSceneController.SetFogSuppressed(true);
-        RenderSettings.fog = false;
     }
 
     private void OnDestroy()
