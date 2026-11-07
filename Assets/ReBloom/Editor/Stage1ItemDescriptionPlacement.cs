@@ -79,7 +79,7 @@ public static class Stage1ItemDescriptionPlacement
             iconPath = "Assets/ReBloom/UI/Items/Echo_HearingAid_Icon.png",
             title = "보청기",
             description =
-                "30초 동안 청각 제약이 해제됩니다.\n" +
+                "60초 동안 청각 제약이 해제됩니다.\n" +
                 "파트너와의 거리에 관계없이 주변의 모든 소리를 들을 수 있습니다.",
             accent = new Color32(0x4F, 0xA8, 0xE8, 0xFF),   // #4FA8E8
         },
@@ -91,7 +91,7 @@ public static class Stage1ItemDescriptionPlacement
             iconPath = "Assets/ReBloom/UI/Items/Lumen_Medicine_Icon.png",
             title = "약통",
             description =
-                "30초 동안 시각 제약이 해제됩니다.\n" +
+                "60초 동안 시각 제약이 해제됩니다.\n" +
                 "파트너와의 거리에 관계없이 시각 제약 효과가 일시적으로 해제됩니다.",
             accent = new Color32(0xA7, 0x8B, 0xFA, 0xFF),   // #A78BFA
         },

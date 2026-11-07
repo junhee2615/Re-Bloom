@@ -47,7 +47,7 @@ public class PlayerItemInventory : NetworkBehaviour
     /// 아이템 효과에 <b>남은 플레이 시간</b>(초). 0 이하면 효과 없음.
     ///
     /// 왜 "종료 시각"이 아니라 "남은 시간"인가:
-    /// 종료 시각(<c>SimulationTime + 30</c>)은 두 가지를 못 한다.
+    /// 종료 시각(<c>SimulationTime + effectSeconds</c>)은 두 가지를 못 한다.
     ///  ① 컷씬·로딩 중에도 시간이 흐른다 — 멈출 방법이 없다.
     ///  ② 아바타가 스테이지마다 재스폰되면 [Networked] 값이 사라지는데,
     ///     절대 시각은 남은 시간으로 환산해 저장하지 않으면 복원할 수 없다.
@@ -63,7 +63,8 @@ public class PlayerItemInventory : NetworkBehaviour
     /// 지금의 정지 상태가 <b>연속으로</b> 얼마나 이어졌는지(초). 정상 플레이가 재개되면 0으로 돌아간다.
     ///
     /// 왜 월 클록 상한이 아니라 이것인가:
-    /// 처음에는 "사용 시점 + 180초" 절대 상한을 뒀다. 그런데 요구 동작은 <b>실제 플레이 시간 30초</b>라
+    /// 처음에는 "사용 시점 + 180초" 절대 상한을 뒀다. 그런데 요구 동작은
+    /// <b>실제 플레이 시간</b>(<see cref="effectSeconds"/>, 2026-11-07 기준 60초)이라
     /// 컷씬이 길면 그 상한이 먼저 만료돼 효과가 조기 종료된다. 정상적인 컷씬·로딩 때문에
     /// 효과가 끝나서는 안 되므로 상한의 기준을 바꿨다.
     ///
@@ -82,7 +83,7 @@ public class PlayerItemInventory : NetworkBehaviour
     [Header("사용")]
     [Tooltip("아이템을 사용했을 때 제약이 풀려 있는 '정상 플레이' 시간(초). " +
              "컷씬과 씬 로딩 중에는 줄어들지 않는다.")]
-    [SerializeField, Min(0.1f)] private float effectSeconds = 30f;
+    [SerializeField, Min(0.1f)] private float effectSeconds = 60f;
 
     [Tooltip("한 번의 정지(컷씬·로딩)가 이 시간(초)을 넘으면 정지가 끼었다고 보고 다시 깎기 시작한다. " +
              "정상적인 컷씬보다 충분히 길게 둔다 — 컷씬 때문에 효과가 조기 종료되면 안 된다. " +
@@ -169,7 +170,7 @@ public class PlayerItemInventory : NetworkBehaviour
     /// 컷씬 5개는 모두 복제된 미션 상태로 시작하고 모든 피어에서 실행된다
     /// (Stage1 열차는 <c>RPC_BeginDeparture(RpcTargets.All)</c>, 나머지는 네트워크 상태 구독).
     /// 씬 로딩도 Fusion이 양쪽에서 동시에 수행한다. 따라서 호스트의 로컬 판정은 두 플레이어
-    /// 모두에게 사실상 같고, 어긋나는 폭은 수 프레임 수준이다(30초 예산 대비 무시 가능).
+    /// 모두에게 사실상 같고, 어긋나는 폭은 수 프레임 수준이다(60초 예산 대비 무시 가능).
     ///
     /// 왜 FixedUpdateNetwork인가:
     /// <c>Runner.DeltaTime</c> 은 네트워크 틱 간격이라 피어와 프레임레이트에 무관하다.

@@ -96,7 +96,9 @@ public class WristInventoryView : MonoBehaviour
     // 그대로 복사한 것이다. 컷씬·로딩으로 호스트가 깎지 않으면 이 값도 그대로 멈춘다.
     private bool displayedTimerVisible;
     private float displayedRemaining;
-    private float displayedTotal = 30f;
+    // [Networked] 총 시간이 아직 오지 않은 공백 동안만 쓰는 폴백.
+    // PlayerItemInventory.effectSeconds 와 맞춰 둔다(2026-11-07: 30 -> 60).
+    private float displayedTotal = 60f;
 
     // 숫자를 매 프레임 다시 대입하지 않기 위한 캐시(TMP 메시 재생성을 줄인다).
     private int appliedTimerSeconds = -1;

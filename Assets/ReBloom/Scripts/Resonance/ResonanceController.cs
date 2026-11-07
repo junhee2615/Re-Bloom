@@ -27,6 +27,11 @@ public sealed class ResonanceController : MonoBehaviour
     [SerializeField] private VolumeConstraint volume = new VolumeConstraint();
     [SerializeField] private AudioConstraint audioConstraint = new AudioConstraint();
 
+    [Header("Item Effect")]
+    [Tooltip("아이템(약통/보청기) 효과가 돌고 있는 동안 FlatKit 안개도 함께 걷는다. " +
+             "끄면 2026-10-16 이전처럼 안개는 그대로 남는다.")]
+    [SerializeField] private bool itemEffectClearsFog = true;
+
     [Header("Debug")]
     [Tooltip("테스트용: 끄면 안개·Volume·청각 제약 연출을 모두 비활성화한다. 플레이 중 실시간 토글 가능.")]
     [SerializeField] private bool constraintEnabled = true;
@@ -76,7 +81,13 @@ public sealed class ResonanceController : MonoBehaviour
     // 공명이 끊긴 세계를 양쪽이 함께 겪게 하려는 것이고, 역할별로 갈리는 것은
     // Volume 연출(Bloom/Vignette/weight, 루멘 전용)과 청각(에코 전용)뿐이다.
     // 역할 미확정 구간에도 걸리므로 VisualInactive와 달리 역할 확정을 기다리지 않는다.
-    private bool FogInactive => IsConstraintInactive;
+    //
+    // 아이템 효과도 같은 이유로 역할을 가리지 않는다 — 안개가 양쪽에 걸리므로 약통(루멘)이든
+    // 보청기(에코)든 쓰는 동안은 그 사람 화면의 안개가 걷힌다. 그래서 두 플래그를 OR 로 본다.
+    // (로컬 플레이어는 역할이 하나뿐이라 실제로는 둘 중 하나만 켜진다)
+    private bool FogItemOverride => itemEffectClearsFog && (visualItemOverride || audioItemOverride);
+
+    private bool FogInactive => FogItemOverride || IsConstraintInactive;
 
     private void Awake()
     {
@@ -167,6 +178,11 @@ public sealed class ResonanceController : MonoBehaviour
         isConstraintReleased = context.StartReleased;
         overDistanceElapsed = 0f;   // 이전 스테이지에서 세던 이탈 시간을 물려받지 않는다
         hasContext = true;
+
+        // 스테이지를 넘어온 아이템 효과를 먼저 반영한다.
+        // 이걸 빠뜨리면 전환 직후 한두 프레임 동안 FogInactive가 false라서 아래 SnapConstrained가
+        // 안개를 한 번 켠 뒤, ItemSensoryEffect.Update가 다음 프레임에 다시 끄면서 안개가 번쩍인다.
+        SeedItemOverrideFromLocalInventory();
 
         ApplyConstraintEffects();                    // Bloom/Vignette + 청각 초기 상태
         fog.SnapConstrained(!FogInactive);           // 안개 초기 강도 (역할 무관)
@@ -316,7 +332,10 @@ public sealed class ResonanceController : MonoBehaviour
     ///
     /// 역할 매핑은 <see cref="VisualInactive"/> / <see cref="AudioInactive"/> 와 같다 —
     /// mental(루멘)은 시각(Bloom/Vignette/weight), ear(에코)는 청각이다.
-    /// <see cref="FogInactive"/> 는 건드리지 않으므로 <b>공통 환경 안개는 그대로 유지된다.</b>
+    ///
+    /// <b>안개</b>는 역할을 가리지 않으므로(<see cref="FogInactive"/>) 어느 아이템을 써도
+    /// 그 플레이어 화면의 FlatKit 안개가 함께 걷힌다 — <see cref="FogItemOverride"/> 참고.
+    /// <see cref="itemEffectClearsFog"/> 를 끄면 안개는 남는다.
     ///
     /// 복구 방식:
     /// 플래그만 내리고 <see cref="ApplyConstraintEffects"/> 로 이산 상태(믹서 라우팅,
@@ -340,7 +359,38 @@ public sealed class ResonanceController : MonoBehaviour
 
         Debug.Log(
             $"[Resonance] 아이템 감각 오버라이드 - role={role} active={active} " +
-            $"(visual={visualItemOverride}, audio={audioItemOverride}, 안개는 유지)", this);
+            $"(visual={visualItemOverride}, audio={audioItemOverride}, " +
+            $"안개 {(FogItemOverride ? "걷힘" : itemEffectClearsFog ? "유지" : "유지(옵션 OFF)")})", this);
+    }
+
+    /// <summary>
+    /// 이미 돌고 있는 로컬 아이템 효과를 <see cref="Bind"/> 시점에 미리 반영한다.
+    /// 스테이지 전환으로 아바타와 컨트롤러가 함께 재생성될 때, 아바타의
+    /// <see cref="ItemSensoryEffect"/> 가 다시 걸어 주기 전의 한두 프레임을 메우는 용도다.
+    /// </summary>
+    /// <remarks>
+    /// 네트워크 상태(<see cref="PlayerItemInventory.EffectRemainingSeconds"/>)는 호스트가
+    /// 스테이지를 넘겨 복원하므로 여기서 읽으면 효과가 남아 있는지 바로 알 수 있다.
+    /// 역할이 아직 확정되지 않았으면(<c>Role.none</c>) 아무것도 하지 않는다 —
+    /// 그 경우는 <see cref="ItemSensoryEffect"/> 가 역할이 정해진 뒤에 처리한다.
+    /// </remarks>
+    private void SeedItemOverrideFromLocalInventory()
+    {
+        PlayerItemInventory inventory = PlayerItemInventory.LocalInstance;
+
+        if (inventory == null || !inventory.IsEffectActive)
+            return;
+
+        switch (inventory.OwnerRole)
+        {
+            case Role.mental:
+                visualItemOverride = true;
+                break;
+
+            case Role.ear:
+                audioItemOverride = true;
+                break;
+        }
     }
 
     /// <summary>

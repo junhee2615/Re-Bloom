@@ -3,6 +3,12 @@ using UnityEngine;
 /// <summary>
 /// 아이템 효과가 돌고 있는 동안 <b>로컬 플레이어 자신의</b> 감각 제약을 풀어 둔다.
 ///
+/// 풀리는 것 —
+///  · 루멘(mental): 시각 연출(Bloom/Vignette/Volume weight)
+///  · 에코(ear): 청각
+///  · <b>둘 다: FlatKit 안개</b> (안개는 역할을 가리지 않는 제약이라 어느 아이템이든 함께 걷힌다.
+///    <c>ResonanceController.itemEffectClearsFog</c> 로 끌 수 있다)
+///
 /// 배치: <see cref="PlayerItemInventory"/> 와 같은 오브젝트(Player_ear / Player_mental 프리팹).
 /// <see cref="ItemPickupInput"/> 이 같은 자리에 있는 것과 같은 구성이다.
 ///
@@ -107,9 +113,9 @@ public class ItemSensoryEffect : MonoBehaviour
             Debug.Log(
                 active
                     ? $"[Item] 효과 시작 - {ItemKindRules.DisplayName(inventory.AcquiredItem)}, " +
-                      $"role={role}, {inventory.EffectRemainingSeconds:F1}초 남음"
+                      $"role={role}, {inventory.EffectRemainingSeconds:F1}초 남음 (안개도 함께 걷힘)"
                     : $"[Item] 효과 종료 - {ItemKindRules.DisplayName(inventory.AcquiredItem)}, " +
-                      $"role={role}, 제약이 현재 거리 기준으로 복구됩니다",
+                      $"role={role}, 제약과 안개가 현재 거리 기준으로 복구됩니다",
                 this);
         }
 
