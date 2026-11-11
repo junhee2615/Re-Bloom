@@ -181,6 +181,12 @@ public class TrainDepartureManager : NetworkBehaviour
         if (screenFade == null)
             screenFade = FindFirstObjectByType<ScreenFade>();
 
+        Stage1RestoredBgm restoredBgm =
+            FindFirstObjectByType<Stage1RestoredBgm>();
+
+        if (restoredBgm != null)
+            restoredBgm.BeginFadeOutForSceneTransition();
+
         if (screenFade != null)
         {
             yield return StartCoroutine(
