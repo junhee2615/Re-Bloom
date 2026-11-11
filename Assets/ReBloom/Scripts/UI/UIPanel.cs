@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.XR;
 using Fusion;
+using UnityEngine.SceneManagement;
 
 public class UIPanel : MonoBehaviour
 {
@@ -58,7 +59,36 @@ public class UIPanel : MonoBehaviour
 
     private void Update()
     {
+        if (!IsTutorialAvailable())
+        {
+            if (isPanelVisible)
+                SetPanelVisible(false);
+
+            CheckXButtonToggle();
+            return;
+        }
+
         CheckXButtonToggle();
+    }
+
+    private static bool IsTutorialAvailable()
+    {
+        NetworkManager networkManager = NetworkManager.Instance;
+        if (networkManager == null ||
+            !networkManager.IsSessionStarted ||
+            networkManager.Runner == null ||
+            !networkManager.Runner.IsRunning)
+        {
+            return false;
+        }
+
+        if (SceneManager.GetSceneByName("Opening").isLoaded)
+            return false;
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        return activeSceneName == "Stage1" ||
+               activeSceneName == "Stage2" ||
+               activeSceneName == "Stage3";
     }
 
     private void CheckXButtonToggle()
@@ -72,7 +102,8 @@ public class UIPanel : MonoBehaviour
         {
             if (xButton && !previousXButton)
             {
-                SetPanelVisible(!isPanelVisible);
+                if (IsTutorialAvailable())
+                    SetPanelVisible(!isPanelVisible);
             }
 
             previousXButton = xButton;
@@ -164,6 +195,9 @@ public class UIPanel : MonoBehaviour
     // 그래도 꺼져 있으면(직접 꺼 둔 경우) 리그 아래에서 꺼져 있는 부모까지 직접 켠다.
     private void ForceTutorialCanvasActive()
     {
+        if (!IsTutorialAvailable())
+            return;
+
         if (gameObject.activeInHierarchy)
             return;
 
@@ -187,7 +221,7 @@ public class UIPanel : MonoBehaviour
 
     private void ShowTutorial(MissionPanelData message)
     {
-        if (message == null)
+        if (message == null || !IsTutorialAvailable())
             return;
 
         missionText.text = message.MissionLabel;
@@ -214,6 +248,9 @@ public class UIPanel : MonoBehaviour
 
     private void SetPanelVisible(bool visible)
     {
+        if (visible && !IsTutorialAvailable())
+            return;
+
         isPanelVisible = visible;
 
         if (fadeCoroutine != null)
