@@ -56,6 +56,9 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     [SerializeField, Tooltip("Base/CharacterSelectArea 의 LobbyCharacterSelectTarget")]
     private LobbyCharacterSelectTarget earTarget;
 
+    [SerializeField, Tooltip("Lobby 씬 전용 BGM 및 UI 효과음 컨트롤러.")]
+    private LobbyAudioController audioController;
+
     [Header("Button Labels")]
     [SerializeField, Tooltip("ConfirmationPanel/ConfirmBtn/Text (TMP)")]
     private TMP_Text confirmButtonLabel;
@@ -102,6 +105,9 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
     // Confirm이 한 번 끝나면 다시 캐릭터를 고르게 하지 않는다.
     private bool selectionConfirmed;
+
+    private Role confirmingRole = Role.none;
+    private bool confirmSfxPlayed;
 
     // Fade Out이 진행 중인 동안 Cancel/Confirm 재입력을 막는다.
     private bool closing;
@@ -243,6 +249,17 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         if (target == null)
             return;
 
+        if (selectionConfirmed &&
+            !confirmSfxPlayed &&
+            confirmingRole == target.Role &&
+            previousOwner != me &&
+            owner == me)
+        {
+            confirmSfxPlayed = true;
+            if (audioController != null)
+                audioController.PlayConfirm();
+        }
+
         // 내 역할이 해제됐다(내가 취소했거나 Host가 회수했다) → Selected 연출을 끝내고 Available로 되돌린다.
         if (previousOwner == me && owner == PlayerRef.None)
         {
@@ -292,12 +309,18 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
             return;
 
         if (mentalTarget != null)
+        {
             mentalTarget.SelectRequested += OnSelectRequested;
+            mentalTarget.HoverEntered += OnCharacterHoverEntered;
+        }
         else
             Debug.LogWarning("[Lobby Confirmation] Mental Target이 연결되지 않았습니다.", this);
 
         if (earTarget != null)
+        {
             earTarget.SelectRequested += OnSelectRequested;
+            earTarget.HoverEntered += OnCharacterHoverEntered;
+        }
         else
             Debug.LogWarning("[Lobby Confirmation] Ear Target이 연결되지 않았습니다.", this);
 
@@ -307,9 +330,12 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
             Debug.LogWarning("[Lobby Confirmation] Confirm Button이 연결되지 않았습니다.", this);
 
         if (cancelButton != null)
-            cancelButton.onClick.AddListener(Cancel);
+            cancelButton.onClick.AddListener(OnCancelButtonClicked);
         else
             Debug.LogWarning("[Lobby Confirmation] Cancel Button이 연결되지 않았습니다.", this);
+
+        if (audioController == null)
+            Debug.LogWarning("[Lobby Confirmation] Lobby Audio Controller가 연결되지 않았습니다.", this);
 
         subscribed = true;
     }
@@ -320,16 +346,22 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
             return;
 
         if (mentalTarget != null)
+        {
             mentalTarget.SelectRequested -= OnSelectRequested;
+            mentalTarget.HoverEntered -= OnCharacterHoverEntered;
+        }
 
         if (earTarget != null)
+        {
             earTarget.SelectRequested -= OnSelectRequested;
+            earTarget.HoverEntered -= OnCharacterHoverEntered;
+        }
 
         if (confirmButton != null)
             confirmButton.onClick.RemoveListener(Confirm);
 
         if (cancelButton != null)
-            cancelButton.onClick.RemoveListener(Cancel);
+            cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
 
         subscribed = false;
     }
@@ -337,6 +369,23 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
     // ------------------------------------------------------------------
     // Open / Cancel / Confirm
     // ------------------------------------------------------------------
+
+    private void OnCharacterHoverEntered(LobbyCharacterSelectTarget target)
+    {
+        if (audioController != null)
+            audioController.PlayHover();
+    }
+
+    private void OnCancelButtonClicked()
+    {
+        if (currentTarget == null || closing)
+            return;
+
+        if (audioController != null)
+            audioController.PlayCancel();
+
+        Cancel();
+    }
 
     private void OnSelectRequested(LobbyCharacterSelectTarget target)
     {
@@ -386,6 +435,9 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
         SetCanvasActive(true);
         SetCanvasGroupInteractable(true);
         StartFade(1f, fadeInDuration, null);
+
+        if (mode == ConfirmationMode.Select && audioController != null)
+            audioController.PlaySelect();
 
         Debug.Log($"[Lobby Confirmation] Open - role={currentTarget.Role}, mode={mode}", this);
     }
@@ -488,6 +540,9 @@ public class LobbyCharacterConfirmationUI : MonoBehaviour
 
         closing = true;
         selectionConfirmed = true;
+
+        confirmingRole = role;
+        confirmSfxPlayed = false;
 
         // 중복 입력 방지.
         SetCanvasGroupInteractable(false);

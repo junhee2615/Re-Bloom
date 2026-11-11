@@ -115,6 +115,9 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     /// <summary>UI Ray Hover 중 Trigger(UI Press)가 들어왔을 때 발행. 인자는 요청한 캐릭터.</summary>
     public event Action<LobbyCharacterSelectTarget> SelectRequested;
 
+    /// <summary>UI용 XR Ray가 실제로 Hover 진입했을 때 발행한다.</summary>
+    public event Action<LobbyCharacterSelectTarget> HoverEntered;
+
     private XRSimpleInteractable interactable;
 
     // 캐릭터 루트(Base / Base (1)) 아래 Base_end_1의 Animator. 없으면 null.
@@ -592,7 +595,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         if (!IsUIRayInteractor(args.interactorObject, out XRRayInteractor ray))
             return;
 
-        TryBeginHover(ray);
+        TryBeginHover(ray, true);
     }
 
     private void OnHoverExited(HoverExitEventArgs args)
@@ -608,7 +611,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
     }
 
     // UI Ray Hover를 시작한다. 잠금/Pending/Selected 상태에서는 연출을 켜지 않는다.
-    private void TryBeginHover(XRRayInteractor ray)
+    private void TryBeginHover(XRRayInteractor ray, bool isNewHover)
     {
         // Selected 캐릭터도 Trigger(선택 취소)를 받기 위해 Ray는 캐시하지만 Hover 연출은 켜지 않는다.
         if (hoveringUIRay != null || inputLocked || unavailable)
@@ -625,6 +628,9 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         SetHovered(true);
         SetOutline(true);
         ShowDetailPanel();
+
+        if (isNewHover)
+            HoverEntered?.Invoke(this);
     }
 
     // 현재 이 영역을 Hover 중인 Interactor 중 UI Ray가 있으면 Hover 상태를 복구한다.
@@ -637,7 +643,7 @@ public class LobbyCharacterSelectTarget : MonoBehaviour
         {
             if (IsUIRayInteractor(hoverInteractor, out XRRayInteractor ray) && ray.isActiveAndEnabled)
             {
-                TryBeginHover(ray);
+                TryBeginHover(ray, false);
                 return;
             }
         }
