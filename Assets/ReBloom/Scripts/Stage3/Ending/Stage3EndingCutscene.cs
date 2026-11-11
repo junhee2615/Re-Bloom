@@ -106,6 +106,8 @@ public class Stage3EndingCutscene : MonoBehaviour
 
     [SerializeField] private VegetationGrowth vegetation;
 
+    [SerializeField] private Stage3RestoredBgm restoredBgm;
+
     [Tooltip("엔딩이 검게 닫힌 뒤 이어서 나올 엔딩 크레딧. 비우면 검은 화면으로 끝난다.")]
     [SerializeField] private EndingCredits credits;
 
@@ -242,6 +244,9 @@ public class Stage3EndingCutscene : MonoBehaviour
     private bool pendingPlay;
     private bool hasPlayed;
     private bool treeGrown;
+#if UNITY_EDITOR
+    private bool editorTestRun;
+#endif
     private bool glowStarted;
     private bool glowStopped;
     private bool vegetationStarted;
@@ -288,6 +293,9 @@ public class Stage3EndingCutscene : MonoBehaviour
         PlantCoreTreeGrow.Grown -= OnTreeGrown;
         ElectricityCoreMission.Cleared -= OnMissionCleared;
         CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
+#if UNITY_EDITOR
+        editorTestRun = false;
+#endif
     }
 
     private IEnumerator Start()
@@ -436,6 +444,7 @@ public class Stage3EndingCutscene : MonoBehaviour
 
         onEndingStarted?.Invoke();
 
+        StartRestoredBgm();
         director.Play();
 
         // Brain이 첫 샷을 잡고 XR Origin이 따라갈 때까지 기다린 뒤 화면을 연다
@@ -461,6 +470,9 @@ public class Stage3EndingCutscene : MonoBehaviour
         SetFadeAlpha(1f);
 
         isPlaying = false;
+#if UNITY_EDITOR
+        editorTestRun = false;
+#endif
         onEndingFinished?.Invoke();
 
         // 4. 검은 화면에서 엔딩 크레딧으로. 크레딧이 카메라를 검은 배경 + 크레딧만 그리도록 바꾼 뒤
@@ -529,9 +541,32 @@ public class Stage3EndingCutscene : MonoBehaviour
                 break;
 
             case EndingAction.FadeOut:
+#if UNITY_EDITOR
+                editorTestRun = false;
+#endif
+                if (restoredBgm != null)
+                    restoredBgm.BeginFadeOutBeforeCredits();
+
                 SetFadeAlpha(Mathf.SmoothStep(0f, 1f, progress));
                 break;
         }
+    }
+
+    private void StartRestoredBgm()
+    {
+#if UNITY_EDITOR
+        if (editorTestRun)
+        {
+            if (restoredBgm != null)
+                restoredBgm.TryStartRestoredBgmForEditorTest();
+
+            editorTestRun = false;
+            return;
+        }
+#endif
+
+        if (restoredBgm != null)
+            restoredBgm.TryStartRestoredBgm();
     }
 
     // 다리 옆에 내려 둔 손(Idle 포즈)에서 MeetPose까지 서서히 올린다.
@@ -1296,10 +1331,20 @@ public class Stage3EndingCutscene : MonoBehaviour
             return;
         }
 
+        if (hasPlayed || isPlaying)
+            return;
+
         if (!xrReady)
             StartPreviewWithoutXR();
 
+#if UNITY_EDITOR
+        editorTestRun = true;
+#endif
         Play();
+#if UNITY_EDITOR
+        if (!hasPlayed && !pendingPlay)
+            editorTestRun = false;
+#endif
     }
 
     // 화면을 검게 덮는 정도(0~1). VR이면 XR 카메라의 ScreenFade, 미리보기면 화면 덮개를 쓴다.
