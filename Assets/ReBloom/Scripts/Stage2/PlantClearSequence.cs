@@ -29,7 +29,6 @@ public class PlantClearSequence : MonoBehaviour
     /// <summary>수생식물 미션(MISSION 2) 완료. 연꽃 3개가 모두 클리어되어 완료 연출이 시작될 때 1회.</summary>
     public static event System.Action MissionCleared;
 
-
     private bool played;
 
     private void OnEnable()

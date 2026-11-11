@@ -216,6 +216,12 @@ public class Stage2ToStage3T : NetworkBehaviour
     // 각 피어: 유리문 닫기 → 텔레포트 소리 + 페이드아웃 → Host에 완료 보고
     private IEnumerator TransitionRoutine()
     {
+        Stage2RestoredBgm restoredBgm =
+            FindFirstObjectByType<Stage2RestoredBgm>();
+
+        if (restoredBgm != null)
+            restoredBgm.BeginFadeOutForSceneTransition();
+
         // 1. 유리문이 닫히는 것을 끝까지 보여 준다
         yield return StartCoroutine(RotateDoor());
 
