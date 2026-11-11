@@ -37,6 +37,8 @@ public sealed class CooperativeActivationController : MonoBehaviour
     private NetworkPlayer cachedMental;
     private NetworkPlayer cachedEar;
     private float holdElapsed;
+    private Hand activeMentalHand;
+    private Hand activeEarHand;
     private bool previousContact;
     private bool previousSuccess;
     private float nextDebugLogTime;
@@ -52,19 +54,78 @@ public sealed class CooperativeActivationController : MonoBehaviour
         if (owner == null || !owner.HasNetworkStateAuthority || owner.HasCooperativeActivationSucceeded)
             return;
 
-        if (!TryResolvePair(out NetworkPlayer mentalPlayer, out NetworkPlayer earPlayer) ||
-            owner != mentalPlayer)
+        if (!TryResolvePair(out NetworkPlayer mentalPlayer, out NetworkPlayer earPlayer))
+        {
+            holdElapsed = 0f;
+            activeMentalHand = Hand.None;
+            activeEarHand = Hand.None;
+            owner.SetCooperativeContactHand(Hand.None);
+            owner.SetCooperativeHoldProgress(0f);
             return;
-        
-        float handDistance = GetClosestHandPair(mentalPlayer, earPlayer, out Hand mentalHand, out Hand earHand);
-        bool handsContacted = handDistance <= handContactDistance;
-        bool mentalReady = mentalPlayer.IsTriggerHeld(mentalHand);
-        bool earReady = earPlayer.IsTriggerHeld(earHand);
-        bool bothReady = mentalReady && earReady;
-        bool holding = handsContacted && bothReady;
-        
+        }
+
+        if (owner != mentalPlayer)
+            return;
+
+        bool hadActivePair = activeMentalHand != Hand.None && activeEarHand != Hand.None;
+        float handDistance = float.PositiveInfinity;
+        bool activePairValid = hadActivePair &&
+            IsValidActivationPair(mentalPlayer, activeMentalHand, earPlayer, activeEarHand, out handDistance);
+
+        bool holding = activePairValid;
+        bool pairChanged = false;
+        Hand mentalHand = activePairValid ? activeMentalHand : Hand.None;
+        Hand earHand = activePairValid ? activeEarHand : Hand.None;
+
+        if (!activePairValid)
+        {
+            holding = GetClosestValidHandPair(
+                mentalPlayer, earPlayer, out mentalHand, out earHand, out handDistance);
+
+            if (holding)
+            {
+                pairChanged = hadActivePair &&
+                    (mentalHand != activeMentalHand || earHand != activeEarHand);
+                activeMentalHand = mentalHand;
+                activeEarHand = earHand;
+            }
+            else
+            {
+                activeMentalHand = Hand.None;
+                activeEarHand = Hand.None;
+            }
+        }
+
+        bool handsContacted = holding;
+        bool mentalReady;
+        bool earReady;
+
+        if (!holding)
+        {
+            handDistance = GetClosestHandPair(
+                mentalPlayer, earPlayer, out mentalHand, out earHand);
+            handsContacted = handDistance <= handContactDistance;
+            mentalReady = mentalPlayer.IsTriggerHeld(mentalHand);
+            earReady = earPlayer.IsTriggerHeld(earHand);
+        }
+        else
+        {
+            mentalReady = true;
+            earReady = true;
+        }
+
         mentalPlayer.SetCooperativeContactHand(handsContacted ? mentalHand : Hand.None);
         earPlayer.SetCooperativeContactHand(handsContacted ? earHand : Hand.None);
+
+        if (pairChanged)
+        {
+            holdElapsed = 0f;
+            mentalPlayer.SetCooperativeHoldProgress(0f);
+            earPlayer.SetCooperativeHoldProgress(0f);
+            LogActivationState(
+                mentalPlayer, handDistance, mentalHand, earHand, mentalReady, earReady, handsContacted, holding);
+            return;
+        }
 
         if (!holding)
         {
@@ -132,7 +193,7 @@ public sealed class CooperativeActivationController : MonoBehaviour
         previousSuccess = succeeded;
     }
 
-    // 두 플레이어의 손 중 가장 가까운 쌍과 그 거리.
+    // 두 플레이어의 손 중 가장 가까운 쌍과 그 거리(접촉 햅틱·로그용).
     private static float GetClosestHandPair(
         NetworkPlayer first, NetworkPlayer second, out Hand firstHand, out Hand secondHand)
     {
@@ -146,6 +207,61 @@ public sealed class CooperativeActivationController : MonoBehaviour
         closest = ConsiderPair(closest, first, Hand.Left, second, Hand.Left, ref firstHand, ref secondHand);
 
         return closest;
+    }
+
+    // 접촉 거리와 양쪽 트리거 입력을 모두 만족하는 가장 가까운 조합.
+    private bool GetClosestValidHandPair(
+        NetworkPlayer first, NetworkPlayer second,
+        out Hand firstHand, out Hand secondHand, out float closest)
+    {
+        firstHand = Hand.None;
+        secondHand = Hand.None;
+        closest = float.PositiveInfinity;
+
+        ConsiderValidPair(first, Hand.Right, second, Hand.Right, ref firstHand, ref secondHand, ref closest);
+        ConsiderValidPair(first, Hand.Left, second, Hand.Left, ref firstHand, ref secondHand, ref closest);
+        ConsiderValidPair(first, Hand.Right, second, Hand.Left, ref firstHand, ref secondHand, ref closest);
+        ConsiderValidPair(first, Hand.Left, second, Hand.Right, ref firstHand, ref secondHand, ref closest);
+
+        return firstHand != Hand.None && secondHand != Hand.None;
+    }
+
+    private void ConsiderValidPair(
+        NetworkPlayer first, Hand firstCandidate,
+        NetworkPlayer second, Hand secondCandidate,
+        ref Hand firstHand, ref Hand secondHand, ref float closest)
+    {
+        Transform a = first.GetHand(firstCandidate);
+        Transform b = second.GetHand(secondCandidate);
+        if (a == null || b == null)
+            return;
+
+        float distance = Vector3.Distance(a.position, b.position);
+        if (distance > handContactDistance ||
+            !first.IsTriggerHeld(firstCandidate) ||
+            !second.IsTriggerHeld(secondCandidate) ||
+            distance >= closest)
+            return;
+
+        closest = distance;
+        firstHand = firstCandidate;
+        secondHand = secondCandidate;
+    }
+
+    private bool IsValidActivationPair(
+        NetworkPlayer first, Hand firstHand, NetworkPlayer second, Hand secondHand, out float distance)
+    {
+        distance = float.PositiveInfinity;
+
+        Transform a = first.GetHand(firstHand);
+        Transform b = second.GetHand(secondHand);
+        if (a == null || b == null)
+            return false;
+
+        distance = Vector3.Distance(a.position, b.position);
+        return distance <= handContactDistance &&
+            first.IsTriggerHeld(firstHand) &&
+            second.IsTriggerHeld(secondHand);
     }
 
     private static float ConsiderPair(
