@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-5844511713471621401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1ab6d9eb64a475898387f9b2611b379, type: 3}
+  m_Name: RestorationColorRendererFeature
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Rendering.RestorationColorRendererFeature
+  m_Active: 1
+  settings:
+    shader: {fileID: 4800000, guid: a860342d457d4497bf9d8b0b459b6cf3, type: 3}
+    stage1:
+      saturation: -45
+      postExposure: -0.3
+      contrast: 5
+      colorFilter: {r: 0.82, g: 0.88, b: 1, a: 1}
+    stage3:
+      saturation: -65
+      postExposure: -0.4
+      contrast: 15
+      colorFilter: {r: 1, g: 1, b: 1, a: 1}
+    fadeDuration: 3
+    previewEnabled: 0
+    previewStage: 1
+    previewStrength: 1
+    debugLogging: 0
+    debugSolidColor: 0
 --- !u!114 &-1304651172782325402
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64,7 +95,8 @@ MonoBehaviour:
   - {fileID: -1304651172782325402}
   - {fileID: -18953390918178637}
   - {fileID: 8683303010255470755}
-  m_RendererFeatureMap: ad6b866f10d7b46c664183b2abf2e4edb36808cbfda9bcffa3805beb144a8178
+  - {fileID: -5844511713471621401}
+  m_RendererFeatureMap: ad6b866f10d7b46c664183b2abf2e4edb36808cbfda9bcffa3805beb144a8178e716eae88f1fe4ae
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
