@@ -772,6 +772,10 @@ public class Stage3EndingCutscene : MonoBehaviour
             // 손바닥이 닿는 순간 렌더러(PC_Renderer)의 FlatKit 안개를 끈다. Play 종료 시 원래대로 돌아온다.
             if (disableFlatKitFogOnTouch)
                 FogRendererFeatureSceneController.SetFogSuppressed(true);
+
+            // Unity 빌트인 안개(Lighting > Environment > Fog)도 함께 끈다.
+            // 원래 값은 ResonanceCutsceneOverride.FreezeForFogClear가 이미 저장했으므로 Restore에서 복원된다.
+            RenderSettings.fog = false;
         }
 
         if (glowLight != null)
