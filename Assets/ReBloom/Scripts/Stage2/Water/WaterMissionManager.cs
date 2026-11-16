@@ -41,6 +41,10 @@ public class WaterMissionManager : MonoBehaviour
     [SerializeField] private float waterEndY = 0.30696f;
     [SerializeField] private float waterRiseDuration = 5f;
 
+    [Header("물 상승 완료 후 활성화")]
+    [Tooltip("물이 완전히 차오른 뒤에 활성화할 오브젝트들 (FloatingPlant 등). objectsToActivate와 달리 물 상승 애니메이션이 끝난 직후 활성화된다.")]
+    [SerializeField] private List<GameObject> objectsToActivateAfterWaterRise = new List<GameObject>();
+
     private void Awake()
     {
         foreach (Transform root in obstacleRoots)
@@ -124,7 +128,11 @@ public class WaterMissionManager : MonoBehaviour
         
         bool cutsceneStarted =
             mission1ClearCutscene != null &&
-            mission1ClearCutscene.TryPlay(NotifyMissionCleared);
+            mission1ClearCutscene.TryPlay(() =>
+            {
+                ActivateAfterWaterRise();
+                NotifyMissionCleared();
+            });
 
         if (!cutsceneStarted)
         {
@@ -134,6 +142,8 @@ public class WaterMissionManager : MonoBehaviour
 
             if (cleanWater != null)
                 StartCoroutine(RiseWater());
+            else
+                StartCoroutine(ActivateAfterPurify());
 
             NotifyMissionCleared();
         }
@@ -176,5 +186,27 @@ public class WaterMissionManager : MonoBehaviour
         Vector3 end = cleanWater.localPosition;
         end.y = waterEndY;
         cleanWater.localPosition = end;
+
+        ActivateAfterWaterRise();
+    }
+
+    private IEnumerator ActivateAfterPurify()
+    {
+        float maxDuration = 0f;
+        if (dirtyToCleanWaterRoot != null)
+            foreach (WaterPurify wp in dirtyToCleanWaterRoot.GetComponentsInChildren<WaterPurify>())
+                if (wp != null)
+                    maxDuration = Mathf.Max(maxDuration, wp.purifyDuration);
+
+        if (maxDuration > 0f)
+            yield return new WaitForSeconds(maxDuration);
+
+        ActivateAfterWaterRise();
+    }
+
+    private void ActivateAfterWaterRise()
+    {
+        foreach (GameObject go in objectsToActivateAfterWaterRise)
+            if (go != null) go.SetActive(true);
     }
 }
