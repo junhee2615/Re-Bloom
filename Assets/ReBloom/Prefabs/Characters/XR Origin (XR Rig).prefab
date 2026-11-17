@@ -2736,6 +2736,7 @@ GameObject:
   - component: {fileID: 2229746018018840622}
   - component: {fileID: 8153672049116923499}
   - component: {fileID: 2563161717983343664}
+  - component: {fileID: 6814251720089939050}
   m_Layer: 2
   m_Name: XR Origin (XR Rig)
   m_TagString: Untagged
@@ -3014,6 +3015,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6814251720089939050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036715069862706973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dedd37addfd5eb047adbe3732c18b975, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocomotionHeightLock
+  enableHeightLock: 1
+  returnSpeed: 5
+  inputThreshold: 0.1
+  xrOrigin: {fileID: 0}
+  cameraOffsetTransform: {fileID: 0}
+  mainCameraTransform: {fileID: 0}
+  isLocomotionActive: 0
+  lockedHmdLocalY: 0
+  currentCompensation: 0
 --- !u!1 &2085628045782538864
 GameObject:
   m_ObjectHideFlags: 0
