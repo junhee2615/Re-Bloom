@@ -101,6 +101,47 @@ public static class SolarPanelRepairCutsceneSetup
         Debug.Log($"[SolarRepairCutsceneSetup] repairClip 연결 완료: {path}", manager);
     }
 
+    [MenuItem("Re_Bloom/Stage3/Link Repair Marker Sprite (RootFound_Check)")]
+    private static void LinkRepairMarkerSprite()
+    {
+        SolarPanelRepairCutscene manager = Object.FindFirstObjectByType<SolarPanelRepairCutscene>();
+        if (manager == null)
+        {
+            Debug.LogError("[SolarRepairCutsceneSetup] 씬에서 SolarPanelRepairCutscene을 찾지 못했습니다.");
+            return;
+        }
+
+        string[] guids = AssetDatabase.FindAssets("RootFound_Check t:Sprite");
+        if (guids.Length == 0)
+            guids = AssetDatabase.FindAssets("RootFound_Check t:Texture2D");
+
+        if (guids.Length == 0)
+        {
+            Debug.LogError("[SolarRepairCutsceneSetup] RootFound_Check 스프라이트를 프로젝트에서 찾지 못했습니다.");
+            return;
+        }
+
+        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+
+        if (sprite == null)
+        {
+            Debug.LogError($"[SolarRepairCutsceneSetup] {path}에서 Sprite를 로드하지 못했습니다.");
+            return;
+        }
+
+        SerializedObject so = new SerializedObject(manager);
+        so.FindProperty("repairMarkerSprite").objectReferenceValue = sprite;
+        so.ApplyModifiedProperties();
+        EditorUtility.SetDirty(manager);
+
+        Scene scene = manager.gameObject.scene;
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        Debug.Log($"[SolarRepairCutsceneSetup] repairMarkerSprite 연결 완료: {path}", manager);
+    }
+
     [MenuItem("Re_Bloom/Stage3/Debug Panel Outline Bounds")]
     private static void DebugPanelOutlineBounds()
     {

@@ -66,6 +66,25 @@ namespace ReBloom.Solar
         [Range(0f, 1f)]
         [SerializeField] private float repairVolume = 0.7f;
 
+        [Header("복구 완료 아이콘")]
+        [Tooltip("복구 완료 시 표시할 스프라이트(체크 아이콘). 비어 있으면 아이콘을 표시하지 않는다.")]
+        [SerializeField] private Sprite repairMarkerSprite;
+
+        [Tooltip("아이콘의 월드 크기(미터).")]
+        [SerializeField] private float repairMarkerSize = 0.35f;
+
+        [Tooltip("패널 중심에서 위쪽으로 띄울 높이(미터).")]
+        [SerializeField] private float repairMarkerHeight = 0.5f;
+
+        [Tooltip("아이콘이 보이는 시간(초). 이후 사라지는 애니메이션이 재생된다.")]
+        [SerializeField] private float repairMarkerShowDuration = 1.0f;
+
+        [Tooltip("월드 Y축 기준으로 아이콘을 위아래로 추가 이동(미터).")]
+        [SerializeField] private float repairMarkerVerticalOffset;
+
+        [Tooltip("패널에서 컷씬 카메라 방향으로 아이콘을 이동(미터). 양수면 카메라에 가까워진다.")]
+        [SerializeField] private float repairMarkerTowardCameraOffset;
+
         [Header("카메라")]
         [SerializeField] private bool followYaw = true;
         [Tooltip("VR 멀미를 줄이려면 꺼 둔다.")]
@@ -99,6 +118,7 @@ namespace ReBloom.Solar
 
         private SolarPanelRepairGlow activeGlow;
         private AudioSource repairAudioSource;
+        private RootFoundMarker activeMarker;
 
         // 컷씬 중 들어온 추가 수리 이벤트를 순서대로 처리한다.
         private readonly Queue<PanelEntry> pendingQueue = new Queue<PanelEntry>();
@@ -332,6 +352,7 @@ namespace ReBloom.Solar
             activePanelEntry = null;
 
             PlayRepairSound();
+            StartCoroutine(RepairMarkerRoutine(entry));
 
             // 발광 세기 내림
             elapsed = 0f;
@@ -358,6 +379,44 @@ namespace ReBloom.Solar
             }
 
             repairAudioSource.PlayOneShot(repairClip, repairVolume);
+        }
+
+        // ============================================================
+        // Repair Marker
+        // ============================================================
+
+        private IEnumerator RepairMarkerRoutine(PanelEntry entry)
+        {
+            if (repairMarkerSprite == null) yield break;
+
+            Transform panel = entry.reflector.transform;
+            Vector3 markerPos = panel.position + Vector3.up * repairMarkerHeight;
+            markerPos += Vector3.up * repairMarkerVerticalOffset;
+
+            if (runtimeCamera != null && repairMarkerTowardCameraOffset != 0f)
+            {
+                Vector3 toCamera = (runtimeCamera.transform.position - panel.position).normalized;
+                markerPos += toCamera * repairMarkerTowardCameraOffset;
+            }
+
+            GameObject go = new GameObject("_RepairMarker");
+            RootFoundMarker marker = go.AddComponent<RootFoundMarker>();
+            marker.Setup(repairMarkerSprite, repairMarkerSize, markerPos);
+            go.SetActive(false);
+
+            activeMarker = marker;
+            marker.Show();
+
+            yield return new WaitForSeconds(repairMarkerShowDuration);
+
+            marker.Hide();
+            yield return new WaitForSeconds(0.3f);
+
+            if (marker != null && marker.gameObject != null)
+                Destroy(marker.gameObject);
+
+            if (activeMarker == marker)
+                activeMarker = null;
         }
 
         // ============================================================
@@ -457,6 +516,12 @@ namespace ReBloom.Solar
 
             activeGlow?.Cleanup();
             activeGlow = null;
+
+            if (activeMarker != null)
+            {
+                Destroy(activeMarker.gameObject);
+                activeMarker = null;
+            }
 
             // 보류 중인 외형을 모두 풀어준다.
             if (activePanelEntry?.cleanView != null)
