@@ -65,6 +65,16 @@ namespace ReBloom.Solar
         // 마지막으로 적용한 상태. null이면 아직 한 번도 적용하지 않았다(첫 프레임에 무조건 맞춘다).
         bool? applied;
 
+        // 컷씬이 외형 갱신을 보류할 때 true. 풀리는 순간 다음 LateUpdate에서 현재 상태를 반영한다.
+        bool holdVisual;
+
+        /// <summary>외형 갱신을 보류한다. 컷씬이 카메라를 옮긴 뒤 풀어야 플레이어 눈앞에서 바뀐다.</summary>
+        public void SetHoldVisual(bool hold)
+        {
+            holdVisual = hold;
+            if (!hold) applied = null;
+        }
+
         void Awake()
         {
             reflector = GetComponentInChildren<SolarReflector>(true);
@@ -163,6 +173,8 @@ namespace ReBloom.Solar
 
         void LateUpdate()
         {
+            if (holdVisual) return;
+
             bool broken = reflector != null && reflector.broken;
             if (applied == broken) return;
 
