@@ -2,6 +2,7 @@ using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 /// <summary>
 /// Stage3 물길 미션 클리어 컷씬.
@@ -69,16 +70,27 @@ public class Stage3RiverCutscene : MonoBehaviour
 
     private readonly ResonanceCutsceneOverride resonance = new ResonanceCutsceneOverride();
 
+    // 에디터 테스트용: XR 없이 Game 뷰에서 미리보기로 재생할 때 쓴다
+    private bool previewMode;
+    private Camera previewCamera;
+    private CanvasGroup previewFade;
+
+
     public bool IsPlaying => isPlaying;
 
-    private IEnumerator Start()
+private IEnumerator Start()
     {
         // XR 카메라는 방 입장 후 생성되므로 기다린다
         while (runtimeCamera == null)
         {
+            if (previewMode)
+                yield break;   // 에디터 미리보기로 이미 재생 중
             runtimeCamera = Camera.main;
             yield return null;
         }
+
+        if (previewMode)
+            yield break;
 
         xrHead = runtimeCamera.transform;
         Transform current = xrHead;
@@ -218,8 +230,20 @@ public class Stage3RiverCutscene : MonoBehaviour
         onShotStarted?.Invoke();
     }
 
-    private void ApplyShotTransform()
+private void ApplyShotTransform()
     {
+        if (previewMode)
+        {
+            // 미리보기: 카메라를 컷 위치에 그대로 둔다
+            if (previewCamera != null)
+            {
+                if (!previewCamera.gameObject.activeSelf)
+                    previewCamera.gameObject.SetActive(true);
+                previewCamera.transform.SetPositionAndRotation(currentShotPosition, currentShotRotation);
+            }
+            return;
+        }
+
         if (xrOrigin == null || xrHead == null)
             return;
 
@@ -253,8 +277,12 @@ public class Stage3RiverCutscene : MonoBehaviour
         originalXRTransformSaved = true;
     }
 
-    private void RestoreOriginalXRTransform()
+private void RestoreOriginalXRTransform()
     {
+        // 미리보기 카메라는 컷씬이 끝나면 끈다 (원래 Game 뷰로 복귀)
+        if (previewCamera != null)
+            previewCamera.gameObject.SetActive(false);
+
         if (xrOrigin == null || !originalXRTransformSaved)
             return;
         xrOrigin.position = originalXROriginPosition;
@@ -262,16 +290,20 @@ public class Stage3RiverCutscene : MonoBehaviour
         originalXRTransformSaved = false;
     }
 
-    private IEnumerator FadeOutRoutine()
+private IEnumerator FadeOutRoutine()
     {
         if (screenFade != null)
             yield return StartCoroutine(screenFade.FadeOut(fadeDuration));
+        else if (previewFade != null)
+            yield return PreviewFadeRoutine(1f);
     }
 
-    private IEnumerator FadeInRoutine()
+private IEnumerator FadeInRoutine()
     {
         if (screenFade != null)
             yield return StartCoroutine(screenFade.FadeIn(fadeDuration));
+        else if (previewFade != null)
+            yield return PreviewFadeRoutine(0f);
     }
 
     private void SetRemoteAvatarsVisible(bool visible)
@@ -308,5 +340,114 @@ public class Stage3RiverCutscene : MonoBehaviour
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);
         FireShotStarted();
+        if (previewFade != null)
+            previewFade.alpha = 0f;
+
+    }
+
+
+// ── 테스트용 ────────────────────────────────────────────────────────
+
+    [ContextMenu("물길 컷씬 재생")]
+    private void DebugPlay()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("[Stage3RiverCutscene] 컷씬은 Play 모드에서만 재생됩니다.", this);
+            return;
+        }
+
+        if (isPlaying)
+            return;
+
+        if (!xrReady)
+            StartPreviewWithoutXR();
+
+        // 여러 번 확인할 수 있게 재생 기록을 지운다
+        hasPlayed = false;
+        shotStartedFired = false;
+        Play();
+    }
+
+    private void StartPreviewWithoutXR()
+    {
+        if (previewCamera == null)
+        {
+            var cameraObject = new GameObject("RiverCutscenePreviewCamera");
+            previewCamera = cameraObject.AddComponent<Camera>();
+            previewCamera.depth = 100f;   // 씬에 다른 카메라가 있어도 위에 그린다
+            if (shotCamera != null)
+                previewCamera.fieldOfView = shotCamera.Lens.FieldOfView;
+
+            // AudioListener는 보통 XR 카메라에 붙어 있다. 없으면 미리보기 카메라에 단다.
+            if (FindFirstObjectByType<AudioListener>() == null)
+                cameraObject.AddComponent<AudioListener>();
+
+            cameraObject.SetActive(false);   // 컷 위치로 옮긴 뒤 켠다
+        }
+
+        CreatePreviewFade();
+
+        previewMode = true;
+        xrReady = true;
+        pendingPlay = false;
+
+        Debug.LogWarning("[Stage3RiverCutscene] XR Origin이 없어 Game 뷰 미리보기로 재생합니다. " +
+                         "헤드셋 위치 이동은 빠지고, 페이드는 화면 덮개로 대신합니다.", this);
+    }
+
+    // 미리보기용 검은 화면 덮개. VR의 ScreenFade 대신 쓴다.
+    private void CreatePreviewFade()
+    {
+        if (previewFade != null)
+            return;
+
+        var canvasObject = new GameObject("RiverCutscenePreviewFade", typeof(Canvas), typeof(CanvasGroup));
+        canvasObject.transform.SetParent(transform, false);
+
+        var canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = short.MaxValue;
+
+        var black = new GameObject("Black", typeof(RectTransform), typeof(Image));
+        black.transform.SetParent(canvasObject.transform, false);
+        var rect = (RectTransform)black.transform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        Image image = black.GetComponent<Image>();
+        image.color = Color.black;
+        image.raycastTarget = false;
+
+        previewFade = canvasObject.GetComponent<CanvasGroup>();
+        previewFade.alpha = 0f;
+        previewFade.blocksRaycasts = false;
+        previewFade.interactable = false;
+    }
+
+    private IEnumerator PreviewFadeRoutine(float targetAlpha)
+    {
+        float startAlpha = previewFade.alpha;
+        if (fadeDuration <= 0f)
+        {
+            previewFade.alpha = targetAlpha;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            previewFade.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / fadeDuration);
+            yield return null;
+        }
+        previewFade.alpha = targetAlpha;
+    }
+
+    private void OnDestroy()
+    {
+        if (previewCamera != null)
+            Destroy(previewCamera.gameObject);
     }
 }

@@ -2991,6 +2991,7 @@ Transform:
   - {fileID: 537576298}
   - {fileID: 457118550}
   - {fileID: 1942520570}
+  - {fileID: 2015647331}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1898797545
@@ -3758,7 +3759,7 @@ GameObject:
   - component: {fileID: 2015647331}
   - component: {fileID: 2015647332}
   m_Layer: 0
-  m_Name: PlantClearSequence
+  m_Name: PlantClearCutscene
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3773,11 +3774,11 @@ Transform:
   m_GameObject: {fileID: 2015647330}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12.37595, y: 1.69463, z: 21.09829}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1888650204}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2015647332
 MonoBehaviour:
@@ -5319,7 +5320,6 @@ SceneRoots:
   - {fileID: 1888650204}
   - {fileID: 1541650496}
   - {fileID: 395063642}
-  - {fileID: 2015647331}
   - {fileID: 1071458362}
   - {fileID: 293672159}
   - {fileID: 1705289848}
