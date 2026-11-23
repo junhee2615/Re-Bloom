@@ -60,6 +60,10 @@ namespace ReBloom.Solar
         [Tooltip("깜빡임 횟수.")]
         [SerializeField] int blinkCount = 3;
 
+        [Tooltip("아웃라인 점멸이 시작되기 전 대기 시간(초).")]
+        [Min(0f)]
+        [SerializeField] float blinkStartDelay = 0.3f;
+
         [Tooltip("점멸 가속 정도. 0이면 등속, 클수록 나중 점멸이 빨라진다.")]
         [Range(0f, 5f)]
         [SerializeField] float blinkAcceleration = 2f;
@@ -77,6 +81,12 @@ namespace ReBloom.Solar
 
         [Tooltip("파티클이 완전히 활성화된 후 보여주는 시간(초).")]
         [SerializeField] float particleHoldDuration = 4f;
+
+        [Header("효과음")]
+        [Tooltip("아웃라인 점멸이 시작될 때 재생할 사운드.")]
+        [SerializeField] AudioClip energyHumClip;
+        [Range(0f, 1f)]
+        [SerializeField] float energyHumVolume = 0.7f;
 
         [Header("카메라")]
         [SerializeField] bool followYaw = true;
@@ -123,6 +133,9 @@ namespace ReBloom.Solar
         bool hasPlayed;
         bool xrReady;
         bool lateJoinApplied;
+        bool energyHumStarted;
+        bool blinkCompleted;
+        AudioSource energyHumAudioSource;
 
         public bool IsPlaying => isPlaying;
 
@@ -171,6 +184,7 @@ namespace ReBloom.Solar
         {
             SolarMissionManager.Cleared -= OnMissionCleared;
             StopAllCoroutines();
+            StopEffectSounds();
 
             if (isPlaying)
                 ForceCleanup();
@@ -178,6 +192,7 @@ namespace ReBloom.Solar
 
         void OnDestroy()
         {
+            StopEffectSounds();
             CleanupPersistentGlows();
         }
 
@@ -216,7 +231,7 @@ namespace ReBloom.Solar
                 yield break;
             }
 
-            yield return PlayRoutine();
+            yield return PlayRoutine(false);
         }
 
         // ============================================================
@@ -257,6 +272,7 @@ namespace ReBloom.Solar
         void ApplyPersistentState()
         {
             SetupPersistentGlows(persistentGlowIntensity);
+            PlayEnergyHum();
 
             foreach (PanelEntry entry in panels)
             {
@@ -269,9 +285,11 @@ namespace ReBloom.Solar
         // Cutscene
         // ============================================================
 
-        IEnumerator PlayRoutine()
+        IEnumerator PlayRoutine(bool preview)
         {
             isPlaying = true;
+            ResetEffectPlayedFlags();
+            StopEffectSounds();
 
             // --- 이동 잠금, UI 숨김 ---
             if (lockLocomotion && hardwareRig != null)
@@ -297,12 +315,16 @@ namespace ReBloom.Solar
             if (enableCameraPushIn && cameraPushDistance > 0f)
                 StartCoroutine(CameraPushRoutine(pushDuration));
 
+            // --- 02. 아웃라인 발광 ---
+            SetupPersistentGlows(0f);
+            blinkCompleted = false;
+            StartCoroutine(BlinkRoutine());
+
             if (viewHold > 0f)
                 yield return new WaitForSeconds(viewHold);
 
-            // --- 02. 아웃라인 발광 ---
-            SetupPersistentGlows(0f);
-            yield return BlinkRoutine();
+            while (!blinkCompleted)
+                yield return null;
 
             // --- 03. 빛 입자 활성화 (아웃라인 안정화와 병렬) ---
             StartCoroutine(StabilizeRoutine());
@@ -330,6 +352,9 @@ namespace ReBloom.Solar
             yield return FadeIn();
 
             isPlaying = false;
+
+            if (preview)
+                StopEffectSounds();
         }
 
         // ============================================================
@@ -356,7 +381,16 @@ namespace ReBloom.Solar
 
         IEnumerator BlinkRoutine()
         {
-            if (persistentGlows == null || blinkCount <= 0) yield break;
+            if (persistentGlows == null || blinkCount <= 0)
+            {
+                blinkCompleted = true;
+                yield break;
+            }
+
+            if (blinkStartDelay > 0f)
+                yield return new WaitForSeconds(blinkStartDelay);
+
+            PlayEnergyHum();
 
             // 점멸 주기 분배: blinkAcceleration이 클수록 첫 점멸이 길고 마지막이 짧다.
             float[] durations = new float[blinkCount];
@@ -412,6 +446,8 @@ namespace ReBloom.Solar
                     }
                 }
             }
+
+            blinkCompleted = true;
         }
 
         IEnumerator StabilizeRoutine()
@@ -449,6 +485,49 @@ namespace ReBloom.Solar
                 glow?.Cleanup();
 
             persistentGlows = null;
+        }
+
+        // ============================================================
+        // 02/03. Effects Audio
+        // ============================================================
+
+        void ResetEffectPlayedFlags()
+        {
+            energyHumStarted = false;
+            blinkCompleted = false;
+        }
+
+        void PlayEnergyHum()
+        {
+            if (energyHumStarted) return;
+
+            if (energyHumClip == null)
+            {
+                Debug.LogWarning("[FacilityClearCutscene] EnergyHum AudioClip이 설정되지 않았습니다.", this);
+                return;
+            }
+
+            energyHumStarted = true;
+
+            if (energyHumAudioSource == null)
+            {
+                energyHumAudioSource = gameObject.AddComponent<AudioSource>();
+                energyHumAudioSource.playOnAwake = false;
+                energyHumAudioSource.spatialBlend = 0f;
+            }
+
+            if (energyHumAudioSource.isPlaying)
+                return;
+
+            energyHumAudioSource.loop = true;
+            energyHumAudioSource.volume = energyHumVolume;
+            energyHumAudioSource.clip = energyHumClip;
+            energyHumAudioSource.Play();
+        }
+
+        void StopEffectSounds()
+        {
+            energyHumAudioSource?.Stop();
         }
 
         // ============================================================
@@ -622,6 +701,7 @@ namespace ReBloom.Solar
             isPlaying = false;
             hasCurrentShot = false;
             cameraPushOffset = Vector3.zero;
+            StopEffectSounds();
 
             RestoreOriginalXRTransform();
             resonance.Restore();
@@ -649,7 +729,7 @@ namespace ReBloom.Solar
             }
 
             hasPlayed = true;
-            StartCoroutine(PlayRoutine());
+            StartCoroutine(PlayRoutine(true));
         }
 
 #if UNITY_EDITOR
@@ -664,7 +744,7 @@ namespace ReBloom.Solar
             if (isPlaying) return;
 
             hasPlayed = true;
-            StartCoroutine(PlayRoutine());
+            StartCoroutine(PlayRoutine(true));
         }
 
         /// <summary>Play 모드에서 영구 상태만 즉시 적용한다(컷씬 없이).</summary>
