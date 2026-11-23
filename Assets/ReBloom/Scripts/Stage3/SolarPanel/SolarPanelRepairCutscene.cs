@@ -128,6 +128,9 @@ namespace ReBloom.Solar
 
         public bool IsPlaying => isPlaying;
 
+        /// <summary>컷씬 재생 중이거나 대기 큐에 패널이 남아 있는가. 전체 클리어 컷씬이 대기할 때 쓴다.</summary>
+        public bool IsBusy => isPlaying || pendingQueue.Count > 0;
+
         // ============================================================
         // Initialize
         // ============================================================

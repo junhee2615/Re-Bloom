@@ -72,5 +72,32 @@ namespace ReBloom.Solar
         // 도메인 리로드를 꺼도 static 이벤트가 이전 플레이의 구독자를 물고 있지 않도록.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetEvent() => Cleared = null;
+
+        [ContextMenu("Play Facility Clear Cutscene")]
+        void ContextPlayFacilityClearCutscene()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[SolarMissionManager] Play 모드에서만 실행할 수 있습니다.");
+                return;
+            }
+
+            SolarFacilityClearCutscene cutscene =
+                FindFirstObjectByType<SolarFacilityClearCutscene>();
+
+            if (cutscene == null)
+            {
+                Debug.LogError("[SolarMissionManager] 씬에서 SolarFacilityClearCutscene을 찾지 못했습니다.");
+                return;
+            }
+
+            if (cutscene.IsPlaying)
+            {
+                Debug.LogWarning("[SolarMissionManager] 컷씬이 이미 재생 중입니다.");
+                return;
+            }
+
+            cutscene.ContextPlayCutscene();
+        }
     }
 }

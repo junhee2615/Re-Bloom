@@ -1,0 +1,678 @@
+using System;
+using System.Collections;
+using UnityEngine;
+
+namespace ReBloom.Solar
+{
+    /// <summary>
+    /// 태양광 패널 4개가 모두 복구되면 재생하는 전체 클리어 컷씬.
+    ///
+    /// <see cref="SolarMissionManager.Cleared"/>를 트리거로 받아 개별 복구 컷씬이
+    /// 모두 끝난 뒤 시작한다. 연출 순서:
+    ///
+    ///  01. 페이드 아웃 → ShotPoint로 XR Origin 이동 → 페이드 인 (전체 시설 조망)
+    ///  02. 네 패널의 아웃라인 발광 — 깜빡이다 안정 (SolarPanelRepairGlow 재사용)
+    ///  03. 빛 입자 활성화 (SolarFacilityClearParticle.Play)
+    ///  04. 페이드 아웃 → XR Origin 복원 → 페이드 인
+    ///
+    /// 발광과 파티클은 컷씬 종료 후에도 영구 유지한다(Cleanup/Stop하지 않는다).
+    /// 늦게 접속한 플레이어에게는 컷씬 없이 최종 상태만 적용한다.
+    ///
+    /// 배치: Stage 3 씬에 하나. Editor 메뉴로 참조를 자동 연결한다.
+    /// </summary>
+    [AddComponentMenu("ReBloom/Solar Facility Clear Cutscene")]
+    public class SolarFacilityClearCutscene : MonoBehaviour
+    {
+        [Serializable]
+        public class PanelEntry
+        {
+            public SolarReflector reflector;
+            public SolarPanelCleanView cleanView;
+            public SolarFacilityClearParticle particle;
+        }
+
+        [Header("패널")]
+        [SerializeField] PanelEntry[] panels = Array.Empty<PanelEntry>();
+
+        [Header("ShotPoint")]
+        [Tooltip("전체 시설 조망 카메라 위치. SolarFacilityClearShotPoint.")]
+        [SerializeField] Transform shotPoint;
+
+        [Header("개별 복구 컷씬 참조")]
+        [Tooltip("개별 패널 복구 컷씬. IsBusy가 false가 될 때까지 기다린다.")]
+        [SerializeField] SolarPanelRepairCutscene repairCutscene;
+
+        [Header("페이드")]
+        [SerializeField] float fadeDuration = 0.5f;
+
+        [Header("01. 전체 시설 조망")]
+        [Tooltip("ShotPoint에서 시설을 보여주는 시간(초).")]
+        [SerializeField] float viewHold = 1.5f;
+
+        [Header("02. 아웃라인 발광")]
+        [Tooltip("발광에 쓰는 HDR 색상. 개별 복구 컷씬과 동일하게 설정한다.")]
+        [ColorUsage(false, true)]
+        [SerializeField] Color glowColor = new Color(0f, 2f, 1.6f, 1f);
+
+        [Tooltip("깜빡임 총 지속 시간(초).")]
+        [SerializeField] float blinkDuration = 2.0f;
+
+        [Tooltip("깜빡임 횟수.")]
+        [SerializeField] int blinkCount = 3;
+
+        [Tooltip("점멸 가속 정도. 0이면 등속, 클수록 나중 점멸이 빨라진다.")]
+        [Range(0f, 5f)]
+        [SerializeField] float blinkAcceleration = 2f;
+
+        [Tooltip("안정 발광까지 올라가는 시간(초).")]
+        [SerializeField] float stabilizeDuration = 1.0f;
+
+        [Tooltip("컷씬 종료 후 영구 유지할 발광 세기(0~1).")]
+        [Range(0f, 1f)]
+        [SerializeField] float persistentGlowIntensity = 1f;
+
+        [Header("03. 빛 입자")]
+        [Tooltip("파티클 활성화 연출 시간(초).")]
+        [SerializeField] float particleFadeDuration = 2.5f;
+
+        [Tooltip("파티클이 완전히 활성화된 후 보여주는 시간(초).")]
+        [SerializeField] float particleHoldDuration = 4f;
+
+        [Header("카메라")]
+        [SerializeField] bool followYaw = true;
+        [SerializeField] bool followPitch;
+
+        [Header("카메라 전진")]
+        [Tooltip("컷씬 중 패널 쪽으로 카메라가 천천히 전진한다.")]
+        [SerializeField] bool enableCameraPushIn = true;
+
+        [Tooltip("총 전진 거리(m). 0이면 전진하지 않는다.")]
+        [SerializeField] float cameraPushDistance = 0.5f;
+
+        [Tooltip("전진 보간 커브. X축=시간(0~1), Y축=이동 비율(0~1).")]
+        [SerializeField] AnimationCurve cameraPushEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Header("연출 중 화면 정리")]
+        [SerializeField] bool hideRemoteAvatars = true;
+        [SerializeField] bool lockLocomotion = true;
+        [SerializeField] bool hideTutorialCanvas = true;
+
+        [Header("Debug")]
+        [SerializeField] bool isPlaying;
+
+        Camera runtimeCamera;
+        Transform xrHead;
+        Transform xrOrigin;
+        ScreenFade screenFade;
+        HardwareRig hardwareRig;
+
+        Vector3 originalXROriginPosition;
+        Quaternion originalXROriginRotation;
+        bool originalXRTransformSaved;
+
+        Vector3 currentShotPosition;
+        Quaternion currentShotRotation;
+        bool hasCurrentShot;
+
+        readonly ResonanceCutsceneOverride resonance = new ResonanceCutsceneOverride();
+
+        SolarPanelRepairGlow[] persistentGlows;
+
+        Vector3 cameraPushOffset;
+
+        bool hasPlayed;
+        bool xrReady;
+        bool lateJoinApplied;
+
+        public bool IsPlaying => isPlaying;
+
+        // ============================================================
+        // Initialize
+        // ============================================================
+
+        IEnumerator Start()
+        {
+            while (runtimeCamera == null)
+            {
+                runtimeCamera = Camera.main;
+                yield return null;
+            }
+
+            xrHead = runtimeCamera.transform;
+
+            Transform current = xrHead;
+            while (current != null)
+            {
+                if (current.name.Contains("XR Origin"))
+                {
+                    xrOrigin = current;
+                    break;
+                }
+                current = current.parent;
+            }
+
+            if (xrOrigin == null)
+            {
+                Debug.LogError("[FacilityClearCutscene] XR Origin을 찾지 못했습니다.", this);
+                yield break;
+            }
+
+            screenFade = runtimeCamera.GetComponentInChildren<ScreenFade>(true);
+            hardwareRig = FindFirstObjectByType<HardwareRig>();
+            xrReady = true;
+        }
+
+        void OnEnable()
+        {
+            SolarMissionManager.Cleared += OnMissionCleared;
+        }
+
+        void OnDisable()
+        {
+            SolarMissionManager.Cleared -= OnMissionCleared;
+            StopAllCoroutines();
+
+            if (isPlaying)
+                ForceCleanup();
+        }
+
+        void OnDestroy()
+        {
+            CleanupPersistentGlows();
+        }
+
+        void LateUpdate()
+        {
+            if (isPlaying && hasCurrentShot)
+                ApplyShotTransform();
+        }
+
+        // ============================================================
+        // Event
+        // ============================================================
+
+        void OnMissionCleared()
+        {
+            if (hasPlayed || isPlaying) return;
+            if (!xrReady) return;
+
+            hasPlayed = true;
+            StartCoroutine(WaitAndPlay());
+        }
+
+        IEnumerator WaitAndPlay()
+        {
+            if (repairCutscene != null)
+            {
+                while (repairCutscene.IsBusy)
+                    yield return null;
+            }
+
+            // Stage3EndingCutscene이 이미 시작됐으면 컷씬 충돌 회피
+            Stage3EndingCutscene ending = FindFirstObjectByType<Stage3EndingCutscene>();
+            if (ending != null && ending.IsPlaying)
+            {
+                ApplyPersistentState();
+                yield break;
+            }
+
+            yield return PlayRoutine();
+        }
+
+        // ============================================================
+        // Late Join
+        // ============================================================
+
+        void Update()
+        {
+            if (lateJoinApplied || hasPlayed) return;
+
+            SolarMissionManager mgr = FindFirstObjectByType<SolarMissionManager>();
+            if (mgr == null || mgr.Object == null || !mgr.Object.IsValid) return;
+            if (!mgr.IsClear) return;
+
+            lateJoinApplied = true;
+            hasPlayed = true;
+
+            ForceRepairAllPanels();
+            ApplyPersistentState();
+        }
+
+        void ForceRepairAllPanels()
+        {
+            foreach (PanelEntry entry in panels)
+            {
+                if (entry?.reflector == null) continue;
+                if (!entry.reflector.broken) continue;
+
+                // broken을 직접 꺼서 Repaired 이벤트를 발생시키지 않는다.
+                // 이렇게 하면 개별 복구 컷씬이 중복 발생하지 않는다.
+                entry.reflector.broken = false;
+
+                if (entry.cleanView != null)
+                    entry.cleanView.SetHoldVisual(false);
+            }
+        }
+
+        void ApplyPersistentState()
+        {
+            SetupPersistentGlows(persistentGlowIntensity);
+
+            foreach (PanelEntry entry in panels)
+            {
+                if (entry?.particle != null)
+                    entry.particle.Play();
+            }
+        }
+
+        // ============================================================
+        // Cutscene
+        // ============================================================
+
+        IEnumerator PlayRoutine()
+        {
+            isPlaying = true;
+
+            // --- 이동 잠금, UI 숨김 ---
+            if (lockLocomotion && hardwareRig != null)
+                hardwareRig.SetLocomotionLocked(true);
+            SetRemoteAvatarsVisible(false);
+            SetTutorialCanvasVisible(false);
+
+            // --- 01. 전체 시설 조망 ---
+            yield return FadeOut();
+
+            resonance.Disable(true);
+            SaveOriginalXRTransform();
+
+            SetCurrentShotTransform(shotPoint.position, shotPoint.rotation);
+
+            // 빔을 하늘로 정렬 — 컷씬 중 패널 위에 서 있어도 aimAtSunWhenIdle로 하늘 방향 보장
+            ForceBeamsToSky(true);
+
+            yield return FadeIn();
+
+            // --- 카메라 전진 시작 (병렬) ---
+            float pushDuration = viewHold + blinkDuration + particleFadeDuration;
+            if (enableCameraPushIn && cameraPushDistance > 0f)
+                StartCoroutine(CameraPushRoutine(pushDuration));
+
+            if (viewHold > 0f)
+                yield return new WaitForSeconds(viewHold);
+
+            // --- 02. 아웃라인 발광 ---
+            SetupPersistentGlows(0f);
+            yield return BlinkRoutine();
+
+            // --- 03. 빛 입자 활성화 (아웃라인 안정화와 병렬) ---
+            StartCoroutine(StabilizeRoutine());
+            yield return ParticleFadeInRoutine();
+
+            // --- 03b. 파티클 유지 ---
+            if (particleHoldDuration > 0f)
+                yield return new WaitForSeconds(particleHoldDuration);
+
+            // --- 04. 컷씬 종료 ---
+            yield return FadeOut();
+
+            hasCurrentShot = false;
+            cameraPushOffset = Vector3.zero;
+            RestoreOriginalXRTransform();
+            resonance.Restore();
+
+            SetRemoteAvatarsVisible(true);
+            SetTutorialCanvasVisible(true);
+
+            if (lockLocomotion && hardwareRig != null)
+                hardwareRig.SetLocomotionLocked(false);
+
+            yield return null;
+            yield return FadeIn();
+
+            isPlaying = false;
+        }
+
+        // ============================================================
+        // 02. Glow — 깜빡임 → 안정
+        // ============================================================
+
+        void SetupPersistentGlows(float intensity)
+        {
+            if (persistentGlows != null) return;
+
+            persistentGlows = new SolarPanelRepairGlow[panels.Length];
+
+            for (int i = 0; i < panels.Length; i++)
+            {
+                PanelEntry entry = panels[i];
+                if (entry?.cleanView == null) continue;
+
+                SolarPanelRepairGlow glow = new SolarPanelRepairGlow();
+                glow.Setup(entry.cleanView, glowColor);
+                glow.SetIntensity(intensity);
+                persistentGlows[i] = glow;
+            }
+        }
+
+        IEnumerator BlinkRoutine()
+        {
+            if (persistentGlows == null || blinkCount <= 0) yield break;
+
+            // 점멸 주기 분배: blinkAcceleration이 클수록 첫 점멸이 길고 마지막이 짧다.
+            float[] durations = new float[blinkCount];
+            float weightSum = 0f;
+
+            for (int i = 0; i < blinkCount; i++)
+            {
+                float progress = blinkCount > 1 ? (float)(blinkCount - 1 - i) / (blinkCount - 1) : 0f;
+                float weight = 1f + blinkAcceleration * progress;
+                durations[i] = weight;
+                weightSum += weight;
+            }
+
+            for (int i = 0; i < blinkCount; i++)
+                durations[i] = durations[i] / weightSum * blinkDuration;
+
+            for (int b = 0; b < blinkCount; b++)
+            {
+                bool isLast = b == blinkCount - 1;
+
+                if (isLast)
+                {
+                    float elapsed = 0f;
+                    while (elapsed < durations[b])
+                    {
+                        elapsed += Time.deltaTime;
+                        float t = Mathf.SmoothStep(0.1f, 1f, elapsed / durations[b]);
+                        SetAllGlowIntensity(t);
+                        yield return null;
+                    }
+                    SetAllGlowIntensity(1f);
+                }
+                else
+                {
+                    float halfBlink = durations[b] * 0.5f;
+
+                    float elapsed = 0f;
+                    while (elapsed < halfBlink)
+                    {
+                        elapsed += Time.deltaTime;
+                        float t = Mathf.SmoothStep(0f, 0.8f, elapsed / halfBlink);
+                        SetAllGlowIntensity(t);
+                        yield return null;
+                    }
+
+                    elapsed = 0f;
+                    while (elapsed < halfBlink)
+                    {
+                        elapsed += Time.deltaTime;
+                        float t = Mathf.SmoothStep(0.8f, 0.1f, elapsed / halfBlink);
+                        SetAllGlowIntensity(t);
+                        yield return null;
+                    }
+                }
+            }
+        }
+
+        IEnumerator StabilizeRoutine()
+        {
+            if (persistentGlows == null) yield break;
+
+            float startIntensity = 1f;
+            float elapsed = 0f;
+
+            while (elapsed < stabilizeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(startIntensity, persistentGlowIntensity,
+                    elapsed / stabilizeDuration);
+                SetAllGlowIntensity(t);
+                yield return null;
+            }
+
+            SetAllGlowIntensity(persistentGlowIntensity);
+        }
+
+        void SetAllGlowIntensity(float intensity)
+        {
+            if (persistentGlows == null) return;
+
+            foreach (SolarPanelRepairGlow glow in persistentGlows)
+                glow?.SetIntensity(intensity);
+        }
+
+        void CleanupPersistentGlows()
+        {
+            if (persistentGlows == null) return;
+
+            foreach (SolarPanelRepairGlow glow in persistentGlows)
+                glow?.Cleanup();
+
+            persistentGlows = null;
+        }
+
+        // ============================================================
+        // 03. Particles
+        // ============================================================
+
+        IEnumerator ParticleFadeInRoutine()
+        {
+            // 순차적으로 패널을 활성화하여 자연스러운 등장
+            float interval = panels.Length > 0
+                ? particleFadeDuration / panels.Length
+                : particleFadeDuration;
+
+            foreach (PanelEntry entry in panels)
+            {
+                if (entry?.particle != null)
+                    entry.particle.Play();
+
+                if (interval > 0f)
+                    yield return new WaitForSeconds(interval);
+            }
+        }
+
+        // ============================================================
+        // Camera Push
+        // ============================================================
+
+        IEnumerator CameraPushRoutine(float duration)
+        {
+            Vector3 pushDir = ComputePushDirection();
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                cameraPushOffset = pushDir * (cameraPushEase.Evaluate(t) * cameraPushDistance);
+                yield return null;
+            }
+
+            cameraPushOffset = pushDir * cameraPushDistance;
+        }
+
+        Vector3 ComputePushDirection()
+        {
+            Vector3 center = Vector3.zero;
+            int count = 0;
+
+            foreach (PanelEntry entry in panels)
+            {
+                if (entry?.reflector == null) continue;
+                center += entry.reflector.transform.position;
+                count++;
+            }
+
+            if (count == 0 || shotPoint == null)
+                return shotPoint != null ? shotPoint.forward : Vector3.forward;
+
+            center /= count;
+
+            Vector3 dir = center - shotPoint.position;
+            dir.y = 0f;
+            return dir.sqrMagnitude > 0.001f ? dir.normalized : shotPoint.forward;
+        }
+
+        // ============================================================
+        // Beam Sky Alignment
+        // ============================================================
+
+        void ForceBeamsToSky(bool force)
+        {
+            foreach (PanelEntry entry in panels)
+            {
+                if (entry?.reflector == null) continue;
+                SolarBeam beam = entry.reflector.GetComponent<SolarBeam>();
+                if (beam != null)
+                    beam.aimAtSunWhenIdle = true;
+            }
+        }
+
+        // ============================================================
+        // XR Shot
+        // ============================================================
+
+        void ApplyShotTransform()
+        {
+            if (xrOrigin == null || xrHead == null) return;
+
+            if (followPitch)
+            {
+                xrOrigin.rotation = currentShotRotation;
+            }
+            else if (followYaw)
+            {
+                Vector3 forward = Vector3.ProjectOnPlane(
+                    currentShotRotation * Vector3.forward, Vector3.up);
+                if (forward.sqrMagnitude > 0.001f)
+                    xrOrigin.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+            }
+
+            xrOrigin.position += (currentShotPosition + cameraPushOffset) - xrHead.position;
+        }
+
+        void SetCurrentShotTransform(Vector3 position, Quaternion rotation)
+        {
+            currentShotPosition = position;
+            currentShotRotation = rotation;
+            hasCurrentShot = true;
+            ApplyShotTransform();
+        }
+
+        void SaveOriginalXRTransform()
+        {
+            if (xrOrigin == null || originalXRTransformSaved) return;
+            originalXROriginPosition = xrOrigin.position;
+            originalXROriginRotation = xrOrigin.rotation;
+            originalXRTransformSaved = true;
+        }
+
+        void RestoreOriginalXRTransform()
+        {
+            if (xrOrigin == null || !originalXRTransformSaved) return;
+            xrOrigin.position = originalXROriginPosition;
+            xrOrigin.rotation = originalXROriginRotation;
+            originalXRTransformSaved = false;
+        }
+
+        // ============================================================
+        // Fade
+        // ============================================================
+
+        IEnumerator FadeOut()
+        {
+            if (screenFade != null)
+                yield return StartCoroutine(screenFade.FadeOut(fadeDuration));
+        }
+
+        IEnumerator FadeIn()
+        {
+            if (screenFade != null)
+                yield return StartCoroutine(screenFade.FadeIn(fadeDuration));
+        }
+
+        // ============================================================
+        // Avatar / UI
+        // ============================================================
+
+        void SetRemoteAvatarsVisible(bool visible)
+        {
+            if (!hideRemoteAvatars) return;
+
+            foreach (NetworkPlayer player in NetworkPlayer.All)
+            {
+                if (player != null && !player.IsLocalNetworkRig)
+                    player.SetAvatarVisible(visible);
+            }
+        }
+
+        void SetTutorialCanvasVisible(bool visible)
+        {
+            if (hideTutorialCanvas && hardwareRig != null)
+                hardwareRig.SetTutorialCanvasVisible(visible);
+        }
+
+        // ============================================================
+        // Safety Restore
+        // ============================================================
+
+        void ForceCleanup()
+        {
+            isPlaying = false;
+            hasCurrentShot = false;
+            cameraPushOffset = Vector3.zero;
+
+            RestoreOriginalXRTransform();
+            resonance.Restore();
+
+            SetRemoteAvatarsVisible(true);
+            SetTutorialCanvasVisible(true);
+
+            if (lockLocomotion && hardwareRig != null)
+                hardwareRig.SetLocomotionLocked(false);
+        }
+
+        [ContextMenu("Play Clear Cutscene")]
+        internal void ContextPlayCutscene()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[FacilityClearCutscene] Play 모드에서만 실행할 수 있습니다.");
+                return;
+            }
+
+            if (isPlaying)
+            {
+                Debug.LogWarning("[FacilityClearCutscene] 컷씬이 이미 재생 중입니다.");
+                return;
+            }
+
+            hasPlayed = true;
+            StartCoroutine(PlayRoutine());
+        }
+
+#if UNITY_EDITOR
+        // ============================================================
+        // Editor Test
+        // ============================================================
+
+        /// <summary>Play 모드에서 미션 클리어 없이 컷씬을 테스트한다.</summary>
+        public void EditorTestPlay()
+        {
+            if (!Application.isPlaying) return;
+            if (isPlaying) return;
+
+            hasPlayed = true;
+            StartCoroutine(PlayRoutine());
+        }
+
+        /// <summary>Play 모드에서 영구 상태만 즉시 적용한다(컷씬 없이).</summary>
+        public void EditorTestApplyPersistent()
+        {
+            if (!Application.isPlaying) return;
+            ApplyPersistentState();
+        }
+#endif
+    }
+}
