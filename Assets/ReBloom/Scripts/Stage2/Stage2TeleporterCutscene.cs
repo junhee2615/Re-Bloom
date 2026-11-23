@@ -7,6 +7,10 @@ using UnityEngine;
 // 뿌리 활성화 전체 완료 후 텔레포터를 연출한다.
 public class Stage2TeleporterCutscene : MonoBehaviour
 {
+    [Header("재생 타이밍")]
+    [Tooltip("뿌리 활성화가 모두 끝난 뒤 컷씬 시작까지 기다리는 시간(초)")]
+    [SerializeField] private float startDelay = 3f;
+
     [Header("텔레포터 컷")]
     [SerializeField]
     private Stage2CutsceneShot teleporterShot = new Stage2CutsceneShot
@@ -49,6 +53,7 @@ public class Stage2TeleporterCutscene : MonoBehaviour
     private Transform xrOrigin;
     private ScreenFade screenFade;
     private HardwareRig hardwareRig;
+    private bool delayedPlayScheduled;
     private bool pendingPlay;
     private Vector3 originalXROriginPosition;
     private Quaternion originalXROriginRotation;
@@ -118,10 +123,23 @@ public class Stage2TeleporterCutscene : MonoBehaviour
 
     private void OnAllRootsActivated()
     {
+        if (delayedPlayScheduled)
+            return;
+
+        delayedPlayScheduled = true;
+        StartCoroutine(DelayedPlayRoutine());
+    }
+
+    // 뿌리 활성화 완료 후 startDelay(초)만큼 기다렸다가 컷씬을 재생한다.
+    private IEnumerator DelayedPlayRoutine()
+    {
+        if (startDelay > 0f)
+            yield return new WaitForSeconds(startDelay);
+
         if (!CanPlay)
         {
             pendingPlay = true;
-            return;
+            yield break;
         }
 
         TryPlay();
