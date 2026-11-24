@@ -309,6 +309,44 @@ namespace ReBloom.Water
             if (local != null) local.Rpc_RiverbedComplete();
         }
 
+#if UNITY_EDITOR
+        [ContextMenu("Debug Clear Mission 2")]
+        void DebugClearMission()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning(
+                    "[RiverbedNet] Play 모드에서만 실행할 수 있습니다.", this);
+                return;
+            }
+
+            if (missionComplete)
+            {
+                Debug.LogWarning(
+                    "[RiverbedNet] 이미 미션이 완료된 상태입니다.", this);
+                return;
+            }
+
+            if (controller == null)
+            {
+                Debug.LogError(
+                    "[RiverbedNet] RiverbedFlowController 참조가 없습니다.", this);
+                return;
+            }
+
+            Debug.Log(
+                "[RiverbedNet] <b>Debug Clear Mission 2 — 개발자용 강제 완료</b>\n" +
+                "  실행 경로: ApplyNetworkComplete → onMissionComplete → " +
+                "Stage3RiverCutscene → WaterfrontTeleporterCutscene\n" +
+                "  이 로그는 테스트용 강제 완료입니다. " +
+                "실제 미션 성공 조건을 충족하지 않았습니다.", this);
+
+            missionComplete = true;
+            localStarted = true;
+            controller.ApplyNetworkComplete();
+        }
+#endif
+
         // ---------------------------------------------------------------
         void OnDrawGizmosSelected()
         {

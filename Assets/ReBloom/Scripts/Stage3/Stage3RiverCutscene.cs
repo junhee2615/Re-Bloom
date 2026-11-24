@@ -47,6 +47,10 @@ public class Stage3RiverCutscene : MonoBehaviour
     [Tooltip("컷씬이 끝나고 원래 자리로 돌아온 뒤")]
     public UnityEvent onCutsceneFinished;
 
+    [Header("텔레포터 안내 컷씬")]
+    [Tooltip("수변 복원 컷씬 종료 후 연속 재생할 텔레포터 안내 컷씬. 미리보기에서는 사용하지 않는다.")]
+    [SerializeField] private WaterfrontTeleporterCutscene teleporterCutscene;
+
     [Header("Debug")]
     [SerializeField] private bool xrReady;
     [SerializeField] private bool isPlaying;
@@ -59,6 +63,7 @@ public class Stage3RiverCutscene : MonoBehaviour
     private bool pendingPlay;
     private bool hasPlayed;
     private bool shotStartedFired;
+    private bool isDebugPlay;
 
     private Vector3 originalXROriginPosition;
     private Quaternion originalXROriginRotation;
@@ -203,11 +208,18 @@ private IEnumerator Start()
         if (holdDuration > 0f)
             yield return new WaitForSeconds(holdDuration);
 
-        // 5. 검정 -> 원래 자리로 복귀 -> 게임 화면
+        // 5. 검정 -> 원래 자리로 복귀
         yield return FadeOutRoutine();
 
         hasCurrentShot = false;
         RestoreOriginalXRTransform();
+
+        if (!isDebugPlay && teleporterCutscene != null)
+        {
+            yield return StartCoroutine(
+                teleporterCutscene.PlayInSequenceRoutine());
+        }
+
         resonance.Restore();
         SetRemoteAvatarsVisible(true);
         SetTutorialCanvasVisible(true);
@@ -215,9 +227,14 @@ private IEnumerator Start()
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);
 
-        yield return null;
-        yield return FadeInRoutine();
+        if (isDebugPlay || teleporterCutscene == null)
+        {
+            yield return null;
+            yield return FadeInRoutine();
+        }
+
         isPlaying = false;
+        isDebugPlay = false;
 
         onCutsceneFinished?.Invoke();
     }
@@ -364,6 +381,7 @@ private IEnumerator FadeInRoutine()
             StartPreviewWithoutXR();
 
         // 여러 번 확인할 수 있게 재생 기록을 지운다
+        isDebugPlay = true;
         hasPlayed = false;
         shotStartedFired = false;
         Play();

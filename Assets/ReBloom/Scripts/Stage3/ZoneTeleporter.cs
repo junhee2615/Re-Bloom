@@ -16,6 +16,9 @@ public class ZoneTeleporter : NetworkBehaviour
     // 태양광 미션이 끝나야 전기가 흐른다 — 그 전에는 두 사람이 다 올라서도 작동하지 않는다.
     // 비워 두면 잠금 없이 항상 쓸 수 있다.
     [SerializeField] private ReBloom.Solar.SolarMissionManager requiredMission;
+    [Tooltip("수변 복원 미션 클리어 후 텔레포터 안내 컷씬까지 모두 완료돼야 작동한다. " +
+             "비워 두면 이 조건은 무시된다.")]
+    [SerializeField] private WaterfrontTeleporterCutscene requiredWaterfrontCutscene;
     [Header("감지 영역")]
     [SerializeField] private Collider boardingZone;
     [SerializeField] private float verticalTolerance = 2f; // 수직 판정치
@@ -41,6 +44,9 @@ public class ZoneTeleporter : NetworkBehaviour
     private bool doorInitialCaptured;
     private ReBloom.Solar.SolarFacilityClearCutscene facilityCutscene;
     private Stage3TeleporterCutscene teleporterCutscene;
+    private Stage3RiverCutscene riverCutscene;
+    private WaterfrontTeleporterCutscene waterfrontTeleporterCutscene;
+    private bool waterfrontCutsceneCompleted;
     // Host 전용 상태
     private int reportsReceived;
     private bool loadTriggered;
@@ -54,6 +60,13 @@ public class ZoneTeleporter : NetworkBehaviour
             FindFirstObjectByType<ReBloom.Solar.SolarFacilityClearCutscene>();
         teleporterCutscene =
             FindFirstObjectByType<Stage3TeleporterCutscene>();
+        riverCutscene =
+            FindFirstObjectByType<Stage3RiverCutscene>();
+        waterfrontTeleporterCutscene =
+            FindFirstObjectByType<WaterfrontTeleporterCutscene>();
+
+        if (requiredWaterfrontCutscene != null)
+            WaterfrontTeleporterCutscene.CutsceneFinished += OnWaterfrontCutsceneFinished;
 
         if (teleportAudio == null)
             teleportAudio = GetComponent<AudioSource>();
@@ -75,6 +88,17 @@ public class ZoneTeleporter : NetworkBehaviour
             glassDoor.localRotation = doorInitialLocalRotation;
     }
 
+    private void OnDestroy()
+    {
+        if (requiredWaterfrontCutscene != null)
+            WaterfrontTeleporterCutscene.CutsceneFinished -= OnWaterfrontCutsceneFinished;
+    }
+
+    private void OnWaterfrontCutsceneFinished()
+    {
+        waterfrontCutsceneCompleted = true;
+    }
+
     private void ResolveBoardingZone()
     {
         if (boardingZone != null)
@@ -91,8 +115,10 @@ public class ZoneTeleporter : NetworkBehaviour
         boardingZone = GetComponent<Collider>();
     }
 
-    /// <summary>지금 이 텔레포터를 쓸 수 있는가. 잠금 대상 미션이 없거나 끝났으면 true.</summary>
-    public bool IsUnlocked => requiredMission == null || requiredMission.IsClear;
+    /// <summary>지금 이 텔레포터를 쓸 수 있는가. 잠금 대상 미션/컷씬이 없거나 끝났으면 true.</summary>
+    public bool IsUnlocked =>
+        (requiredMission == null || requiredMission.IsClear) &&
+        (requiredWaterfrontCutscene == null || waterfrontCutsceneCompleted);
 
     public override void FixedUpdateNetwork()
     {
@@ -100,7 +126,9 @@ public class ZoneTeleporter : NetworkBehaviour
             return;
 
         if ((facilityCutscene != null && facilityCutscene.IsPlaying) ||
-            (teleporterCutscene != null && teleporterCutscene.IsPlaying))
+            (teleporterCutscene != null && teleporterCutscene.IsPlaying) ||
+            (riverCutscene != null && riverCutscene.IsPlaying) ||
+            (waterfrontTeleporterCutscene != null && waterfrontTeleporterCutscene.IsPlaying))
         {
             Player1On = false;
             Player2On = false;

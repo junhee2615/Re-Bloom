@@ -525,6 +525,37 @@ Transform:
   - {fileID: 864560410}
   m_Father: {fileID: 1325652206}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &60834106
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 60834107}
+  m_Layer: 0
+  m_Name: WaterfrontTeleporterEndShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &60834107
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 60834106}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.0573508, y: -0.3274922, z: 0.019919306, w: 0.9429014}
+  m_LocalPosition: {x: 25.383884, y: 15, z: 32.866127}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1642782724}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &62003335 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2458600123380616072, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -1007,6 +1038,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneTeleporter
   requiredMission: {fileID: 0}
+  requiredWaterfrontCutscene: {fileID: 0}
   boardingZone: {fileID: 92004259}
   verticalTolerance: 2
   waterfrontSpawnPoint: {fileID: 462404573}
@@ -2759,6 +2791,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneTeleporter
   requiredMission: {fileID: 0}
+  requiredWaterfrontCutscene: {fileID: 0}
   boardingZone: {fileID: 314806207}
   verticalTolerance: 2
   waterfrontSpawnPoint: {fileID: 1096892048}
@@ -3583,6 +3616,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1325652206}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &450492785
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 450492786}
+  m_Layer: 0
+  m_Name: WaterfrontTeleporterStartShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &450492786
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 450492785}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.073110744, y: -0.3271133, z: -0.025393112, w: 0.9418104}
+  m_LocalPosition: {x: 43.98, y: 3.9177742, z: 9.325}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1642782724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &452810903 stripped
 Transform:
@@ -5393,6 +5457,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneTeleporter
   requiredMission: {fileID: 0}
+  requiredWaterfrontCutscene: {fileID: 1642782723}
   boardingZone: {fileID: 722883609}
   verticalTolerance: 2
   waterfrontSpawnPoint: {fileID: 491706729}
@@ -12348,6 +12413,37 @@ Transform:
   - {fileID: 1493881862}
   m_Father: {fileID: 1321161136}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &948400150
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 948400151}
+  m_Layer: 0
+  m_Name: WaterfrontTeleporterRisePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &948400151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 948400150}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.01995787, y: -0.3280242, z: 0.0069318465, w: 0.94443303}
+  m_LocalPosition: {x: 43.98, y: 15, z: 9.325}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1642782724}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &949567144
 GameObject:
   m_ObjectHideFlags: 0
@@ -12930,6 +13026,11 @@ Transform:
 --- !u!4 &1013050342 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 994657649011311154, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1013124921 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7733625420045000345, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1014369445
@@ -14266,6 +14367,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 296259375900537959, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1180857377 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3710345973010473207, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1181329814
 GameObject:
   m_ObjectHideFlags: 0
@@ -15437,6 +15543,7 @@ MonoBehaviour:
   onCutsceneFinished:
     m_PersistentCalls:
       m_Calls: []
+  teleporterCutscene: {fileID: 1642782723}
   xrReady: 0
   isPlaying: 0
 --- !u!1 &1255167124
@@ -17606,6 +17713,102 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8572967393108444669, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1642782722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1642782724}
+  - component: {fileID: 1642782723}
+  m_Layer: 0
+  m_Name: WaterfrontTeleporterCutsceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1642782723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642782722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d60ff5c9803fa8148a715e70ed6b3d84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterfrontTeleporterCutscene
+  startShot: {fileID: 450492786}
+  risePoint: {fileID: 948400151}
+  endShot: {fileID: 60834107}
+  fadeDuration: 0.6
+  riseDuration: 2.5
+  forwardDuration: 4
+  holdDuration: 2.5
+  cornerBlendDistance: 3
+  movementEaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  teleporterVfxObjects:
+  - {fileID: 1180857377}
+  - {fileID: 1013124921}
+  teleporterActivateClip: {fileID: 8300000, guid: 7a3c33f82b48d6e4999244bba62a9e78, type: 3}
+  teleporterActivateVolume: 0.4
+  effectSource: {fileID: 0}
+  smoothCameraMovement: 1
+  followYaw: 1
+  followPitch: 0
+  disableResonance: 1
+  disableBuiltinFog: 1
+  hideRemoteAvatars: 1
+  lockLocomotion: 1
+  hideTutorialCanvas: 1
+  xrReady: 0
+  isPlaying: 0
+  debugLog: 0
+--- !u!4 &1642782724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642782722}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 450492786}
+  - {fileID: 948400151}
+  - {fileID: 60834107}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1645056486
 GameObject:
   m_ObjectHideFlags: 0
@@ -22394,6 +22597,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3710345973010473207, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3727079058649284935, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -22641,6 +22848,10 @@ PrefabInstance:
     - target: {fileID: 7718760640348907418, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7733625420045000345, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8400531563662202665, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       propertyPath: m_Enabled
@@ -23049,3 +23260,4 @@ SceneRoots:
   - {fileID: 1800969848}
   - {fileID: 861314861}
   - {fileID: 660347105}
+  - {fileID: 1642782724}
