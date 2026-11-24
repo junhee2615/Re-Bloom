@@ -15,6 +15,14 @@ using UnityEngine;
 /// </summary>
 public class ResonanceCutsceneOverride
 {
+    private static int fogSuppressionDepth;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetFogSuppressionDepth()
+    {
+        fogSuppressionDepth = 0;
+    }
+
     private const BindingFlags Flags =
         BindingFlags.Instance |
         BindingFlags.Public |
@@ -77,6 +85,8 @@ public class ResonanceCutsceneOverride
             return;
 
         applied = true;
+        fogSuppressionDepth++;
+        FogRendererFeatureSceneController.SetFogSuppressed(true);
 
         // 1) 씬 자체의 RenderSettings 안개
         if (disableBuiltinFog)
@@ -255,6 +265,9 @@ public class ResonanceCutsceneOverride
             return;
 
         applied = false;
+        fogSuppressionDepth = Mathf.Max(0, fogSuppressionDepth - 1);
+        if (fogSuppressionDepth == 0)
+            FogRendererFeatureSceneController.SetFogSuppressed(false);
 
         if (builtinFogOverridden)
         {

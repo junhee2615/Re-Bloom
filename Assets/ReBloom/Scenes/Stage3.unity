@@ -4884,6 +4884,69 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb22c6d6444ead74796801e19d41c3f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Electricity.ElectricityCoreMission
+--- !u!1 &660347103
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 660347105}
+  - component: {fileID: 660347104}
+  m_Layer: 0
+  m_Name: Stage3TeleporterCutsceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &660347104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660347103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9d6b59aa493233438cd95b9abbceeaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stage3TeleporterCutscene
+  teleporterCutsceneShot: {fileID: 861314861}
+  teleporterVfxObjects: []
+  teleporterActivateClip: {fileID: 8300000, guid: 7a3c33f82b48d6e4999244bba62a9e78, type: 3}
+  teleporterActivateVolume: 0.4
+  effectSource: {fileID: 0}
+  fadeDuration: 0.6
+  cameraMoveDistance: 2
+  cameraMoveDuration: 4
+  viewHoldDuration: 2
+  smoothCameraMovement: 1
+  followYaw: 1
+  followPitch: 0
+  disableResonance: 1
+  disableBuiltinFog: 1
+  hideRemoteAvatars: 1
+  lockLocomotion: 1
+  hideTutorialCanvas: 1
+  xrReady: 0
+  isPlaying: 0
+--- !u!4 &660347105
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660347103}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -11.00384, y: 70.63011, z: -35.91243}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &661699611 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8200561941485467036, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -11687,6 +11750,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 860806078}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &861314860
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 861314861}
+  m_Layer: 0
+  m_Name: Stage3TeleporterCutsceneShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &861314861
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861314860}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.11585508, y: 0.46214306, z: -0.059468716, w: -0.8771915}
+  m_LocalPosition: {x: -5.94, y: 69.99, z: -46.76}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &864560409
 GameObject:
   m_ObjectHideFlags: 0
@@ -21223,6 +21317,7 @@ MonoBehaviour:
     particle: {fileID: 1449234643}
   shotPoint: {fileID: 510645592}
   repairCutscene: {fileID: 1600850867}
+  teleporterCutscene: {fileID: 660347104}
   fadeDuration: 0.5
   viewHold: 2
   glowColor: {r: 0, g: 7.9999995, b: 6.3999996, a: 1}
@@ -21233,7 +21328,7 @@ MonoBehaviour:
   stabilizeDuration: 2
   persistentGlowIntensity: 1
   particleFadeDuration: 2.5
-  particleHoldDuration: 4
+  particleHoldDuration: 1.5
   energyHumClip: {fileID: 8300000, guid: 3f1a7d69cf8443f48a049acc3720b33e, type: 3}
   energyHumVolume: 0.4
   followYaw: 1
@@ -22872,3 +22967,5 @@ SceneRoots:
   - {fileID: 510645592}
   - {fileID: 2070407850}
   - {fileID: 1800969848}
+  - {fileID: 861314861}
+  - {fileID: 660347105}

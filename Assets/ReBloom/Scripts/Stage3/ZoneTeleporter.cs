@@ -39,6 +39,8 @@ public class ZoneTeleporter : NetworkBehaviour
     private ScreenFade screenFade;
     private Quaternion doorInitialLocalRotation; // 유리문의 원래 각도
     private bool doorInitialCaptured;
+    private ReBloom.Solar.SolarFacilityClearCutscene facilityCutscene;
+    private Stage3TeleporterCutscene teleporterCutscene;
     // Host 전용 상태
     private int reportsReceived;
     private bool loadTriggered;
@@ -48,6 +50,10 @@ public class ZoneTeleporter : NetworkBehaviour
     {
         ResolveBoardingZone();
         CaptureDoorInitialRotation();
+        facilityCutscene =
+            FindFirstObjectByType<ReBloom.Solar.SolarFacilityClearCutscene>();
+        teleporterCutscene =
+            FindFirstObjectByType<Stage3TeleporterCutscene>();
 
         if (teleportAudio == null)
             teleportAudio = GetComponent<AudioSource>();
@@ -92,6 +98,14 @@ public class ZoneTeleporter : NetworkBehaviour
     {
         if (!HasStateAuthority)
             return;
+
+        if ((facilityCutscene != null && facilityCutscene.IsPlaying) ||
+            (teleporterCutscene != null && teleporterCutscene.IsPlaying))
+        {
+            Player1On = false;
+            Player2On = false;
+            return;
+        }
 
         // 잠겨 있으면 탑승 판정 자체를 하지 않는다. 해제 뒤 이미 올라서 있던 사람도
         // 다음 틱에 정상적으로 잡히므로 따로 처리할 게 없다.

@@ -42,6 +42,10 @@ namespace ReBloom.Solar
         [Tooltip("개별 패널 복구 컷씬. IsBusy가 false가 될 때까지 기다린다.")]
         [SerializeField] SolarPanelRepairCutscene repairCutscene;
 
+        [Header("텔레포터 안내 컷씬")]
+        [Tooltip("시설 컷씬 종료 후 연속 재생할 텔레포터 안내 컷씬. 미리보기에서는 사용하지 않는다.")]
+        [SerializeField] Stage3TeleporterCutscene teleporterCutscene;
+
         [Header("페이드")]
         [SerializeField] float fadeDuration = 0.5f;
 
@@ -80,7 +84,7 @@ namespace ReBloom.Solar
         [SerializeField] float particleFadeDuration = 2.5f;
 
         [Tooltip("파티클이 완전히 활성화된 후 보여주는 시간(초).")]
-        [SerializeField] float particleHoldDuration = 4f;
+        [SerializeField] float particleHoldDuration = 1.5f;
 
         [Header("효과음")]
         [Tooltip("아웃라인 점멸이 시작될 때 재생할 사운드.")]
@@ -133,6 +137,7 @@ namespace ReBloom.Solar
         bool hasPlayed;
         bool xrReady;
         bool lateJoinApplied;
+        bool missionClearPending;
         bool energyHumStarted;
         bool blinkCompleted;
         AudioSource energyHumAudioSource;
@@ -173,6 +178,12 @@ namespace ReBloom.Solar
             screenFade = runtimeCamera.GetComponentInChildren<ScreenFade>(true);
             hardwareRig = FindFirstObjectByType<HardwareRig>();
             xrReady = true;
+
+            if (missionClearPending)
+            {
+                missionClearPending = false;
+                StartMissionClearSequence();
+            }
         }
 
         void OnEnable()
@@ -209,9 +220,19 @@ namespace ReBloom.Solar
         void OnMissionCleared()
         {
             if (hasPlayed || isPlaying) return;
-            if (!xrReady) return;
 
             hasPlayed = true;
+            if (!xrReady)
+            {
+                missionClearPending = true;
+                return;
+            }
+
+            StartMissionClearSequence();
+        }
+
+        void StartMissionClearSequence()
+        {
             StartCoroutine(WaitAndPlay());
         }
 
@@ -340,16 +361,25 @@ namespace ReBloom.Solar
             hasCurrentShot = false;
             cameraPushOffset = Vector3.zero;
             RestoreOriginalXRTransform();
-            resonance.Restore();
 
+            if (!preview && teleporterCutscene != null)
+            {
+                yield return StartCoroutine(
+                    teleporterCutscene.PlayInSequenceRoutine());
+            }
+
+            resonance.Restore();
             SetRemoteAvatarsVisible(true);
             SetTutorialCanvasVisible(true);
 
             if (lockLocomotion && hardwareRig != null)
                 hardwareRig.SetLocomotionLocked(false);
 
-            yield return null;
-            yield return FadeIn();
+            if (preview || teleporterCutscene == null)
+            {
+                yield return null;
+                yield return FadeIn();
+            }
 
             isPlaying = false;
 

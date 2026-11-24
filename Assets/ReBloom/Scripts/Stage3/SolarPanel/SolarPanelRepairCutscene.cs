@@ -256,13 +256,12 @@ namespace ReBloom.Solar
                 entry.cleanView.SetHoldVisual(true);
 
             activePanelEntry = entry;
+            isPlaying = true;
             StartCoroutine(PlayRoutine(entry));
         }
 
         private IEnumerator PlayRoutine(PanelEntry entry)
         {
-            isPlaying = true;
-
             // 1. 이동 잠금, UI 숨김
             if (lockLocomotion && hardwareRig != null)
                 hardwareRig.SetLocomotionLocked(true);
