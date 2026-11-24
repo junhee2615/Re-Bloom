@@ -41,6 +41,7 @@ public class Stage3TeleporterCutscene : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool xrReady;
     [SerializeField] private bool isPlaying;
+    [SerializeField] private bool debugLog;
 
     public static event Action CutsceneFinished;
 
@@ -66,6 +67,12 @@ public class Stage3TeleporterCutscene : MonoBehaviour
 
     public bool IsPlaying => isPlaying;
     public bool CanPlay => xrReady && !isPlaying;
+
+    private void Log(string msg)
+    {
+        if (!debugLog) return;
+        Debug.Log($"[Stage3Cutscene] F{Time.frameCount} T{Time.realtimeSinceStartup:F3} TeleporterCutscene - {msg}", this);
+    }
 
     private void OnEnable()
     {
@@ -138,17 +145,24 @@ public class Stage3TeleporterCutscene : MonoBehaviour
 
     private bool TryPlay(bool preview)
     {
+        Log($"TryPlay: preview={preview}, isPlaying={isPlaying}, xrReady={xrReady}");
+
         if (isPlaying)
+        {
+            Log("TryPlay: 거부 — 이미 재생 중");
             return false;
+        }
 
         if (!xrReady)
         {
             previewPlayback = preview;
             pendingPlay = true;
+            Log("TryPlay: xrReady=false → pendingPlay=true 설정");
             return false;
         }
 
         previewPlayback = preview;
+        Log("TryPlay: → PlayRoutine 시작");
         StartCoroutine(PlayRoutine(preview));
         return true;
     }
@@ -176,6 +190,7 @@ public class Stage3TeleporterCutscene : MonoBehaviour
 
     private IEnumerator PlayRoutine(bool preview)
     {
+        Log($"PlayRoutine 진입: preview={preview}");
         isPlaying = true;
         previewVfxInitialStates = preview
             ? CaptureVfxInitialStates()
@@ -210,7 +225,7 @@ public class Stage3TeleporterCutscene : MonoBehaviour
 
         isPlaying = false;
 
-        Debug.Log("[Stage3TeleporterCutscene] 텔레포터 컷씬 종료", this);
+        Log("PlayRoutine 종료");
 
         if (preview)
             RestorePreviewVfxStates();
@@ -225,8 +240,13 @@ public class Stage3TeleporterCutscene : MonoBehaviour
     /// </summary>
     internal IEnumerator PlayInSequenceRoutine()
     {
+        Log($"PlayInSequenceRoutine 진입: isPlaying={isPlaying}");
+
         if (isPlaying)
+        {
+            Log("PlayInSequenceRoutine: 거부 — 이미 재생 중");
             yield break;
+        }
 
         isPlaying = true;
         SaveOriginalXRTransform();
@@ -240,6 +260,7 @@ public class Stage3TeleporterCutscene : MonoBehaviour
         yield return FadeIn();
 
         isPlaying = false;
+        Log("PlayInSequenceRoutine 종료");
         CutsceneFinished?.Invoke();
     }
 
@@ -351,6 +372,17 @@ public class Stage3TeleporterCutscene : MonoBehaviour
         effectSource.Stop();
         effectSource.volume = teleporterActivateVolume;
         effectSource.PlayOneShot(teleporterActivateClip);
+    }
+
+    internal void ActivateForLateJoin()
+    {
+        Log("ActivateForLateJoin: 텔레포터 VFX 활성화 (사운드 없음)");
+        ResolveTeleporterVfxObjects();
+        foreach (GameObject vfxObject in teleporterVfxObjects)
+        {
+            if (vfxObject != null)
+                vfxObject.SetActive(true);
+        }
     }
 
     private void ApplyShotTransform()

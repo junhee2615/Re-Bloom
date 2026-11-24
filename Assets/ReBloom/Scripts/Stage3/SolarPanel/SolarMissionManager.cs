@@ -25,12 +25,40 @@ namespace ReBloom.Solar
         /// <summary>클리어된 순간 한 번. 연출·UI가 구독한다.</summary>
         public static event Action Cleared;
 
+        /// <summary>Spawned 시점에 IsClear가 이미 true인 경우(late-join). 컷씬 없이 영구 상태만 적용한다.</summary>
+        public static event Action LateJoinCleared;
+
         bool raised;   // 로컬에서 Cleared를 이미 쐈는가
+
+        [Header("Debug")]
+        [SerializeField] bool debugLog;
+
+        void Log(string msg)
+        {
+            if (!debugLog) return;
+            string tag = "?";
+            if (Runner != null)
+            {
+                string role = HasStateAuthority ? "Host" : "Client";
+                tag = $"P{Runner.LocalPlayer.PlayerId}/{role}";
+            }
+            Debug.Log($"[Stage3Cutscene] F{Time.frameCount} T{Time.realtimeSinceStartup:F3} [{tag}] MissionMgr - {msg}", this);
+        }
 
         public override void Spawned()
         {
             if (requiredPanels == null || requiredPanels.Length == 0)
                 requiredPanels = FindBrokenPanels();
+
+            Log($"Spawned: requiredPanels={requiredPanels.Length}, IsClear={IsClear}");
+
+            if (IsClear)
+            {
+                raised = true;
+                int subs = LateJoinCleared?.GetInvocationList()?.Length ?? 0;
+                Log($"Spawned: IsClear=true (late-join) → raised=true, LateJoinCleared 발화 (구독자={subs})");
+                LateJoinCleared?.Invoke();
+            }
         }
 
         // 시작 시 고장난 패널만 대상으로 삼는다. 처음부터 멀쩡한 판은 조건에 넣어도 의미가 없다.
@@ -57,6 +85,7 @@ namespace ReBloom.Solar
                 if (panel != null && panel.broken) return;
             }
 
+            Log($"FixedUpdateNetwork: 모든 패널 수리 완료 → IsClear=true");
             IsClear = true;
         }
 
@@ -66,12 +95,14 @@ namespace ReBloom.Solar
             if (raised || Object == null || !Object.IsValid || !IsClear) return;
 
             raised = true;
+            int subscribers = Cleared?.GetInvocationList()?.Length ?? 0;
+            Log($"Update: Cleared 이벤트 발화 (구독자={subscribers})");
             Cleared?.Invoke();
         }
 
         // 도메인 리로드를 꺼도 static 이벤트가 이전 플레이의 구독자를 물고 있지 않도록.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetEvent() => Cleared = null;
+        static void ResetEvent() { Cleared = null; LateJoinCleared = null; }
 
         [ContextMenu("Play Facility Clear Cutscene")]
         void ContextPlayFacilityClearCutscene()

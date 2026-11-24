@@ -98,6 +98,7 @@ namespace ReBloom.Solar
         [Header("Debug")]
         [SerializeField] private bool xrReady;
         [SerializeField] private bool isPlaying;
+        [SerializeField] private bool debugLog;
 
         private Camera runtimeCamera;
         private Transform xrHead;
@@ -130,6 +131,12 @@ namespace ReBloom.Solar
 
         /// <summary>컷씬 재생 중이거나 대기 큐에 패널이 남아 있는가. 전체 클리어 컷씬이 대기할 때 쓴다.</summary>
         public bool IsBusy => isPlaying || pendingQueue.Count > 0;
+
+        private void Log(string msg)
+        {
+            if (!debugLog) return;
+            Debug.Log($"[Stage3Cutscene] F{Time.frameCount} T{Time.realtimeSinceStartup:F3} RepairCutscene - {msg}", this);
+        }
 
         // ============================================================
         // Initialize
@@ -166,6 +173,7 @@ namespace ReBloom.Solar
             screenFade = runtimeCamera.GetComponentInChildren<ScreenFade>(true);
             hardwareRig = FindFirstObjectByType<HardwareRig>();
             xrReady = true;
+            Log("Start: xrReady=true");
         }
 
         private void OnEnable()
@@ -205,10 +213,17 @@ namespace ReBloom.Solar
         private void OnPanelRepaired(SolarReflector reflector)
         {
             PanelEntry entry = FindEntry(reflector);
-            if (entry == null) return;
+            if (entry == null)
+            {
+                Log($"OnPanelRepaired: {reflector.name} → entry 없음, 무시");
+                return;
+            }
+
+            Log($"OnPanelRepaired: {reflector.name}, isPlaying={isPlaying}, xrReady={xrReady}, queue={pendingQueue.Count}");
 
             if (entry.shotPoint == null)
             {
+                Log($"OnPanelRepaired: {reflector.name} → shotPoint 없음, 건너뜀");
                 Debug.LogWarning(
                     $"[SolarPanelRepairCutscene] {reflector.name}에 촬영 위치가 없어 컷씬을 건너뜁니다.",
                     this);
@@ -217,6 +232,7 @@ namespace ReBloom.Solar
 
             if (!xrReady)
             {
+                Log($"OnPanelRepaired: {reflector.name} → xrReady=false, 건너뜀");
                 Debug.LogWarning(
                     $"[SolarPanelRepairCutscene] XR이 아직 준비되지 않아 {reflector.name} 컷씬을 건너뜁니다.",
                     this);
@@ -230,9 +246,11 @@ namespace ReBloom.Solar
                     entry.cleanView.SetHoldVisual(true);
 
                 pendingQueue.Enqueue(entry);
+                Log($"OnPanelRepaired: {reflector.name} → 큐에 추가 (queue={pendingQueue.Count})");
                 return;
             }
 
+            Log($"OnPanelRepaired: {reflector.name} → 컷씬 직접 시작");
             StartCutscene(entry);
         }
 
@@ -257,11 +275,13 @@ namespace ReBloom.Solar
 
             activePanelEntry = entry;
             isPlaying = true;
+            Log($"StartCutscene: {entry.reflector?.name ?? "null"}, IsBusy={IsBusy}");
             StartCoroutine(PlayRoutine(entry));
         }
 
         private IEnumerator PlayRoutine(PanelEntry entry)
         {
+            Log($"PlayRoutine 시작: {entry.reflector?.name ?? "null"}");
             // 1. 이동 잠금, UI 숨김
             if (lockLocomotion && hardwareRig != null)
                 hardwareRig.SetLocomotionLocked(true);
@@ -324,10 +344,14 @@ namespace ReBloom.Solar
             yield return FadeInRoutine();
 
             isPlaying = false;
+            Log($"PlayRoutine 종료: {entry.reflector?.name ?? "null"}, queue={pendingQueue.Count}, IsBusy={IsBusy}");
 
             // 대기 중인 패널이 있으면 이어서 재생
             if (pendingQueue.Count > 0)
+            {
+                Log($"PlayRoutine: 큐에서 다음 패널 꺼냄 (남은 queue={pendingQueue.Count - 1})");
                 StartCutscene(pendingQueue.Dequeue());
+            }
         }
 
         private IEnumerator GlowRoutine(PanelEntry entry)

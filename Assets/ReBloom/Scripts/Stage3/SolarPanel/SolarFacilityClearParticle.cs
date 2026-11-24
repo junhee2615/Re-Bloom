@@ -61,7 +61,29 @@ namespace ReBloom.Solar
         ParticleSystemRenderer psRenderer;
         Material particleMaterial;
 
+        [Header("Debug")]
+        [SerializeField] bool debugLog;
+
         public bool IsPlaying => ps != null && ps.isPlaying;
+
+        void Log(string msg)
+        {
+            if (!debugLog) return;
+            Debug.Log($"[Stage3Cutscene] F{Time.frameCount} T{Time.realtimeSinceStartup:F3} ClearParticle({name}) - {msg}", this);
+        }
+
+        static string GetHierarchyPath(Transform t)
+        {
+            if (t == null) return "null";
+            string path = t.name;
+            Transform p = t.parent;
+            while (p != null)
+            {
+                path = p.name + "/" + path;
+                p = p.parent;
+            }
+            return path;
+        }
 
         public void Play()
         {
@@ -69,7 +91,21 @@ namespace ReBloom.Solar
             if (ps != null)
             {
                 ps.gameObject.SetActive(true);
-                ps.Play();
+                ps.Clear(true);
+                ps.Play(true);
+
+                Transform parent = ps.transform.parent;
+                string parentInfo = parent != null
+                    ? $"{parent.name} (activeSelf={parent.gameObject.activeSelf}, activeInHierarchy={parent.gameObject.activeInHierarchy})"
+                    : "NONE (scene root)";
+                Log($"Play: GO.activeSelf={ps.gameObject.activeSelf}, GO.activeInHierarchy={ps.gameObject.activeInHierarchy}, " +
+                    $"parent={parentInfo}, hierarchy={GetHierarchyPath(ps.transform)}, " +
+                    $"isPlaying={ps.isPlaying}, isEmitting={ps.isEmitting}, isStopped={ps.isStopped}, " +
+                    $"particleCount={ps.particleCount}, material={psRenderer?.material?.name ?? "null"}");
+            }
+            else
+            {
+                Log("Play: ps가 null — EnsureBuilt 실패");
             }
         }
 
@@ -92,11 +128,16 @@ namespace ReBloom.Solar
             if (ps != null) return;
 
             GameObject go = new GameObject("_ClearParticle");
-            go.transform.SetParent(transform, false);
-            go.transform.localPosition = Vector3.zero;
-            go.SetActive(false);
+            // 씬 루트에 배치 — 부모(FacilityClearParticle)가 SolarPanelCleanView에 의해
+            // 비활성화되어도 _ClearParticle의 activeInHierarchy가 유지된다.
+            go.transform.SetPositionAndRotation(transform.position, transform.rotation);
 
             ps = go.AddComponent<ParticleSystem>();
+
+            var main = ps.main;
+            main.playOnAwake = false;
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
             psRenderer = go.GetComponent<ParticleSystemRenderer>();
 
             ConfigureMain();
@@ -107,6 +148,13 @@ namespace ReBloom.Solar
             ConfigureColorOverLifetime();
             ConfigureSizeOverLifetime();
             ConfigureRenderer();
+
+            go.SetActive(false);
+
+            Log($"EnsureBuilt: shader={psRenderer?.material?.shader?.name ?? "null"}, " +
+                $"emission.rate={ps.emission.rateOverTime.constant}, " +
+                $"worldPos={go.transform.position}, parent={GetHierarchyPath(go.transform)}, " +
+                $"ownerHierarchy={GetHierarchyPath(transform)} (activeSelf={gameObject.activeSelf}, activeInHierarchy={gameObject.activeInHierarchy})");
         }
 
         void ConfigureMain()

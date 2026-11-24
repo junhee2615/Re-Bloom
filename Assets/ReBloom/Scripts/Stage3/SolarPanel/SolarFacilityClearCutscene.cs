@@ -113,6 +113,7 @@ namespace ReBloom.Solar
 
         [Header("Debug")]
         [SerializeField] bool isPlaying;
+        [SerializeField] bool debugLog;
 
         Camera runtimeCamera;
         Transform xrHead;
@@ -143,6 +144,12 @@ namespace ReBloom.Solar
         AudioSource energyHumAudioSource;
 
         public bool IsPlaying => isPlaying;
+
+        void Log(string msg)
+        {
+            if (!debugLog) return;
+            Debug.Log($"[Stage3Cutscene] F{Time.frameCount} T{Time.realtimeSinceStartup:F3} FacilityClear - {msg}", this);
+        }
 
         // ============================================================
         // Initialize
@@ -178,22 +185,37 @@ namespace ReBloom.Solar
             screenFade = runtimeCamera.GetComponentInChildren<ScreenFade>(true);
             hardwareRig = FindFirstObjectByType<HardwareRig>();
             xrReady = true;
+            Log($"Start: xrReady=true, missionClearPending={missionClearPending}, hasPlayed={hasPlayed}");
 
             if (missionClearPending)
             {
+                Log("Start: missionClearPending=true → StartMissionClearSequence 호출");
                 missionClearPending = false;
                 StartMissionClearSequence();
+            }
+
+            if (!hasPlayed && !lateJoinApplied)
+            {
+                SolarMissionManager mgr = FindFirstObjectByType<SolarMissionManager>();
+                if (mgr != null && mgr.Object != null && mgr.Object.IsValid && mgr.IsClear)
+                {
+                    Log("Start: XR 초기화 후 IsClear=true 감지 → LateJoinCleared 이벤트 미수신 보정");
+                    OnLateJoinCleared();
+                }
             }
         }
 
         void OnEnable()
         {
             SolarMissionManager.Cleared += OnMissionCleared;
+            SolarMissionManager.LateJoinCleared += OnLateJoinCleared;
+            Log("OnEnable: Cleared + LateJoinCleared 이벤트 구독 완료");
         }
 
         void OnDisable()
         {
             SolarMissionManager.Cleared -= OnMissionCleared;
+            SolarMissionManager.LateJoinCleared -= OnLateJoinCleared;
             StopAllCoroutines();
             StopEffectSounds();
 
@@ -219,57 +241,79 @@ namespace ReBloom.Solar
 
         void OnMissionCleared()
         {
-            if (hasPlayed || isPlaying) return;
+            Log($"OnMissionCleared: hasPlayed={hasPlayed}, isPlaying={isPlaying}, xrReady={xrReady}, lateJoinApplied={lateJoinApplied}");
+
+            if (hasPlayed || isPlaying)
+            {
+                Log($"OnMissionCleared: 무시됨 (hasPlayed={hasPlayed}, isPlaying={isPlaying})");
+                return;
+            }
 
             hasPlayed = true;
             if (!xrReady)
             {
                 missionClearPending = true;
+                Log("OnMissionCleared: xrReady=false → missionClearPending=true 설정 후 대기");
                 return;
             }
 
+            Log("OnMissionCleared: → StartMissionClearSequence 호출");
             StartMissionClearSequence();
         }
 
         void StartMissionClearSequence()
         {
+            Log("StartMissionClearSequence: WaitAndPlay 코루틴 시작");
             StartCoroutine(WaitAndPlay());
         }
 
         IEnumerator WaitAndPlay()
         {
+            Log($"WaitAndPlay 진입: repairCutscene={repairCutscene != null}, IsBusy={repairCutscene?.IsBusy}");
+
             if (repairCutscene != null)
             {
+                if (repairCutscene.IsBusy)
+                    Log("WaitAndPlay: repairCutscene.IsBusy=true → 대기 시작");
+
                 while (repairCutscene.IsBusy)
                     yield return null;
+
+                Log("WaitAndPlay: repairCutscene.IsBusy=false → 대기 종료");
             }
 
             // Stage3EndingCutscene이 이미 시작됐으면 컷씬 충돌 회피
             Stage3EndingCutscene ending = FindFirstObjectByType<Stage3EndingCutscene>();
             if (ending != null && ending.IsPlaying)
             {
+                Log("WaitAndPlay: Stage3EndingCutscene 재생 중 → ApplyPersistentState만 적용, 컷씬 건너뜀");
                 ApplyPersistentState();
                 yield break;
             }
 
+            Log("WaitAndPlay: → PlayRoutine(preview=false) 시작");
             yield return PlayRoutine(false);
+            Log("WaitAndPlay: PlayRoutine 완료");
         }
 
         // ============================================================
         // Late Join
         // ============================================================
 
-        void Update()
+        void OnLateJoinCleared()
         {
-            if (lateJoinApplied || hasPlayed) return;
+            Log($"OnLateJoinCleared: lateJoinApplied={lateJoinApplied}, hasPlayed={hasPlayed}");
 
-            SolarMissionManager mgr = FindFirstObjectByType<SolarMissionManager>();
-            if (mgr == null || mgr.Object == null || !mgr.Object.IsValid) return;
-            if (!mgr.IsClear) return;
+            if (lateJoinApplied || hasPlayed)
+            {
+                Log("OnLateJoinCleared: 무시됨 (이미 처리됨)");
+                return;
+            }
 
             lateJoinApplied = true;
             hasPlayed = true;
 
+            Log("OnLateJoinCleared: → ForceRepairAllPanels + ApplyPersistentState (컷씬 없이 영구 상태만 적용)");
             ForceRepairAllPanels();
             ApplyPersistentState();
         }
@@ -292,6 +336,7 @@ namespace ReBloom.Solar
 
         void ApplyPersistentState()
         {
+            Log($"ApplyPersistentState: panels={panels.Length}, persistentGlowIntensity={persistentGlowIntensity}");
             SetupPersistentGlows(persistentGlowIntensity);
             PlayEnergyHum();
 
@@ -300,6 +345,9 @@ namespace ReBloom.Solar
                 if (entry?.particle != null)
                     entry.particle.Play();
             }
+
+            if (teleporterCutscene != null)
+                teleporterCutscene.ActivateForLateJoin();
         }
 
         // ============================================================
@@ -308,6 +356,7 @@ namespace ReBloom.Solar
 
         IEnumerator PlayRoutine(bool preview)
         {
+            Log($"PlayRoutine 진입: preview={preview}, shotPoint={shotPoint != null}, panels={panels.Length}");
             isPlaying = true;
             ResetEffectPlayedFlags();
             StopEffectSounds();
@@ -319,17 +368,21 @@ namespace ReBloom.Solar
             SetTutorialCanvasVisible(false);
 
             // --- 01. 전체 시설 조망 ---
+            Log("PlayRoutine: 01. FadeOut 시작");
             yield return FadeOut();
 
             resonance.Disable(true);
             SaveOriginalXRTransform();
+            Log($"PlayRoutine: 01. XR Origin 저장 완료, pos={originalXROriginPosition}");
 
             SetCurrentShotTransform(shotPoint.position, shotPoint.rotation);
+            Log($"PlayRoutine: 01. ShotPoint 이동 완료, shotPos={shotPoint.position}");
 
             // 빔을 하늘로 정렬 — 컷씬 중 패널 위에 서 있어도 aimAtSunWhenIdle로 하늘 방향 보장
             ForceBeamsToSky(true);
 
             yield return FadeIn();
+            Log("PlayRoutine: 01. FadeIn 완료, 시설 조망 시작");
 
             // --- 카메라 전진 시작 (병렬) ---
             float pushDuration = viewHold + blinkDuration + particleFadeDuration;
@@ -337,6 +390,7 @@ namespace ReBloom.Solar
                 StartCoroutine(CameraPushRoutine(pushDuration));
 
             // --- 02. 아웃라인 발광 ---
+            Log("PlayRoutine: 02. 아웃라인 발광 시작");
             SetupPersistentGlows(0f);
             blinkCompleted = false;
             StartCoroutine(BlinkRoutine());
@@ -348,6 +402,7 @@ namespace ReBloom.Solar
                 yield return null;
 
             // --- 03. 빛 입자 활성화 (아웃라인 안정화와 병렬) ---
+            Log("PlayRoutine: 03. 파티클 활성화 + 아웃라인 안정화 시작");
             StartCoroutine(StabilizeRoutine());
             yield return ParticleFadeInRoutine();
 
@@ -356,6 +411,7 @@ namespace ReBloom.Solar
                 yield return new WaitForSeconds(particleHoldDuration);
 
             // --- 04. 컷씬 종료 ---
+            Log("PlayRoutine: 04. 컷씬 종료 FadeOut 시작");
             yield return FadeOut();
 
             hasCurrentShot = false;
@@ -364,8 +420,14 @@ namespace ReBloom.Solar
 
             if (!preview && teleporterCutscene != null)
             {
+                Log($"PlayRoutine: 텔레포터 컷씬 연속 재생 시작 (teleporterCutscene={teleporterCutscene.name})");
                 yield return StartCoroutine(
                     teleporterCutscene.PlayInSequenceRoutine());
+                Log("PlayRoutine: 텔레포터 컷씬 연속 재생 완료");
+            }
+            else
+            {
+                Log($"PlayRoutine: 텔레포터 컷씬 건너뜀 (preview={preview}, teleporterCutscene={teleporterCutscene != null})");
             }
 
             resonance.Restore();
@@ -382,6 +444,7 @@ namespace ReBloom.Solar
             }
 
             isPlaying = false;
+            Log($"PlayRoutine 종료: preview={preview}");
 
             if (preview)
                 StopEffectSounds();
@@ -566,19 +629,31 @@ namespace ReBloom.Solar
 
         IEnumerator ParticleFadeInRoutine()
         {
-            // 순차적으로 패널을 활성화하여 자연스러운 등장
             float interval = panels.Length > 0
                 ? particleFadeDuration / panels.Length
                 : particleFadeDuration;
 
-            foreach (PanelEntry entry in panels)
+            Log($"ParticleFadeInRoutine: panels={panels.Length}, interval={interval:F3}s");
+
+            for (int i = 0; i < panels.Length; i++)
             {
+                PanelEntry entry = panels[i];
                 if (entry?.particle != null)
+                {
                     entry.particle.Play();
+                    Log($"ParticleFadeInRoutine: 패널[{i}] particle.Play() 호출, " +
+                        $"IsPlaying={entry.particle.IsPlaying}");
+                }
+                else
+                {
+                    Log($"ParticleFadeInRoutine: 패널[{i}] particle 참조 없음 (null)");
+                }
 
                 if (interval > 0f)
                     yield return new WaitForSeconds(interval);
             }
+
+            Log("ParticleFadeInRoutine: 완료");
         }
 
         // ============================================================
@@ -728,6 +803,7 @@ namespace ReBloom.Solar
 
         void ForceCleanup()
         {
+            Log("ForceCleanup: 비상 정리 실행");
             isPlaying = false;
             hasCurrentShot = false;
             cameraPushOffset = Vector3.zero;
