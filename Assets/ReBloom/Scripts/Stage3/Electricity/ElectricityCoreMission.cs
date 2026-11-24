@@ -280,5 +280,82 @@ namespace ReBloom.Electricity
             Failed = null;
             Cleared = null;
         }
+
+#if UNITY_EDITOR
+        [ContextMenu("Debug Clear Mission 3")]
+        void DebugClearMission()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning(
+                    "[전기코어] Play 모드에서만 실행할 수 있습니다.", this);
+                return;
+            }
+
+            if (IsSpawned ? (bool)IsClear : raisedClear)
+            {
+                Debug.LogWarning(
+                    "[전기코어] 이미 미션이 완료된 상태입니다.", this);
+                return;
+            }
+
+            Debug.Log(
+                "[전기코어] <b>Debug Clear Mission 3 — 개발자용 강제 완료</b>\n" +
+                "  실행 경로: Cleared 이벤트 → ElectricityClearTrigger(수면 상승) · " +
+                "PlantCoreFlowerBloom(꽃 개화) · PlantCoreTreeGrow(나무 성장 → 엔딩)\n" +
+                "  이 로그는 테스트용 강제 완료입니다. " +
+                "실제 미션 성공 조건을 충족하지 않았습니다.", this);
+
+            DebugPrepareSeedButton();
+
+            if (IsSpawned && HasStateAuthority)
+            {
+                IsClear = true;
+                IsRunning = false;
+            }
+            else
+            {
+                raisedClear = true;
+                Cleared?.Invoke();
+            }
+
+            DebugStartRestoredBgm();
+        }
+
+        void DebugPrepareSeedButton()
+        {
+            var seedButton = FindFirstObjectByType<PlantCoreSeedButton>();
+            if (seedButton == null) return;
+
+            var field = typeof(PlantCoreSeedButton).GetField("sequenceStarted",
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance);
+            if (field != null && (bool)field.GetValue(seedButton))
+                return;
+
+            var method = typeof(PlantCoreSeedButton).GetMethod("ApplyFinalState",
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance);
+            method?.Invoke(seedButton, null);
+
+            if (seedButton.Object != null && seedButton.Object.IsValid &&
+                seedButton.HasStateAuthority)
+                seedButton.IsPressed = true;
+
+            Debug.Log("[전기코어] PlantCoreSeedButton 선행 상태를 적용했습니다 " +
+                      "(씨앗 → 새싹 즉시 완료).", this);
+        }
+
+        void DebugStartRestoredBgm()
+        {
+            var bgm = FindFirstObjectByType<Stage3RestoredBgm>();
+            if (bgm == null) return;
+
+            if (IsSpawned)
+                bgm.TryStartRestoredBgm();
+            else
+                bgm.TryStartRestoredBgmForEditorTest();
+        }
+#endif
     }
 }
