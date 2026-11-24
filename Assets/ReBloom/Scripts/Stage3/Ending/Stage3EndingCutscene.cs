@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ReBloom.Electricity;
+using ReBloom.Rendering;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
@@ -776,6 +777,10 @@ public class Stage3EndingCutscene : MonoBehaviour
             // Unity 빌트인 안개(Lighting > Environment > Fog)도 함께 끈다.
             // 원래 값은 ResonanceCutsceneOverride.FreezeForFogClear가 이미 저장했으므로 Restore에서 복원된다.
             RenderSettings.fog = false;
+
+            // 복원 전 색감 필터(RestorationColor, Stage3는 채도 -65 · 노출 -0.4 · 대비 +15)도 즉시 끈다.
+            // 회색 필터처럼 보이던 원인은 이쪽이다 — 안개와는 별개의 렌더러 피처라서 안개를 꺼도 남는다.
+            RestorationColorSceneController.DeactivateAll();
         }
 
         if (glowLight != null)
