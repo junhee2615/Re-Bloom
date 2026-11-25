@@ -380,6 +380,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1804919512}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &51515091
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 51515092}
+  m_Layer: 0
+  m_Name: PlantCoreClearEndShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &51515092
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51515091}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.9962682, z: -0, w: 0.08631143}
+  m_LocalPosition: {x: 2.72, y: 41.1058, z: 138.19}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 916568388}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &52716596
 GameObject:
   m_ObjectHideFlags: 0
@@ -1414,7 +1445,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 782bb3e245610614db3499aecdb3ae39, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.6
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -2102,11 +2133,11 @@ MonoBehaviour:
   seedDropAudio: {fileID: 182550568}
   dropY: -1.008
   dropDuration: 0.74
-  waitAfterDrop: 3
+  waitAfterDrop: 0.5
   sinkY: -1.049
-  sinkDuration: 2
+  sinkDuration: 1
   sproutTargetScale: 1
-  growDuration: 3
+  growDuration: 2
 --- !u!114 &270396709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2280,6 +2311,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4395806115382354583, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &287844950
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 287844951}
+  m_Layer: 0
+  m_Name: PlantCoreClearStartShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &287844951
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287844950}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.9962682, z: -0, w: 0.08631143}
+  m_LocalPosition: {x: 2.97, y: 41.496, z: 136.78}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 916568388}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &295480992 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5018743240766477918, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -12156,6 +12218,123 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5659285777022109873, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &916568386
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 916568388}
+  - component: {fileID: 916568387}
+  - component: {fileID: 916568389}
+  m_Layer: 0
+  m_Name: PlantCoreClearCutsceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &916568387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 916568386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 230f3a1ec6612c14d84e78220e31ffcc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlantCoreClearCutscene
+  startShot: {fileID: 287844951}
+  endShot: {fileID: 51515092}
+  fadeDuration: 0.5
+  startHoldDuration: 0
+  moveDuration: 4.24
+  endHoldDuration: 1.5
+  seedButton: {fileID: 270396708}
+  cameraMovementDelay: 0
+  plantParticle: {fileID: 916568389}
+  sproutGrowClip: {fileID: 8300000, guid: ca16f90f4a1472d47948aaf3a030e291, type: 3}
+  sproutGrowVolume: 0.7
+  movementEaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  startYawOffsetDeg: 190
+  disableResonance: 1
+  disableBuiltinFog: 1
+  hideRemoteAvatars: 1
+  lockLocomotion: 1
+  hideTutorialCanvas: 1
+  xrReady: 0
+  isPlaying: 0
+--- !u!4 &916568388
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 916568386}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 287844951}
+  - {fileID: 51515092}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &916568389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 916568386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 918318b3d69d9054f818115b30ba5a6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlantCoreParticle
+  seedColor: {r: 0.6, g: 1.8, b: 0.3, a: 1}
+  seedEmitRadius: 0.07
+  seedRateOverTime: 18
+  seedLifetime: 0.75
+  seedSizeMin: 0.006
+  seedSizeMax: 0.02
+  seedRiseSpeed: 0.06
+  seedPlayDuration: 1
+  sproutColor: {r: 0.35, g: 2, b: 0.25, a: 1}
+  sproutEmitRadius: 0.1
+  sproutRateOverTime: 7
+  sproutLifetime: 1.4
+  sproutSizeMin: 0.006
+  sproutSizeMax: 0.018
+  sproutRiseSpeed: 0.14
 --- !u!4 &917787066 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5476667534185591499, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -23450,3 +23629,4 @@ SceneRoots:
   - {fileID: 660347105}
   - {fileID: 1642782724}
   - {fileID: 2092242698}
+  - {fileID: 916568388}

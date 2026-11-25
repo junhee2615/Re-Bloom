@@ -24,13 +24,17 @@ public class PlantCoreSeedButton : NetworkBehaviour
     [SerializeField] private float dropY = -1.008f;
     [SerializeField] private float dropDuration = 0.35f;
     [Tooltip("떨어진 뒤 빨려 들어가기 전까지 기다리는 시간(초)")]
-    [SerializeField] private float waitAfterDrop = 3f;
+    [SerializeField] private float waitAfterDrop = 0.5f;
     [SerializeField] private float sinkY = -1.049f;
-    [SerializeField] private float sinkDuration = 2f;
+    [SerializeField] private float sinkDuration = 1f;
 
     [Header("새싹")]
     [SerializeField] private float sproutTargetScale = 1f;
-    [SerializeField] private float growDuration = 3f;
+    [SerializeField] private float growDuration = 2f;
+
+    // 컷씬이 등록됐을 때 StartSequence 호출 시점을 컷씬이 제어하도록 위임한다.
+    // 등록된 리스너가 없으면 StartSequence를 직접 실행하는 기존 동작을 유지한다.
+    public event System.Action OnPressed;
 
     private ChangeDetector changes;
     private bool sequenceStarted;
@@ -49,8 +53,15 @@ public class PlantCoreSeedButton : NetworkBehaviour
     public override void Render()
     {
         foreach (var change in changes.DetectChanges(this))
+        {
             if (change == nameof(IsPressed) && IsPressed)
-                StartSequence();
+            {
+                if (OnPressed != null)
+                    OnPressed.Invoke(); // 컷씬이 FadeIn 후 StartSequence를 직접 호출
+                else
+                    StartSequence();   // 컷씬 미연결 시 직접 실행 (폴백)
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -73,8 +84,11 @@ public class PlantCoreSeedButton : NetworkBehaviour
 
         if (!IsNetworked)
         {
-            // 세션 없이 혼자 테스트할 때
-            StartSequence();
+            // 컷씬이 연결됐으면 컷씬 → 씨앗 순서로 실행, 미연결 시 직접 실행
+            if (OnPressed != null)
+                OnPressed.Invoke();
+            else
+                StartSequence();
             return;
         }
 
