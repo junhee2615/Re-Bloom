@@ -105,8 +105,59 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8375315928155067517}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8743526445133249000}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2627588747113173045}
   m_SourcePrefab: {fileID: 100100000, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+--- !u!1 &7044245110095393343 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}
+  m_PrefabInstance: {fileID: 7855199462699405166}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8743526445133249000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7044245110095393343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2bf99feb0c3be646a0f867d8ce22e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarPanelCleanView
+  brokenMaterial: {fileID: 2100000, guid: 6d07c8280e7be9a4ab502c6fb8cbc46d, type: 2}
+  cleanMaterial: {fileID: 2100000, guid: 6d07c8280e7be9a4ab502c6fb8cbc46d, type: 2}
+  hideAddonsWhenClean: 0
+  alwaysKeepNames: []
+--- !u!114 &2627588747113173045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7044245110095393343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db066243d078ae144aa81ed3285de1e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReBloom.Solar.SolarFacilityClearParticle
+  emitRadius: 1.5
+  rateOverTime: 12
+  particleLifetime: 4
+  sizeMin: 0.03
+  sizeMax: 0.08
+  riseSpeed: 0.3
+  swayStrength: 0.15
+  colorCyan: {r: 0, g: 1.5, b: 1.2, a: 1}
+  colorGreen: {r: 0.6, g: 1.5, b: 0.3, a: 1}
+  emissionIntensity: 2
+  particleTexture: {fileID: 0}
+  debugLog: 0
 --- !u!4 &7676947653945780357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91bb205adccb0104ea56a66aac9bad33, type: 3}

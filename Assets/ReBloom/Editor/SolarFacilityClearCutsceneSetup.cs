@@ -76,8 +76,6 @@ public static class SolarFacilityClearCutsceneSetup
 
         foreach (SolarReflector r in allReflectors)
         {
-            if (!r.broken) continue;
-
             // 중복 검사
             bool found = false;
             for (int i = 0; i < panelsProp.arraySize; i++)
