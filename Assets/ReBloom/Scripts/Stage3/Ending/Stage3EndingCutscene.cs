@@ -93,8 +93,13 @@ public class Stage3EndingCutscene : MonoBehaviour
     [Tooltip("엔딩 코어 나무가 다 자란 뒤 엔딩까지의 뜸(초).")]
     [SerializeField, Min(0f)] private float delayAfterTreeGrown = 5f;
 
-    [Tooltip("나무 연출이 끝나지 않을 때(EndingCore가 꺼져 있는 등) 전기 미션 클리어 후 이 시간(초)이 지나면 그냥 시작한다. 0이면 쓰지 않는다.")]
+    [Tooltip("나무 연출이 끝나지 않을 때(EndingCore가 꺼져 있는 등) 전기 미션 클리어 후 이 시간(초)이 지나면 그냥 시작한다. 0이면 쓰지 않는다. " +
+             "온실 컷씬이 재생 중이면 그것이 끝날 때까지 기다린다.")]
     [SerializeField, Min(0f)] private float fallbackDelayAfterClear = 20f;
+
+    [Tooltip("전기 미션 클리어 때 먼저 재생할 온실 복구 컷씬. 있으면 나무 성장 대신 이 컷씬이 끝나는 순간 엔딩을 시작한다 " +
+             "(검은 화면 그대로 이어받는다). 비우면 씬에서 찾는다. 컷씬의 Play On Electricity Clear가 꺼져 있으면 기다리지 않는다.")]
+    [SerializeField] private GreenhouseClearCutscene greenhouseCutscene;
 
     [Header("연결")]
     [SerializeField] private PlayableDirector director;
@@ -245,6 +250,11 @@ public class Stage3EndingCutscene : MonoBehaviour
     private bool pendingPlay;
     private bool hasPlayed;
     private bool treeGrown;
+
+    // 클리어 순간 온실 컷씬을 기다리기로 했는가 / 그 컷씬이 끝났는가 / 검은 화면으로 넘겨받았는가
+    private bool waitForGreenhouse;
+    private bool greenhouseDone;
+    private bool startFromBlack;
 #if UNITY_EDITOR
     private bool editorTestRun;
 #endif
@@ -280,12 +290,17 @@ public class Stage3EndingCutscene : MonoBehaviour
 
         if (director != null)
             director.playOnAwake = false;
+
+        if (greenhouseCutscene == null)
+            greenhouseCutscene = FindFirstObjectByType<GreenhouseClearCutscene>();
     }
 
     private void OnEnable()
     {
         PlantCoreTreeGrow.Grown += OnTreeGrown;
         ElectricityCoreMission.Cleared += OnMissionCleared;
+        if (greenhouseCutscene != null)
+            greenhouseCutscene.Finished += OnGreenhouseFinished;
         CinemachineCore.CameraUpdatedEvent.AddListener(OnCameraUpdated);
     }
 
@@ -293,6 +308,8 @@ public class Stage3EndingCutscene : MonoBehaviour
     {
         PlantCoreTreeGrow.Grown -= OnTreeGrown;
         ElectricityCoreMission.Cleared -= OnMissionCleared;
+        if (greenhouseCutscene != null)
+            greenhouseCutscene.Finished -= OnGreenhouseFinished;
         CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
 #if UNITY_EDITOR
         editorTestRun = false;
@@ -340,23 +357,63 @@ public class Stage3EndingCutscene : MonoBehaviour
     private void OnTreeGrown()
     {
         treeGrown = true;
+
+        // 온실 컷씬이 이어받는 중이면 나무로는 시작하지 않는다(나무는 컷씬 안에서 자란다).
+        if (waitForGreenhouse) return;
+
         StartCoroutine(PlayAfter(delayAfterTreeGrown));
     }
 
     private void OnMissionCleared()
     {
+        // 클리어 순간에 정한다 — 이후 컷씬 설정이 바뀌어도 흐름이 갈리지 않게.
+        waitForGreenhouse = greenhouseCutscene != null && greenhouseCutscene.PlaysOnClear;
+        if (waitForGreenhouse)
+            greenhouseCutscene.HoldBlackAtEnd = true;
+
         if (fallbackDelayAfterClear > 0f)
             StartCoroutine(FallbackAfterClear());
+    }
+
+    // 온실 컷씬이 끝났다. endedBlack이면 화면이 검게 덮인 채라 페이드 아웃 없이 바로 시작한다.
+    private void OnGreenhouseFinished(bool endedBlack)
+    {
+        if (!waitForGreenhouse || greenhouseDone) return;
+        greenhouseDone = true;
+
+#if UNITY_EDITOR
+        // 헤드셋 없이 Debug Clear Mission 3으로 온 경우 — 온실 컷씬처럼 Game 뷰로 이어서 보여 준다.
+        if (!xrReady)
+            StartPreviewWithoutXR();
+#endif
+
+        startFromBlack = endedBlack;
+        Play();
+
+        // 엔딩을 시작하지 못했으면(셋업 누락 등) 검은 화면에 갇히지 않게 걷는다.
+        if (endedBlack && !hasPlayed && !pendingPlay)
+        {
+            startFromBlack = false;
+            if (screenFade != null)
+                StartCoroutine(screenFade.FadeIn(fadeInAtStart));
+        }
     }
 
     private IEnumerator FallbackAfterClear()
     {
         yield return new WaitForSeconds(fallbackDelayAfterClear);
 
-        if (treeGrown || hasPlayed) yield break;
+        // 온실 컷씬이 아직 재생 중이면 끝나기를 기다린다 — 끝나는 순간 OnGreenhouseFinished가 시작한다.
+        while (waitForGreenhouse && greenhouseCutscene != null && greenhouseCutscene.IsPlaying)
+            yield return null;
 
-        Debug.LogWarning("[Stage3Ending] 엔딩 코어 나무 연출이 끝나지 않아 클리어 기준으로 엔딩을 시작합니다. " +
-                         "EndingCore가 꺼져 있지 않은지 확인하세요.", this);
+        if (hasPlayed) yield break;
+        if (waitForGreenhouse ? greenhouseDone : treeGrown) yield break;
+
+        Debug.LogWarning(waitForGreenhouse
+            ? "[Stage3Ending] 온실 복구 컷씬이 재생되지 않아 클리어 기준으로 엔딩을 시작합니다."
+            : "[Stage3Ending] 엔딩 코어 나무 연출이 끝나지 않아 클리어 기준으로 엔딩을 시작합니다. " +
+              "EndingCore가 꺼져 있지 않은지 확인하세요.", this);
         Play();
     }
 
@@ -401,9 +458,15 @@ public class Stage3EndingCutscene : MonoBehaviour
         if (hideTutorialCanvas && hardwareRig != null)
             hardwareRig.SetTutorialCanvasVisible(false);
 
-        // 1. 게임 화면 -> 검정
+        // 1. 게임 화면 -> 검정. 온실 컷씬이 검은 화면으로 넘겨줬으면 그대로 이어받는다
+        //    (ScreenFade.FadeOut은 0부터 다시 올리므로 부르면 게임 화면이 한 번 번쩍인다).
         if (screenFade != null)
-            yield return StartCoroutine(screenFade.FadeOut(fadeOutBeforeStart));
+        {
+            if (startFromBlack)
+                screenFade.SetAlpha(1f);
+            else
+                yield return StartCoroutine(screenFade.FadeOut(fadeOutBeforeStart));
+        }
 
         // 2. 검은 화면에서 무대를 바꾼다
         if (hideAvatars)

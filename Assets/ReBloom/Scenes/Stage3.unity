@@ -5633,6 +5633,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00fdcad92de033b4d972557e9855e449, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GreenhouseClearCutscene
+  playOnElectricityClear: 1
   electricityShot: {fileID: 1134609437}
   electricityHoldDuration: 2
   waterFlowerShot: {fileID: 2035883018}
@@ -15507,6 +15508,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Stage3EndingCutscene
   delayAfterTreeGrown: 5
   fallbackDelayAfterClear: 20
+  greenhouseCutscene: {fileID: 685917227}
   director: {fileID: 1181329815}
   cutsceneBrain: {fileID: 274950061}
   cameraRoot: {fileID: 924692255}
