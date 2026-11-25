@@ -141,7 +141,11 @@ namespace ReBloom.Solar
         bool missionClearPending;
         bool energyHumStarted;
         bool blinkCompleted;
-        AudioSource energyHumAudioSource;
+
+        [Header("가동음 AudioSource (3D)")]
+        [Tooltip("SolarFacilityEnergyHum 오브젝트의 AudioSource. " +
+                 "Re_Bloom/Stage3/Setup Solar Facility Energy Hum 메뉴로 자동 연결.")]
+        [SerializeField] AudioSource energyHumAudioSource;
 
         public bool IsPlaying => isPlaying;
 
@@ -594,6 +598,14 @@ namespace ReBloom.Solar
         {
             if (energyHumStarted) return;
 
+            if (energyHumAudioSource == null)
+            {
+                Debug.LogWarning(
+                    "[FacilityClearCutscene] energyHumAudioSource가 연결되지 않았습니다. " +
+                    "Re_Bloom/Stage3/Setup Solar Facility Energy Hum 메뉴를 실행하세요.", this);
+                return;
+            }
+
             if (energyHumClip == null)
             {
                 Debug.LogWarning("[FacilityClearCutscene] EnergyHum AudioClip이 설정되지 않았습니다.", this);
@@ -601,13 +613,6 @@ namespace ReBloom.Solar
             }
 
             energyHumStarted = true;
-
-            if (energyHumAudioSource == null)
-            {
-                energyHumAudioSource = gameObject.AddComponent<AudioSource>();
-                energyHumAudioSource.playOnAwake = false;
-                energyHumAudioSource.spatialBlend = 0f;
-            }
 
             if (energyHumAudioSource.isPlaying)
                 return;
