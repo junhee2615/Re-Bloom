@@ -202,4 +202,82 @@ public class WaterValveRotate : NetworkBehaviour
 
         previousSoundAngle = CurrentAngle;
     }
+
+#if UNITY_EDITOR
+    private bool debugCleared;
+
+    [ContextMenu("Debug Clear Mission 3-1")]
+    void DebugClearMission()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning(
+                "[물코어] Play 모드에서만 실행할 수 있습니다.", this);
+            return;
+        }
+
+        bool spawned = Object != null && Object.IsValid;
+
+        if (spawned ? (bool)IsCleared : debugCleared)
+        {
+            Debug.LogWarning(
+                "[물코어] 이미 밸브가 클리어된 상태입니다.", this);
+            return;
+        }
+
+        if (spawned && !HasStateAuthority)
+        {
+            Debug.LogWarning(
+                "[물코어] StateAuthority가 없어 Networked 상태를 변경할 수 없습니다. " +
+                "Host 쪽에서 실행하세요.", this);
+            return;
+        }
+
+        Debug.Log(
+            "[물코어] <b>Debug Clear Mission 3-1 — 개발자용 강제 완료</b>\n" +
+            "  실행 경로: 밸브 360° 회전 완료 → 인터랙션 비활성화 → " +
+            "onValveCleared(배관 물줄기 + 폭포 사운드)\n" +
+            "  이 로그는 테스트용 강제 완료입니다. " +
+            "실제 밸브 회전 조건을 충족하지 않았습니다.", this);
+
+        DebugStopValveSound();
+
+        if (spawned)
+        {
+            float dir = rotateDirection < 0f ? -1f : 1f;
+            CurrentAngle = StartAngle + clearAngle * dir;
+            IsCleared = true;
+        }
+        else
+        {
+            debugCleared = true;
+            DebugApplyLocalClear();
+        }
+    }
+
+    void DebugStopValveSound()
+    {
+        if (valveMoveAudio != null && valveMoveAudio.isPlaying)
+        {
+            valveMoveAudio.Stop();
+            isSoundPaused = false;
+        }
+    }
+
+    void DebugApplyLocalClear()
+    {
+        float dir = rotateDirection < 0f ? -1f : 1f;
+        float startAngle = transform.localEulerAngles.z;
+        if (startAngle > 180f) startAngle -= 360f;
+        transform.localRotation =
+            Quaternion.Euler(0f, 0f, startAngle + clearAngle * dir);
+
+        var interactable = grabInteractable != null
+            ? grabInteractable
+            : GetComponent<XRBaseInteractable>();
+        if (interactable != null) interactable.enabled = false;
+
+        onValveCleared?.Invoke();
+    }
+#endif
 }

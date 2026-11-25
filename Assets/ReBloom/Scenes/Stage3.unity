@@ -3586,6 +3586,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9052034849480846591, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
   m_PrefabInstance: {fileID: 3846063778224516753}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &444772043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 444772044}
+  m_Layer: 0
+  m_Name: WaterCoreClearStartShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &444772044
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444772043}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.8660257, z: -0, w: 0.4999995}
+  m_LocalPosition: {x: 13.69, y: 41.6, z: 113.28}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2092242698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &448683124
 GameObject:
   m_ObjectHideFlags: 0
@@ -18725,6 +18756,37 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
+--- !u!1 &1710490887
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1710490888}
+  m_Layer: 0
+  m_Name: WaterCoreClearMidWaypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1710490888
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710490887}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.05748892, z: -0, w: 0.99834615}
+  m_LocalPosition: {x: 11.502994, y: 41.6, z: 118.24842}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2092242698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1728924649 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 834178345950077015, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -20683,6 +20745,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 391449903}
   m_LocalEulerAnglesHint: {x: -3.224, y: -89.898, z: -120.343}
+--- !u!1 &2002644446
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2002644447}
+  m_Layer: 0
+  m_Name: WaterCoreClearEndShot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2002644447
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002644446}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.60808486, z: -0, w: 0.79387206}
+  m_LocalPosition: {x: 9.6, y: 41.6, z: 121.46}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2092242698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2003443082
 GameObject:
   m_ObjectHideFlags: 0
@@ -21776,6 +21869,101 @@ Transform:
   m_Children:
   - {fileID: 315678279}
   m_Father: {fileID: 341212791}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2092242696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2092242698}
+  - component: {fileID: 2092242697}
+  m_Layer: 0
+  m_Name: WaterCoreClearCutsceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2092242697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092242696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3b76029e3e557145a524fdf6bf1186c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterCoreClearCutscene
+  startShot: {fileID: 444772044}
+  midWaypoint: {fileID: 1710490888}
+  endShot: {fileID: 2002644447}
+  fadeDuration: 0.5
+  startHoldDuration: 1
+  moveDuration: 3
+  endHoldDuration: 3
+  cornerBlendDistance: 2
+  movementEaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  followYaw: 1
+  followPitch: 0
+  lockCameraHeight: 1
+  yawRotationDegrees: 60
+  yawRotationDuration: 2
+  disableResonance: 1
+  disableBuiltinFog: 1
+  hideRemoteAvatars: 1
+  lockLocomotion: 1
+  hideTutorialCanvas: 1
+  waterFlowObjects:
+  - {fileID: 2012474236}
+  waterActivationProgress: 1
+  valveRotate: {fileID: 0}
+  xrReady: 0
+  isPlaying: 0
+--- !u!4 &2092242698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092242696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 444772044}
+  - {fileID: 1710490888}
+  - {fileID: 2002644447}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2100363354
 GameObject:
@@ -23261,3 +23449,4 @@ SceneRoots:
   - {fileID: 861314861}
   - {fileID: 660347105}
   - {fileID: 1642782724}
+  - {fileID: 2092242698}
