@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using ReBloom.Electricity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,11 +10,18 @@ using UnityEngine.UI;
 ///
 /// XR Origin 기반 위치 조정 — Main Camera 직접 이동 금지.
 /// PlantCoreClearCutscene 구조를 참고한 직선 보간 방식 (Yaw-only 회전).
-/// 카메라 미리보기 전용 — ElectricityCoreMission.Cleared 이벤트 연결 없음.
+///
+/// <see cref="ElectricityCoreMission.Cleared"/>를 받아 각 피어가 로컬에서 재생한다.
+/// 끝나면 <see cref="Finished"/>를 쏘고, <see cref="Stage3EndingCutscene"/>이 그것을 받아 이어서 시작한다.
+/// 엔딩이 이어받기로 했으면(<see cref="HoldBlackAtEnd"/>) 마지막 페이드 인을 생략하고 검은 화면으로 넘긴다.
 /// </summary>
 [AddComponentMenu("ReBloom/Stage3/Greenhouse Clear Cutscene")]
 public class GreenhouseClearCutscene : MonoBehaviour
 {
+    [Header("트리거")]
+    [Tooltip("전기 코어 미션 클리어 시 자동 재생. 끄면 ContextMenu로만 재생된다(엔딩도 기다리지 않는다).")]
+    [SerializeField] private bool playOnElectricityClear = true;
+
     [Header("ElectricityShot — 전기 코어 정면")]
     [Tooltip("전기 코어 정면에서 바라보는 카메라 위치 (Head Position).")]
     [SerializeField] private Transform electricityShot;
@@ -59,6 +68,22 @@ public class GreenhouseClearCutscene : MonoBehaviour
     [SerializeField] private bool isPlaying;
 
     public bool IsPlaying => isPlaying;
+
+    /// <summary>클리어로 재생될 예정이거나 재생 중인가. 엔딩이 자기 시작을 미룰지 판단한다.</summary>
+    public bool PlaysOnClear => playOnElectricityClear && isActiveAndEnabled;
+
+    /// <summary>
+    /// 클리어로 재생된 컷씬이 끝났다. 인자는 화면이 검게 덮인 채로 끝났는지
+    /// (true면 받는 쪽이 페이드 아웃 없이 바로 시작해야 하고, 시작하지 못하면 직접 걷어야 한다).
+    /// </summary>
+    public event Action<bool> Finished;
+
+    /// <summary>엔딩이 이어받는다 — 마지막 페이드 인을 생략하고 검은 화면으로 끝낸다(VR ScreenFade가 있을 때만).</summary>
+    public bool HoldBlackAtEnd { get; set; }
+
+    private bool clearPlayed;
+    private bool pendingPlay;
+    private bool raiseFinished;
 
     private Camera runtimeCamera;
     private Transform xrHead;
@@ -125,6 +150,46 @@ public class GreenhouseClearCutscene : MonoBehaviour
             $"  treeShot: {(treeShot != null ? treeShot.name : "null ← Inspector 미연결!")}\n" +
             $"  finalShot: {(finalShot != null ? finalShot.name : "null ← Inspector 미연결!")}",
             this);
+
+        if (pendingPlay)
+        {
+            pendingPlay = false;
+            TryPlay(false);
+        }
+    }
+
+    // ── 클리어 트리거 ────────────────────────────────────────
+
+    private void OnEnable() => ElectricityCoreMission.Cleared += OnElectricityCleared;
+
+    private void OnElectricityCleared()
+    {
+        if (!playOnElectricityClear || clearPlayed) return;
+        clearPlayed = true;
+        raiseFinished = true;
+
+        if (xrReady)
+        {
+            if (!TryPlay(previewMode)) AbortClearPlay();
+            return;
+        }
+
+#if UNITY_EDITOR
+        // 헤드셋 없이 Debug Clear Mission 3을 누른 경우 — XR Origin이 생기지 않으므로 Game 뷰로 보여 준다.
+        SetupPreviewMode();
+        if (!TryPlay(true)) AbortClearPlay();
+#else
+        // XR 카메라가 아직 없다(입장 직후 늦게 들어온 피어) — Start가 준비되면 재생한다.
+        pendingPlay = true;
+#endif
+    }
+
+    // 재생을 시작하지 못했다(미리보기가 이미 재생 중 등) — 엔딩이 영영 기다리지 않게 바로 넘긴다.
+    private void AbortClearPlay()
+    {
+        Debug.LogWarning("[GreenhouseClearCutscene] 클리어 컷씬을 시작하지 못해 엔딩으로 바로 넘깁니다.", this);
+        raiseFinished = false;
+        Finished?.Invoke(false);
     }
 
     private void LateUpdate()
@@ -226,10 +291,19 @@ public class GreenhouseClearCutscene : MonoBehaviour
 
         yield return null;
 
-        // 13. FadeIn
-        yield return FadeInRoutine();
+        // 13. FadeIn — 엔딩이 이어받으면 검은 화면 그대로 넘긴다.
+        //     미리보기 덮개는 엔딩 화면까지 가리므로 미리보기에서는 항상 걷는다.
+        bool endBlack = raiseFinished && HoldBlackAtEnd && screenFade != null;
+        if (!endBlack)
+            yield return FadeInRoutine();
 
         isPlaying = false;
+
+        if (raiseFinished)
+        {
+            raiseFinished = false;
+            Finished?.Invoke(endBlack);
+        }
     }
 
     // ── 샷 간 직선 이동 (SmoothStep, Yaw-only 회전) ──────────
@@ -454,6 +528,7 @@ public class GreenhouseClearCutscene : MonoBehaviour
 
     private void OnDisable()
     {
+        ElectricityCoreMission.Cleared -= OnElectricityCleared;
         StopAllCoroutines();
 
         if (!isPlaying) return;
@@ -467,6 +542,13 @@ public class GreenhouseClearCutscene : MonoBehaviour
 
         if (lockLocomotion && hardwareRig != null)
             hardwareRig.SetLocomotionLocked(false);
+
+        // 중간에 끊겨도 엔딩이 기다리지 않게 알린다.
+        if (raiseFinished)
+        {
+            raiseFinished = false;
+            Finished?.Invoke(false);
+        }
     }
 
     private void OnDestroy()
