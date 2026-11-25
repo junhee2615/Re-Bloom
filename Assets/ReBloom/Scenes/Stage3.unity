@@ -153,6 +153,11 @@ Transform:
   - {fileID: 460383130}
   m_Father: {fileID: 1538667721}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &5017737 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7483928954594509194, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5136988 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9004223633692388457, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
@@ -12654,6 +12659,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1642782724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &949350076 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4273714395633033086, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+  m_PrefabInstance: {fileID: 3846063778224516753}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &949567144
 GameObject:
   m_ObjectHideFlags: 0
@@ -21156,6 +21166,24 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &2012474239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2012474236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 798f8e0e969005a43b341fb9efd4da70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaterFlowAnimator
+  waterfallMesh: {fileID: 5017737}
+  puddleMesh: {fileID: 949350076}
+  waterfallDuration: 0.4
+  puddleDuration: 0.3
+  initialWidthRatio: 0.2
+  puddleStartProgress: 0.65
 --- !u!1 &2015381490
 GameObject:
   m_ObjectHideFlags: 0
@@ -22123,6 +22151,7 @@ MonoBehaviour:
   waterFlowObjects:
   - {fileID: 2012474236}
   waterActivationProgress: 1
+  waterFlowAnimator: {fileID: 2012474239}
   valveRotate: {fileID: 0}
   xrReady: 0
   isPlaying: 0
@@ -23384,6 +23413,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6737582608355975696, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2012474237}
+    - targetCorrespondingSourceObject: {fileID: 6737582608355975696, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2012474239}
     - targetCorrespondingSourceObject: {fileID: 249329751523971530, guid: cf0ffc56e791f1142b261479743aa1fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 270396707}

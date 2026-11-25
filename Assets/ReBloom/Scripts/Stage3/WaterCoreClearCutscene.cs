@@ -63,6 +63,12 @@ public class WaterCoreClearCutscene : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float waterActivationProgress = 1f;
 
+    [Header("물 복구 애니메이션")]
+    [Tooltip("BabblingWater_low 컨테이너의 WaterFlowAnimator. " +
+             "연결 시 물줄기/웅덩이 점진적 등장 + 파티클 연출이 적용된다. " +
+             "'ReBloom/Setup/Setup Water Flow Animation' 메뉴로 자동 연결 가능.")]
+    [SerializeField] private WaterFlowAnimator waterFlowAnimator;
+
     [Header("미션 연결")]
     [Tooltip("WaterValveRotate 참조. 비워두면 씬에서 자동 검색. " +
              "Start() 시 onValveCleared에 OnMissionCleared가 자동 등록된다.")]
@@ -471,11 +477,19 @@ public class WaterCoreClearCutscene : MonoBehaviour
     private void ActivateWaterFlow()
     {
         waterActivated = true;
+
+        // 물 복구 애니메이션: scale=0으로 준비 → SetActive → 애니메이션 시작
+        if (waterFlowAnimator != null)
+            waterFlowAnimator.PrepareAnimation();
+
         foreach (GameObject obj in waterFlowObjects)
         {
             if (obj != null)
                 obj.SetActive(true);
         }
+
+        if (waterFlowAnimator != null)
+            waterFlowAnimator.BeginAnimation(previewMode);
     }
 
     // ── XR Origin 조작 ───────────────────────────────────────
@@ -594,8 +608,15 @@ public class WaterCoreClearCutscene : MonoBehaviour
 
     private void RestorePreviewWaterStates()
     {
+        // 미리보기 종료: 파티클 소멸, 메쉬 복원 (previewMode 여부 무관 — OnDisable 경유도 포함)
+        if (waterFlowAnimator != null && previewMode)
+            waterFlowAnimator.StopAnimation();
+
         if (previewWaterInitialStates == null || waterFlowObjects == null)
+        {
+            previewWaterInitialStates = null;
             return;
+        }
 
         int count = Mathf.Min(
             previewWaterInitialStates.Length, waterFlowObjects.Length);

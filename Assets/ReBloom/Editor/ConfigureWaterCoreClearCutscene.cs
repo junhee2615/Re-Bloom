@@ -295,6 +295,117 @@ public static class ConfigureWaterCoreClearCutscene
             managerGO);
     }
 
+    // ── 물 복구 애니메이션 설정 메뉴 ─────────────────────────
+
+    /// <summary>
+    /// BabblingWater_low 컨테이너에 WaterFlowAnimator를 추가/연결한다.
+    /// Configure 메뉴를 재실행하지 않아도 된다 (카메라 위치 변경 없음).
+    /// </summary>
+    [MenuItem("ReBloom/Setup/Setup Water Flow Animation")]
+    public static void SetupWaterFlowAnimation()
+    {
+        Scene scene = EnsureScene();
+        if (!scene.IsValid()) return;
+
+        // WaterCore 위치 기준으로 BabblingWater_low 컨테이너 탐색
+        Transform waterCore = FindTransformByName(WaterCoreName);
+        if (waterCore == null)
+        {
+            Debug.LogError("[WaterFlowSetup] 'WaterCore'를 씬에서 찾지 못했습니다. " +
+                "Stage3_Environment 프리팹의 WaterCore가 활성화되어 있는지 확인하세요.");
+            return;
+        }
+
+        // inactive 포함 탐색 (BabblingWater_low 컨테이너는 초기 비활성)
+        Transform babblingContainer = FindBabblingContainerNear(waterCore);
+        if (babblingContainer == null)
+            babblingContainer = FindBabblingWaterNear(waterCore);
+        if (babblingContainer == null)
+        {
+            Debug.LogError("[WaterFlowSetup] BabblingWater_low 컨테이너를 찾지 못했습니다.");
+            return;
+        }
+
+        // WaterFlowAnimator 추가 (기존 컴포넌트 재사용)
+        WaterFlowAnimator animator = babblingContainer.GetComponent<WaterFlowAnimator>();
+        if (animator == null)
+        {
+            animator = babblingContainer.gameObject.AddComponent<WaterFlowAnimator>();
+            Undo.RegisterCreatedObjectUndo(
+                babblingContainer.gameObject, "Add WaterFlowAnimator");
+            Debug.Log(
+                $"[WaterFlowSetup] WaterFlowAnimator 컴포넌트 추가: {babblingContainer.name}",
+                babblingContainer.gameObject);
+        }
+        else
+        {
+            Debug.Log(
+                $"[WaterFlowSetup] 기존 WaterFlowAnimator 사용: {babblingContainer.name}",
+                babblingContainer.gameObject);
+        }
+
+        // 자식 메쉬 연결 (BabblingWater_low 메쉬, WaterPuddle_low)
+        Transform waterfallMesh = null;
+        Transform puddleMesh    = null;
+        foreach (Transform child in babblingContainer)
+        {
+            if (child.name == "WaterPuddle_low")
+                puddleMesh = child;
+            else if (child.GetComponent<MeshFilter>() != null && waterfallMesh == null)
+                waterfallMesh = child;
+        }
+
+        SerializedObject animSO = new SerializedObject(animator);
+        if (waterfallMesh != null)
+            animSO.FindProperty("waterfallMesh").objectReferenceValue = waterfallMesh;
+        if (puddleMesh != null)
+            animSO.FindProperty("puddleMesh").objectReferenceValue = puddleMesh;
+        animSO.ApplyModifiedProperties();
+        EditorUtility.SetDirty(animator);
+
+        // WaterCoreClearCutscene 매니저에 연결
+        WaterCoreClearCutscene manager =
+            FindObjectByName<WaterCoreClearCutscene>(ManagerName);
+        if (manager != null)
+        {
+            SerializedObject managerSO = new SerializedObject(manager);
+            SerializedProperty animProp = managerSO.FindProperty("waterFlowAnimator");
+            if (animProp != null)
+            {
+                animProp.objectReferenceValue = animator;
+                managerSO.ApplyModifiedProperties();
+                EditorUtility.SetDirty(manager);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "[WaterFlowSetup] WaterCoreClearCutscene에 'waterFlowAnimator' 필드를 찾지 못했습니다. " +
+                    "WaterCoreClearCutscene.cs가 최신 버전인지 확인하세요.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"[WaterFlowSetup] '{ManagerName}'을 찾지 못했습니다. " +
+                "먼저 'Configure Water Core Clear Cutscene' 메뉴를 실행하거나 " +
+                "WaterCoreClearCutsceneManager GameObject의 WaterFlowAnimator 필드를 Inspector에서 직접 연결하세요.");
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+
+        Debug.Log(
+            $"[WaterFlowSetup] 설정 완료!\n" +
+            $"  BabblingWater_low: {babblingContainer.name}\n" +
+            $"  waterfallMesh: {(waterfallMesh != null ? waterfallMesh.name : "null — Inspector에서 직접 연결")}\n" +
+            $"  puddleMesh:    {(puddleMesh    != null ? puddleMesh.name    : "null — Inspector에서 직접 연결")}\n" +
+            $"  WaterFlowAnimator → WaterCoreClearCutscene: {(manager != null ? "연결됨" : "미연결 — 위 경고 확인")}\n" +
+            $"  ══════════ 테스트 방법 ══════════\n" +
+            $"  1. Stage3.unity Play Mode 진입\n" +
+            $"  2. Hierarchy → WaterCoreClearCutsceneManager 선택\n" +
+            $"  3. Inspector 우클릭 → 'Play Water Core Clear Cutscene'",
+            babblingContainer.gameObject);
+    }
+
     // ── BabblingWater 검색 헬퍼 ─────────────────────────────
 
     private static Transform FindBabblingWaterNear(Transform waterCore)
