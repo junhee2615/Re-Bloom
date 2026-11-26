@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace ReBloom.Water
 {
@@ -308,6 +308,64 @@ namespace ReBloom.Water
             NetworkPlayer local = NetworkPlayer.LocalInstance;
             if (local != null) local.Rpc_RiverbedComplete();
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 개발자용: RiverbedFlow 미션을 클리어 처리하고 WaterfrontToFinalTeleporter 를 바로 연다.
+        /// 호스트에서 누르면 Rpc_RiverbedComplete 로 모든 피어에 클리어가 전달된다.
+        /// 텔레포터는 수변/텔레포터 컷씬을 기다리지 않고 즉시 해제된다.
+        /// </summary>
+        [ContextMenu("Debug Clear + Activate Teleporter")]
+        public void DebugClearAndActivateTeleporter()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[RiverbedNet] Play 모드에서만 실행할 수 있습니다.", this);
+                return;
+            }
+
+            if (controller == null)
+            {
+                Debug.LogError("[RiverbedNet] RiverbedFlowController 참조가 없습니다.", this);
+                return;
+            }
+
+            if (!missionComplete)
+            {
+                missionComplete = true;
+                localStarted = true;
+
+                if (HasSession && IsHost)
+                {
+                    // 실제 클리어와 같은 경로: 모든 피어에서 ApplyNetworkComplete 실행
+                    Broadcast_Complete();
+                }
+                else
+                {
+                    if (HasSession)
+                        Debug.LogWarning(
+                            "[RiverbedNet] 클라이언트에서 실행했습니다. 클리어는 이 화면에만 적용되고, " +
+                            "텔레포터 탑승은 호스트가 판정하므로 호스트에서 눌러야 실제로 열립니다.", this);
+                    controller.ApplyNetworkComplete();
+                }
+            }
+            else if (logToConsole)
+            {
+                Debug.Log("[RiverbedNet] 미션은 이미 완료 상태 - 텔레포터만 활성화합니다.", this);
+            }
+
+            WaterfrontTeleporterCutscene teleporterCutscene =
+                FindFirstObjectByType<WaterfrontTeleporterCutscene>();
+            if (teleporterCutscene == null)
+            {
+                Debug.LogError("[RiverbedNet] WaterfrontTeleporterCutscene 을 찾지 못해 텔레포터를 열 수 없습니다.", this);
+                return;
+            }
+
+            teleporterCutscene.DebugForceActivate();
+            Debug.Log("[RiverbedNet] <b>Debug: RiverbedFlow 클리어 + WaterfrontToFinalTeleporter 활성화</b>", this);
+        }
+#endif
 
 #if UNITY_EDITOR
         [ContextMenu("Debug Clear Mission 2")]

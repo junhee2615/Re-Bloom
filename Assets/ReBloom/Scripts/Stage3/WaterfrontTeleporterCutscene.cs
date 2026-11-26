@@ -295,6 +295,28 @@ public class WaterfrontTeleporterCutscene : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 디버그용: 컷씬 없이 텔레포터 VFX/사운드를 켜고 CutsceneFinished 를 보내
+    /// requiredWaterfrontCutscene 으로 잠긴 ZoneTeleporter 를 바로 해제한다.
+    /// 텔레포터 탑승 판정은 호스트가 하므로 호스트에서 실행해야 실제로 탑승이 열린다.
+    /// </summary>
+    public void DebugForceActivate()
+    {
+        if (isPlaying)
+        {
+            Debug.LogWarning(
+                "[WaterfrontTeleporterCutscene] 컷씬 재생 중이라 강제 활성화를 건너뜁니다. " +
+                "컷씬이 끝나면 자동으로 활성화됩니다.", this);
+            return;
+        }
+
+        Log("DebugForceActivate: 컷씬 생략, 텔레포터 강제 활성화");
+        ResolveTeleporterVfxObjects();
+        ActivateTeleporter();
+        CutsceneFinished?.Invoke();
+    }
+
+
     // ── 카메라 경로 보간 (Rounded-Corner + Arc-Length) ────────
 
     private IEnumerator AnimateCameraPath()
