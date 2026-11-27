@@ -109,8 +109,10 @@ public class EndingCredits : MonoBehaviour
     [SerializeField] private float shotOffsetX = 200f;
     [Tooltip("크레딧 이름이 시작하는 가로 위치(크레딧 화면 왼쪽 끝에서 픽셀, 가로 1920 기준). 클수록 오른쪽.")]
     [SerializeField] private float textLeft = 380f;
-    [Tooltip("크레딧 화면을 시선 정면에서 위(+)·아래(-)로 옮기는 거리(m). Play 중에 바꾸면 바로 움직인다.")]
-    [SerializeField, Range(-2f, 2f)] private float heightOffset = 1.1f;
+    [Tooltip("크레딧 화면 가운데의 높이. VR 헤드(HMD 눈높이) 기준으로 위(+)·아래(-) 거리(m). " +
+             "0이면 눈높이 정면. 시작할 때와 다시 정면으로 따라올 때의 헤드 높이를 기준으로 한다. " +
+             "Play 중에 바꾸면 바로 움직인다.")]
+    [SerializeField, Range(-1f, 1f)] private float eyeHeightOffset = 0.3f;
 
     [Tooltip("시선이 크레딧에서 벗어나면 크레딧이 천천히 다시 시선 정면으로 따라온다.")]
     [SerializeField] private bool followGaze = true;
@@ -132,7 +134,7 @@ public class EndingCredits : MonoBehaviour
     private CanvasGroup contentGroup;
     private Transform viewerTransform;
     private Transform canvasTransform;
-    private Vector3 anchor;   // 높이 조정 전 크레딧 위치(시선 정면)
+    private Vector3 anchor;   // 크레딧의 수평 위치(헤드 앞 distance). 높이는 매 프레임 헤드 높이로 정한다.
     private bool recentering;
 
     // 장면 두 층. 지금 장면과 겹쳐 들어오는 다음 장면을 번갈아 맡는다.
@@ -171,42 +173,50 @@ public class EndingCredits : MonoBehaviour
         StartCoroutine(Run());
     }
 
-    // 시선 정면(위아래 ±30°까지 따름) distance 거리 + 높이 조정
+    // 헤드가 바라보는 수평 방향(위아래 시선은 무시) distance 거리, 헤드(눈) 높이.
     private Vector3 GazePoint()
     {
-        Vector3 forward = viewerTransform.forward;
-        Vector3 flat = Vector3.ProjectOnPlane(forward, Vector3.up);
-        if (flat.sqrMagnitude < 0.001f) flat = Vector3.forward;
-        flat.Normalize();
-
-        Vector3 right = Vector3.Cross(Vector3.up, flat);
-        float pitch = Mathf.Clamp(Vector3.SignedAngle(flat, forward, right), -30f, 30f);   // 양수 = 아래
-        Vector3 direction = Quaternion.AngleAxis(pitch, right) * flat;
-
-        return viewerTransform.position + direction * distance;
+        return viewerTransform.position + FlatForward() * distance;
     }
 
-    // 크레딧 화면을 보는 사람 쪽으로 좌우로만 돌리고, 화면은 늘 똑바로 세운다.
-    // 눈을 정면으로 향하게 하면 눈보다 높이 둔 화면이 뒤로 젖혀져 기울어 보인다.
+    private Vector3 FlatForward()
+    {
+        Vector3 flat = Vector3.ProjectOnPlane(viewerTransform.forward, Vector3.up);
+        if (flat.sqrMagnitude < 0.001f)
+            flat = Vector3.ProjectOnPlane(viewerTransform.up, Vector3.up);   // 바로 아래·위를 볼 때
+        if (flat.sqrMagnitude < 0.001f) flat = Vector3.forward;
+        return flat.normalized;
+    }
+
+    // anchor = 헤드 눈높이·정면 기준점(시작할 때와 다시 따라올 때만 갱신). 여기에 높이 조정만 더한다.
+    private Vector3 CanvasPosition()
+    {
+        return anchor + Vector3.up * eyeHeightOffset;
+    }
+
+    // 크레딧 화면을 기준점 쪽 방향으로 좌우로만 돌리고, 화면은 늘 똑바로 세운다.
+    // 매 프레임 헤드 위치를 보고 돌리면 머리의 미세한 흔들림이 그대로 화면 떨림이 되므로
+    // 기준점이 바뀔 때(시작·다시 따라올 때)만 돌린다.
     private void FaceViewer()
     {
-        Vector3 away = Vector3.ProjectOnPlane(canvasTransform.position - viewerTransform.position, Vector3.up);
+        Vector3 away = Vector3.ProjectOnPlane(anchor - viewerTransform.position, Vector3.up);
         if (away.sqrMagnitude > 0.0001f)
             canvasTransform.rotation = Quaternion.LookRotation(away.normalized, Vector3.up);
     }
 
-    // 크레딧 위치 = 기준점(anchor) + 높이 조정. 높이 조정은 매 프레임 그대로 더하므로
-    // Play 중에 Inspector에서 Height Offset을 바꾸면 바로 위아래로 움직인다.
-    // 시선이 기준점에서 recenterAngle 넘게 벗어나면 기준점이 부드럽게 다시 시선 정면으로 따라온다.
-    // 작게 둘러볼 때는 가만히 있어 어지럽지 않다.
+    // 크레딧은 월드에 고정해 두고 매 프레임 헤드를 따라가지 않는다 — 헤드 위치를 매 프레임 따라가면
+    // HMD 자세가 렌더 직전에 한 번 더 갱신되는 탓에 한 프레임씩 어긋나 화면이 덜덜 떨린다.
+    // 고개를 좌우로 recenterAngle 넘게 돌렸을 때만 기준점(위치·높이)이 부드럽게 다시 정면으로 따라온다.
+    // Play 중에 Inspector에서 Eye Height Offset을 바꾸면 바로 위아래로 움직인다.
     private void LateUpdate()
     {
         if (!IsPlaying || viewerTransform == null || canvasTransform == null) return;
 
         if (followGaze)
         {
-            Vector3 toAnchor = anchor - viewerTransform.position;
-            if (!recentering && Vector3.Angle(viewerTransform.forward, toAnchor) > recenterAngle)
+            Vector3 toAnchor = Vector3.ProjectOnPlane(anchor - viewerTransform.position, Vector3.up);
+            if (!recentering && toAnchor.sqrMagnitude > 0.0001f
+                && Vector3.Angle(FlatForward(), toAnchor) > recenterAngle)
                 recentering = true;
 
             if (recentering)
@@ -217,11 +227,12 @@ public class EndingCredits : MonoBehaviour
 
                 if ((anchor - target).sqrMagnitude < 0.0004f)   // 2cm 안으로 들어오면 멈춘다
                     recentering = false;
+
+                FaceViewer();
             }
         }
 
-        canvasTransform.position = anchor + Vector3.up * heightOffset;
-        FaceViewer();
+        canvasTransform.position = CanvasPosition();
     }
 
     private IEnumerator Run()
@@ -544,7 +555,7 @@ public class EndingCredits : MonoBehaviour
         canvasRect.localScale = Vector3.one * (width / CanvasWidth);
         canvasTransform = canvasRect;
         anchor = GazePoint();
-        canvasRect.position = anchor + Vector3.up * heightOffset;
+        canvasRect.position = CanvasPosition();
         FaceViewer();
         recentering = false;
 

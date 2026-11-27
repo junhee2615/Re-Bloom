@@ -579,7 +579,7 @@ public static class Stage3EndingSetup
             so.FindProperty("textShadeOpacity").floatValue = 0.95f;
             so.FindProperty("liveShotDuration").floatValue = 8f;    // 걸어 들어오기 3초 + 돌아서기 + 손 흔들기
             so.FindProperty("endImageWidth").floatValue = 650f;
-            so.FindProperty("heightOffset").floatValue = 1.1f;    // 기기에서 맞춘 높이
+            so.FindProperty("eyeHeightOffset").floatValue = 0.3f;    // HMD 눈높이보다 조금 위
             so.FindProperty("firstLineDelay").floatValue = 1.5f;
             so.FindProperty("lineFade").floatValue = 0.8f;
             so.FindProperty("lineHold").floatValue = 2.4f;

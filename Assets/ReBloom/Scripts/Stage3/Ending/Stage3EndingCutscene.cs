@@ -249,6 +249,11 @@ public class Stage3EndingCutscene : MonoBehaviour
 
     private bool pendingPlay;
     private bool hasPlayed;
+
+    // 크레딧 동안 XR Origin을 붙잡아 둘 자리(크레딧 시작 때 한 번 잡는다)
+    private bool creditsOriginCaptured;
+    private Vector3 creditsOriginPosition;
+    private Quaternion creditsOriginRotation;
     private bool treeGrown;
 
     // 클리어 순간 온실 컷씬을 기다리기로 했는가 / 그 컷씬이 끝났는가 / 검은 화면으로 넘겨받았는가
@@ -1371,9 +1376,25 @@ public class Stage3EndingCutscene : MonoBehaviour
     // 놓으면 XR Origin이 땅으로 떨어져, 그 높이에 띄운 크레딧이 머리 한참 위에 남는다.
     private void OnCameraUpdated(CinemachineBrain brain)
     {
-        bool holding = isPlaying || (credits != null && credits.IsPlaying);
-        if (!holding || brain != cutsceneBrain || xrOrigin == null || xrHead == null)
+        bool creditsHolding = !isPlaying && credits != null && credits.IsPlaying;
+        if ((!isPlaying && !creditsHolding) || brain != cutsceneBrain || xrOrigin == null || xrHead == null)
             return;
+
+        // 크레딧 중에는 XR Origin을 크레딧이 시작된 자리에 그대로 붙잡아 둔다.
+        // 엔딩 때처럼 매 프레임 "HMD 위치 = 카메라 위치"로 맞추면 머리의 작은 움직임을
+        // Origin이 한 프레임 늦게 되돌려, 월드에 세운 크레딧 화면이 덜덜 떨려 보인다.
+        if (creditsHolding)
+        {
+            if (!creditsOriginCaptured)
+            {
+                creditsOriginCaptured = true;
+                creditsOriginPosition = xrOrigin.position;
+                creditsOriginRotation = xrOrigin.rotation;
+            }
+
+            xrOrigin.SetPositionAndRotation(creditsOriginPosition, creditsOriginRotation);
+            return;
+        }
 
         Transform shot = brain.ControlledObject.transform;
 
